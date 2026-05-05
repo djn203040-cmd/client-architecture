@@ -20,21 +20,39 @@ Every warm lead gets a timely, voice-accurate follow-up — in the coach's words
 - [ ] Coach can connect Gmail account via OAuth
 - [ ] System monitors coach's Gmail for lead replies, opens, and coach-sent emails
 - [ ] Lead profiles tracked with full timeline (stage, events, conversation history)
-- [ ] Lead state machine: identified → call_booked → no_show → in_sequence → replied/closed
-- [ ] Calendar webhook (Calendly) triggers no-show detection and starts sequence
-- [ ] AI drafts generated using coach voice model + full lead context
+- [ ] Lead state machine: `identified` → `call_booked` → `no_show` | `call_completed` → `in_sequence` → `replied` | `converted` | `closed` | `unsubscribed` | `do_not_contact` | `bounced`
+- [ ] Calendar webhooks (all 7 providers) trigger no-show and call_completed detection
+- [ ] AI drafts generated using coach voice model + lead context + call transcripts + coach notes
+- [ ] AI drafts reply when a lead responds to a follow-up email
+- [ ] Sequence auto-pauses on lead reply, new booking, or terminal state — no manual toggle needed
 - [ ] Drafts surface to coach 24h before intended send across all connected channels
-- [ ] Coach can approve, edit, or hold drafts from dashboard
-- [ ] Pre-send safety check runs immediately before every send
+- [ ] Coach can approve, edit inline, regenerate, or hold drafts from dashboard
+- [ ] Pre-send safety check runs immediately before every send (hard gate in Inngest)
 - [ ] Autonomous mode toggle available (not default, explicitly not recommended in UI)
-- [ ] Smart scheduler respects lead timezone and optimal send windows
-- [ ] Coach dashboard: lead list, lead profile, draft approval queue
+- [ ] Unsubscribe link in every outbound email — CAN-SPAM compliant
+- [ ] Hard bounce detection → sequence paused → coach notified to update email address
+- [ ] Integration health card: unobtrusive when healthy, lights red on any broken connection
+- [ ] Coach dashboard: lead list, lead profile, draft approval queue, email thread view
 - [ ] Admin dashboard at /admin for Daniel (all coaches, usage, system health)
+
+**Lead Intake**
+- [ ] Leads enter via calendar webhook (no-show / call completed), manual add, or monitoring detection
+- [ ] When monitoring detects a new lead, system prompts coach: "Add [name] to a sequence?"
+- [ ] Manual sequence trigger available on any lead profile
+- [ ] Coach notes field on every lead — private, injected into every AI draft
+
+**Transcript Integration**
+- [ ] Fireflies.ai webhook — new transcripts stored against lead and injected into AI context
+- [ ] Zoom webhook — new transcripts stored against lead and injected into AI context
+- [ ] Manual transcript upload fallback for other platforms
+- [ ] AI understands full call history: emotional context, milestones, objections
 
 **Voice Model**
 - [ ] Two-layer voice model per coach: structured profile + 10–15 few-shot examples
 - [ ] Built from: Gmail exports, LinkedIn CSV, WhatsApp .txt, Instagram DMs
 - [ ] Voice model referenced on every AI draft generated
+- [ ] Minimum 8 examples required before AI drafts are activated
+- [ ] Confidence indicator on drafts when voice context is thin
 
 **Locked Modules (sell screens)**
 - [ ] Module 2 visible in dashboard with active CTA: "The Threshold Experience — your client's first 48 hours, built from your sales call. [Book a call]"
@@ -105,4 +123,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-04 after initialization*
+*Last updated: 2026-05-05 — requirements scoped, REQUIREMENTS.md + ROADMAP.md + STATE.md added*
