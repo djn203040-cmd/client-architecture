@@ -1282,27 +1282,19 @@ export async function POST(request: Request) {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Supabase project region**
-   - What we know: STACK.md specifies EU region for data residency
-   - What's unclear: Which EU region specifically (eu-west-1, eu-central-1)? GDPR implications for coach data?
-   - Recommendation: Confirm with Daniel before creating the Supabase project — region cannot be changed after creation
+1. **Supabase project region** — RESOLVED: `eu-central-1` (Frankfurt)
+   - Create Supabase project in Frankfurt EU-CENTRAL-1 region. Cannot be changed post-creation.
 
-2. **Google Cloud Project**
-   - What we know: Must be created in Phase 1 for OAuth review
-   - What's unclear: Which Google account should own the GCP project? Daniel's personal account or a business account?
-   - Recommendation: Use a Google Workspace business account owned by Sonorous Digital for the GCP project
+2. **Google Cloud Project** — RESOLVED: Daniel's personal Gmail account
+   - GCP project owned by Daniel's personal Gmail (djn203040@gmail.com). Sufficient for OAuth review at this scale.
 
-3. **Vercel Project + Team**
-   - What we know: App deploys to Vercel
-   - What's unclear: Personal Vercel account or Vercel Team account? (Team required for production-grade maxDuration, some environment variable features)
-   - Recommendation: Use Vercel Team from the start — avoid migrating later
+3. **Vercel Project + Team** — RESOLVED: Personal Vercel account
+   - Personal Vercel account. Upgrade to Team if/when team members are added.
 
-4. **Inngest v3 vs v4**
-   - What we know: STACK.md pinned Inngest v3; v4.2.6 is now latest with identical serve() API
-   - What's unclear: Does v4 checkpointing require any configuration in Phase 1?
-   - Recommendation: Use v4 (latest) — Phase 1 has no functions, so checkpointing is irrelevant until Phase 3
+4. **Inngest v3 vs v4** — RESOLVED: v4 (Inngest 4.2.6)
+   - Use v4 throughout. Phase 1 has no functions; identical API surface for Phase 3.
 
 ---
 

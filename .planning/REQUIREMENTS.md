@@ -13,7 +13,7 @@
 | LEAD-003 | Activity timeline is chronological, typed events with distinct icons (call booked, no-show, email sent, email opened, replied, draft approved, draft held, unsubscribed, bounced) | 1 |
 | LEAD-004 | Coach can add private notes to a lead profile — injected into every AI draft for this lead | 1 |
 | LEAD-005 | Lead list with search, filter by state, and status tabs (active, replied, completed, held, closed) | 1 |
-| LEAD-006 | Manual sequence trigger — coach can enroll any lead in the Intake Sequence from their profile | 1 |
+| LEAD-006 | Manual sequence trigger — coach can enroll any lead in the Intake Sequence from their profile | 3 |
 | LEAD-007 | When monitoring detects a new lead signal (Gmail, Instagram), system surfaces "Add [name] to a sequence?" prompt to coach | 3 |
 | LEAD-008 | Lead source tracked (Calendly, Cal.com, manual, Gmail detected, Instagram detected, referral) | 1 |
 | LEAD-009 | Coach can manually override lead state at any time | 1 |

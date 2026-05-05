@@ -10,17 +10,19 @@
 
 **Weeks:** 1–3
 
-### Plans
-1. **Monorepo + project setup** — Turborepo, TypeScript strict, Tailwind v4, shadcn/ui, Vercel config
-2. **Supabase schema (complete)** — all tables, RLS policies, Vault setup, `draft_edits` scaffold, `watch_expiry_at`, `do_not_contact`, `bounced` flags, `call_completed` state, `coach_notes` on leads
-3. **Auth + invite flow** — Supabase Auth, invite-only, Daniel creates coach accounts, middleware protection
-4. **Lead management** — CRUD, lead profile, activity timeline, coach notes field, state machine foundation
-5. **Gmail OAuth connection** — OAuth flow, token storage in Vault, scope validation, integration health card
-6. **Coach dashboard** — lead list, lead profile view, draft editing scaffold, integration health card
-7. **Admin dashboard** — `/admin` route, all coaches view, system health, Daniel-only protection
+**Plans:** 7 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Monorepo + project setup (Turborepo, TypeScript strict, Tailwind v4, shadcn/ui, test infrastructure, CI gates)
+- [ ] 01-02-PLAN.md — Supabase schema (complete: 11 tables + RLS + Vault + Realtime publication; type generation)
+- [ ] 01-03-PLAN.md — Auth + invite flow (Supabase Auth invite-only, Daniel creates coach accounts, middleware admin gate, shadcn primitives)
+- [ ] 01-04-PLAN.md — Lead management (CRUD, lead profile, activity timeline, coach notes auto-save, state machine foundation)
+- [ ] 01-05-PLAN.md — Gmail OAuth connection (OAuth 2.0 flow, Vault token storage, scope validation, invalid_grant handler, HEALTH-008 review submission)
+- [ ] 01-06-PLAN.md — Coach dashboard (AppShell, sidebar, IntegrationHealthCard, DraftQueueScaffold with Realtime, DraftCard, InlineDraftEditor)
+- [ ] 01-07-PLAN.md — Admin dashboard (/admin role gate + CoachRosterTable + CreateCoachSheet + SystemHealthPanel + read-only coach detail)
 
 ### Requirements covered
-LEAD-001, LEAD-002, LEAD-003, LEAD-004, LEAD-005, LEAD-006, LEAD-008, LEAD-009,
+LEAD-001, LEAD-002, LEAD-003, LEAD-004, LEAD-005, LEAD-008, LEAD-009,
 STATE-001, STATE-007, STATE-009,
 AI-012,
 VOICE-006,
@@ -92,7 +94,7 @@ COMPLY-001, COMPLY-002, COMPLY-003, COMPLY-004, COMPLY-005, COMPLY-006, COMPLY-0
 HEALTH-005, HEALTH-006,
 GMAIL-004, GMAIL-005, GMAIL-006, GMAIL-007, GMAIL-008,
 CAL-001, CAL-002, CAL-003, CAL-004, CAL-005, CAL-006, CAL-007, CAL-008, CAL-009,
-LEAD-007
+LEAD-006, LEAD-007
 
 ### Exit criteria
 - [ ] Calendly no-show webhook starts an Inngest sequence for the lead
