@@ -6,8 +6,9 @@
 
 ## Current Status
 
-**Stage:** Pre-development — planning complete, execution not started
-**Active phase:** None (Phase 1 ready to begin)
+**Stage:** Phase 1 execution in progress
+**Active phase:** Phase 1 — Foundation
+**Current wave:** Wave 2 (Plan 01-02: Supabase schema — BLOCKING checkpoint)
 **Date:** 2026-05-05
 
 ---
@@ -29,12 +30,19 @@
 
 ---
 
+## In Progress
+
+| Artifact | Status |
+|----------|--------|
+| Phase 1 Wave 1 — Plan 01-01 (Monorepo setup) | ✅ Complete (2026-05-05) |
+| Phase 1 Wave 2 — Plan 01-02 (Supabase schema) | ⏳ Awaiting Daniel: create Supabase project (eu-central-1) |
+
 ## What's Not Started
 
 | Artifact | Blocked on |
 |----------|-----------|
-| Phase 1 PLAN.md | Run `/gsd-plan-phase 1` |
-| Any code | Phase 1 plan |
+| Phase 1 Plans 01-02 through 01-07 | Plan 01-01 completion |
+| Any production code | Wave 1 completion |
 
 ---
 
