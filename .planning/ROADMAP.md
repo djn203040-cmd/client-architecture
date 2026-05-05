@@ -14,7 +14,7 @@
 
 Plans:
 - [x] 01-01-PLAN.md — Monorepo + project setup (Turborepo, TypeScript strict, Tailwind v4, shadcn/ui, test infrastructure, CI gates) ✓ 2026-05-05
-- [ ] 01-02-PLAN.md — Supabase schema (complete: 11 tables + RLS + Vault + Realtime publication; type generation)
+- [x] 01-02-PLAN.md — Supabase schema (complete: 11 tables + RLS + Vault + Realtime publication; type generation) ✓ 2026-05-05
 - [ ] 01-03-PLAN.md — Auth + invite flow (Supabase Auth invite-only, Daniel creates coach accounts, middleware admin gate, shadcn primitives)
 - [ ] 01-04-PLAN.md — Lead management (CRUD, lead profile, activity timeline, coach notes auto-save, state machine foundation)
 - [ ] 01-05-PLAN.md — Gmail OAuth connection (OAuth 2.0 flow, Vault token storage, scope validation, invalid_grant handler, HEALTH-008 review submission)

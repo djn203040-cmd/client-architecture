@@ -8,7 +8,7 @@
 
 **Stage:** Phase 1 execution in progress
 **Active phase:** Phase 1 — Foundation
-**Current wave:** Wave 2 (Plan 01-02: Supabase schema — BLOCKING checkpoint)
+**Current wave:** Wave 3 (Plan 01-03: Auth + invite flow)
 **Date:** 2026-05-05
 
 ---
@@ -35,7 +35,7 @@
 | Artifact | Status |
 |----------|--------|
 | Phase 1 Wave 1 — Plan 01-01 (Monorepo setup) | ✅ Complete (2026-05-05) |
-| Phase 1 Wave 2 — Plan 01-02 (Supabase schema) | ⏳ Awaiting Daniel: create Supabase project (eu-central-1) |
+| Phase 1 Wave 2 — Plan 01-02 (Supabase schema) | ✅ Complete (2026-05-05) — ktxgtpvilrydmedvzgft (eu-central-1) |
 
 ## What's Not Started
 
