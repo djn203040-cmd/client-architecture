@@ -1,0 +1,23 @@
+{
+  "name": "client-architecture",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
+    "test": "turbo test",
+    "db:push": "supabase db push",
+    "db:gen-types": "supabase gen types typescript --linked > packages/database/src/types.ts"
+  },
+  "devDependencies": {
+    "turbo": "2.9.9",
+    "typescript": "5.6.3",
+    "prettier": "3.3.3"
+  }
+}
