@@ -9,8 +9,8 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "test": "vitest run && playwright test",
-    "test:unit": "vitest run --reporter=verbose",
-    "test:integration": "vitest run --reporter=verbose",
+    "test:unit": "vitest run tests/unit/",
+    "test:integration": "vitest run tests/integration/",
     "test:e2e": "playwright test"
   },
   "dependencies": {
