@@ -12,6 +12,7 @@
     "./constants": "./src/constants/events.ts"
   },
   "dependencies": {
-    "zod": "4.4.3"
+    "zod": "4.4.3",
+    "@client/database": "workspace:*"
   }
 }

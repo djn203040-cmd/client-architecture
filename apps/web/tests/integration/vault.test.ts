@@ -29,20 +29,21 @@ describe.skipIf(skipIf)("INFRA-003: Vault SECURITY DEFINER functions are private
 
   it("service role can store + retrieve via private RPC", async () => {
     const tokens = { access_token: "test-at", refresh_token: "test-rt", expiry_date: Date.now() + 3600_000 };
-    // @ts-expect-error: private schema RPC not in generated types — intentional (INFRA-003)
-    const { data: vaultId, error: storeErr } = await admin.schema("private").rpc("store_gmail_tokens", { p_coach_id: coachId, p_tokens: tokens });
+    // private schema RPC not in generated types — using untyped client (INFRA-003)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: vaultId, error: storeErr } = await (admin.schema("private") as any).rpc("store_gmail_tokens", { p_coach_id: coachId, p_tokens: tokens });
     expect(storeErr).toBeNull();
     expect(vaultId).toBeTruthy();
 
-    // @ts-expect-error: private schema not exposed
-    const { data: retrieved, error: getErr } = await admin.schema("private").rpc("get_gmail_tokens", { p_coach_id: coachId });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: retrieved, error: getErr } = await (admin.schema("private") as any).rpc("get_gmail_tokens", { p_coach_id: coachId });
     expect(getErr).toBeNull();
     expect(retrieved).toMatchObject({ access_token: "test-at", refresh_token: "test-rt" });
   });
 
   it("anon role cannot call private RPC (REVOKE ALL FROM PUBLIC)", async () => {
-    // @ts-expect-error
-    const { error } = await anon.schema("private").rpc("get_gmail_tokens", { p_coach_id: coachId });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (anon.schema("private") as any).rpc("get_gmail_tokens", { p_coach_id: coachId });
     expect(error).toBeTruthy();
     expect(error?.message.toLowerCase()).toMatch(/permission|not exist|denied/);
   });
