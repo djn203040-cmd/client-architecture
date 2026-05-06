@@ -54,3 +54,6 @@ test-results/
 
 # GSD local cache
 .claude/get-shit-done/.cache/
+
+# Supabase CLI temp files
+supabase/.temp/
