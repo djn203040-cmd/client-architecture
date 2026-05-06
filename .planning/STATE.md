@@ -8,7 +8,7 @@
 
 **Stage:** Phase 1 execution in progress
 **Active phase:** Phase 1 — Foundation
-**Current wave:** Wave 3 (Plan 01-03: Auth + invite flow)
+**Current wave:** Wave 3 (Plan 01-03: Auth + invite flow — partially complete, resume next session)
 **Date:** 2026-05-05
 
 ---
@@ -36,6 +36,7 @@
 |----------|--------|
 | Phase 1 Wave 1 — Plan 01-01 (Monorepo setup) | ✅ Complete (2026-05-05) |
 | Phase 1 Wave 2 — Plan 01-02 (Supabase schema) | ✅ Complete (2026-05-05) — ktxgtpvilrydmedvzgft (eu-central-1) |
+| Phase 1 Wave 3 — Plan 01-03 (Auth + invite flow) | ⚠️ Partial — 2 tasks committed, no SUMMARY.md. Resume next session. |
 
 ## What's Not Started
 
