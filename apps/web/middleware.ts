@@ -23,6 +23,14 @@ export async function middleware(request: NextRequest) {
   // IMPORTANT: getUser() — not getSession() (RESEARCH.md anti-pattern)
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Admin API route protection (T-1-04 defense-in-depth) — return JSON 401, not redirect
+  if (request.nextUrl.pathname.startsWith("/api/admin")) {
+    const isAdmin = user?.app_metadata?.["role"] === "admin";
+    if (!user || !isAdmin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
   // Admin route protection (T-1-04)
   if (request.nextUrl.pathname.startsWith("/admin")) {
     const isAdmin = user?.app_metadata?.["role"] === "admin";
