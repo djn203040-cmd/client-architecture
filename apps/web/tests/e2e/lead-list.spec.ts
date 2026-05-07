@@ -1,5 +1,9 @@
-import { test } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
-test.fixme("LEAD-005: Lead list search and filter works — Plan 04 implements", async ({ page: _page }) => {
-  // Plan 04 implements LeadListTable with search and status filter tabs
+test.fixme("LEAD-005: search input filters table", async ({ page }) => {});
+test.fixme("LEAD-005: status tabs filter table by category", async ({ page }) => {});
+
+test("LEAD-005: anonymous /leads redirects to /login", async ({ page }) => {
+  await page.goto("/leads");
+  await expect(page).toHaveURL(/\/login/);
 });
