@@ -8,7 +8,7 @@
 
 **Stage:** Phase 1 execution in progress
 **Active phase:** Phase 1 — Foundation
-**Current wave:** Wave 4 complete — Wave 5 (01-06 Coach dashboard, 01-07 Admin dashboard) is next
+**Current wave:** Wave 4 complete (01-05 Gmail OAuth done) — Wave 5 (01-06 Coach dashboard, 01-07 Admin dashboard) executing
 **Date:** 2026-05-07
 
 ---
@@ -38,14 +38,14 @@
 | Phase 1 Wave 2 — Plan 01-02 (Supabase schema) | ✅ Complete (2026-05-05) — ktxgtpvilrydmedvzgft (eu-central-1) |
 | Phase 1 Wave 3 — Plan 01-03 (Auth + invite flow) | ✅ Complete (2026-05-05) |
 | Phase 1 Wave 4 — Plan 01-04 (Lead management) | ✅ Complete (2026-05-07) |
-| Phase 1 Wave 4 — Plan 01-05 (Gmail OAuth) | ❌ Not started — autonomous:false checkpoint next |
+| Phase 1 Wave 4 — Plan 01-05 (Gmail OAuth) | ✅ Complete (2026-05-07) — HEALTH-008 verification pending Daniel |
+| Phase 1 Wave 5 — Plan 01-06 (Coach dashboard) | 🔄 Executing |
+| Phase 1 Wave 5 — Plan 01-07 (Admin dashboard) | ⏳ Pending (after 01-06) |
 
 ## What's Not Started
 
 | Artifact | Blocked on |
 |----------|-----------|
-| Phase 1 Plan 01-05 (Gmail OAuth) | Ready — needs next session (autonomous:false, has checkpoint) |
-| Phase 1 Plan 01-06 (Coach dashboard) | 01-05 completion |
 | Phase 1 Plan 01-07 (Admin dashboard) | 01-06 completion |
 
 ---
