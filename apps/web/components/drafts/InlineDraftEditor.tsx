@@ -1,0 +1,46 @@
+"use client";
+import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import type { Database } from "@client/database";
+
+type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
+  leads: { name: string } | null;
+};
+
+export function InlineDraftEditor({
+  draft,
+  onCancel,
+  onSaveAndApprove,
+}: {
+  draft: DraftRow;
+  onCancel: () => void;
+  onSaveAndApprove: (body: string) => void;
+}) {
+  const [body, setBody] = useState(draft.body);
+
+  return (
+    <div className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+      <header className="mb-4">
+        <h2 className="text-xl font-semibold">{draft.leads?.name ?? "Unknown lead"}</h2>
+        <p className="text-xs font-mono text-muted-foreground">Editing draft</p>
+      </header>
+      {draft.subject && (
+        <p className="text-sm font-medium mb-2">Subject: {draft.subject}</p>
+      )}
+      <Textarea
+        value={body}
+        onChange={(e) => setBody(e.target.value)}
+        rows={Math.max(8, body.split("\n").length + 2)}
+        className="font-mono max-w-[65ch] w-full"
+        aria-label="Draft body"
+      />
+      <footer className="flex items-center gap-3 mt-4">
+        <Button onClick={() => onSaveAndApprove(body)}>Save and approve</Button>
+        <Button variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+      </footer>
+    </div>
+  );
+}

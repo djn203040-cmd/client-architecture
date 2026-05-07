@@ -1,0 +1,78 @@
+import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ connected?: string; error?: string }>;
+}) {
+  const sp = await searchParams;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: integrations } = await supabase
+    .from("integrations")
+    .select("*")
+    .eq("coach_id", user!.id);
+  const gmail = integrations?.find((i) => i.provider === "gmail");
+
+  return (
+    <section className="space-y-6 max-w-2xl">
+      <h1 className="text-[28px] font-semibold leading-[1.2]">Settings</h1>
+
+      {sp.connected === "gmail" && (
+        <div className="rounded-2xl bg-[oklch(60%_0.14_145)] text-white p-4 text-sm">
+          Gmail connected.
+        </div>
+      )}
+      {sp.error && (
+        <div className="rounded-2xl bg-destructive text-destructive-foreground p-4 text-sm">
+          {describeError(sp.error)}
+        </div>
+      )}
+
+      <div className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-4">
+        <h2 className="text-xl font-semibold">Gmail</h2>
+        <p className="text-sm text-muted-foreground">
+          We send emails as you, from your Gmail account.
+        </p>
+        {gmail?.status === "connected" ? (
+          <div className="flex items-center justify-between">
+            <span className="text-sm">Connected</span>
+            <Link
+              href="/api/auth/gmail/authorize"
+              className="text-sm text-muted-foreground hover:underline"
+            >
+              Reconnect
+            </Link>
+          </div>
+        ) : (
+          <Link
+            href="/api/auth/gmail/authorize"
+            className="inline-block px-4 py-2 rounded-md bg-accent text-accent-foreground text-sm"
+          >
+            Connect Gmail
+          </Link>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function describeError(code: string): string {
+  switch (code) {
+    case "insufficient_scopes":
+      return "We need permission to send and read emails. Please connect Gmail again and grant all requested scopes.";
+    case "oauth_no_refresh_token":
+      return "Google didn't return a refresh token. Revoke the app in your Google account, then try connecting again.";
+    case "oauth_vault_failed":
+      return "We couldn't securely store your tokens. Try again in a moment.";
+    case "oauth_exchange_failed":
+      return "We couldn't complete the Google sign-in. Try connecting again.";
+    case "oauth_missing_params":
+      return "The connection request was malformed. Try again.";
+    default:
+      return "Connection failed. Try again.";
+  }
+}
