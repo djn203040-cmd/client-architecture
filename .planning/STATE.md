@@ -8,8 +8,8 @@
 
 **Stage:** Phase 1 execution in progress
 **Active phase:** Phase 1 — Foundation
-**Current wave:** Wave 3 (Plan 01-03: Auth + invite flow — partially complete, resume next session)
-**Date:** 2026-05-05
+**Current wave:** Wave 4 complete — Wave 5 (01-06 Coach dashboard, 01-07 Admin dashboard) is next
+**Date:** 2026-05-07
 
 ---
 
@@ -36,14 +36,17 @@
 |----------|--------|
 | Phase 1 Wave 1 — Plan 01-01 (Monorepo setup) | ✅ Complete (2026-05-05) |
 | Phase 1 Wave 2 — Plan 01-02 (Supabase schema) | ✅ Complete (2026-05-05) — ktxgtpvilrydmedvzgft (eu-central-1) |
-| Phase 1 Wave 3 — Plan 01-03 (Auth + invite flow) | ⚠️ Partial — 2 tasks committed, no SUMMARY.md. Resume next session. |
+| Phase 1 Wave 3 — Plan 01-03 (Auth + invite flow) | ✅ Complete (2026-05-05) |
+| Phase 1 Wave 4 — Plan 01-04 (Lead management) | ✅ Complete (2026-05-07) |
+| Phase 1 Wave 4 — Plan 01-05 (Gmail OAuth) | ❌ Not started — autonomous:false checkpoint next |
 
 ## What's Not Started
 
 | Artifact | Blocked on |
 |----------|-----------|
-| Phase 1 Plans 01-02 through 01-07 | Plan 01-01 completion |
-| Any production code | Wave 1 completion |
+| Phase 1 Plan 01-05 (Gmail OAuth) | Ready — needs next session (autonomous:false, has checkpoint) |
+| Phase 1 Plan 01-06 (Coach dashboard) | 01-05 completion |
+| Phase 1 Plan 01-07 (Admin dashboard) | 01-06 completion |
 
 ---
 
