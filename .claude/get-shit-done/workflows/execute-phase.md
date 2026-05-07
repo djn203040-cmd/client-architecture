@@ -947,6 +947,71 @@ increases monotonically across waves. `{status}` is `complete` (success),
 
 8. **Execute checkpoint plans between waves** — see `<checkpoint_handling>`.
 
+8.5. **Wave session break — create resume-point issue and stop.**
+
+   **After every wave that completes successfully AND more waves remain:**
+
+   1. Collect current state:
+      ```bash
+      REMAINING_WAVES=$(echo "$PLAN_INDEX" | jq -r '[.plans[] | select(.has_summary == false) | .wave] | unique | sort | .[]' 2>/dev/null | grep -v "^${N}$" | head -1)
+      REMAINING_PLANS=$(echo "$PLAN_INDEX" | jq -r '[.plans[] | select(.has_summary == false)] | length' 2>/dev/null || echo "?")
+      LAST_COMMIT=$(git log --oneline -1 2>/dev/null || echo "no commits yet")
+      ```
+
+   2. Create a GitHub resume-point issue:
+      ```bash
+      gh issue create \
+        --title "resume-point: phase ${PHASE_NUMBER} wave ${N} complete — continue from wave ${REMAINING_WAVES}" \
+        --label "resume-point" \
+        --body "$(cat <<BODY
+## Session Break — Wave ${N} Complete
+
+**Phase:** ${PHASE_NUMBER} — ${PHASE_NAME}
+**Wave completed:** ${N} of ${M}
+**Next wave:** ${REMAINING_WAVES}
+**Remaining plans:** ${REMAINING_PLANS}
+**Last commit:** ${LAST_COMMIT}
+
+## Plans completed this wave
+$(for plan_id in ${COMPLETED_PLAN_IDS}; do echo "- ✓ ${plan_id}"; done)
+
+## To resume in a new session
+
+\`\`\`
+/gsd-execute-phase ${PHASE_NUMBER} --wave ${REMAINING_WAVES}
+\`\`\`
+
+Or run all remaining waves at once:
+
+\`\`\`
+/gsd-execute-phase ${PHASE_NUMBER}
+\`\`\`
+
+---
+*Auto-generated session break — open a fresh session to continue*
+BODY
+)"
+      ```
+
+   3. **STOP execution.** Do not proceed to the next wave. Output:
+      ```
+      ---
+      ## Session Break — Wave {N} Complete
+
+      Resume-point issue created. Open a new Claude Code session and run:
+
+        /gsd-execute-phase {PHASE_NUMBER} --wave {REMAINING_WAVES}
+
+      Or to run all remaining waves at once:
+
+        /gsd-execute-phase {PHASE_NUMBER}
+      ---
+      ```
+
+   **Skip this step only when:**
+   - The wave that just completed is the LAST wave (no remaining incomplete plans) — continue to `aggregate_results` normally.
+   - `--wave N` flag was passed (user explicitly requested a single wave) — the `handle_partial_wave_execution` step already handles this case; do not duplicate the stop.
+
 9. **Proceed to next wave.**
 </step>
 
