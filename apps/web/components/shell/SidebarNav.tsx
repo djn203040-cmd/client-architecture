@@ -13,13 +13,15 @@ const ITEMS = [
 const LOCKED = [
   {
     id: "module-2",
-    label: "Module 2",
-    subtitle: "The Threshold Experience — your client's first 48 hours, built from your sales call.",
+    label: "The Threshold Experience",
+    subtitle: "Your client's first 48 hours, built from your sales call.",
+    cta: "Book a call",
   },
   {
     id: "module-3",
-    label: "Module 3",
-    subtitle: "The Continuation — thirty days before they leave, we remind them why they stayed.",
+    label: "The Continuation",
+    subtitle: "Thirty days before they leave, we remind them why they stayed.",
+    cta: "Book a call",
   },
 ];
 
@@ -37,7 +39,7 @@ export function SidebarNav() {
             className={`flex items-center gap-3 px-3 min-h-[44px] rounded-xl text-sm transition-colors ${
               active
                 ? "bg-accent text-accent-foreground"
-                : "hover:bg-white/5 text-foreground"
+                : "hover:bg-black/5 dark:hover:bg-white/5 text-foreground"
             }`}
           >
             <Icon weight="regular" className="size-5" />
@@ -46,23 +48,60 @@ export function SidebarNav() {
         );
       })}
 
-      <div className="mt-6 px-3 text-xs uppercase text-muted-foreground tracking-wide">
-        Coming soon
+      <div className="mt-6 px-3 text-xs uppercase text-muted-foreground tracking-wide mb-2">
+        Unlock more
       </div>
 
       {LOCKED.map((m) => (
         <div
           key={m.id}
-          className="flex items-center gap-3 px-3 min-h-[44px] rounded-xl text-sm text-muted-foreground"
-          title={m.subtitle}
+          className="mx-1 rounded-xl border border-border dark:border-white/10 bg-secondary/60 dark:bg-white/5 p-3 mb-2"
         >
-          <LockSimple weight="regular" className="size-5" />
-          <div className="flex-1 truncate">{m.label}</div>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
-            Coming soon
-          </span>
+          <div className="flex items-start gap-2">
+            <LockSimple weight="regular" className="size-4 mt-0.5 text-muted-foreground shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs font-medium leading-tight">{m.label}</p>
+              <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">{m.subtitle}</p>
+              <a
+                href="https://cal.com/daniel"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-1.5 text-[11px] font-medium text-accent hover:underline"
+              >
+                {m.cta} →
+              </a>
+            </div>
+          </div>
         </div>
       ))}
+    </nav>
+  );
+}
+
+export function MobileBottomNav() {
+  const pathname = usePathname();
+  return (
+    <nav
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center border-t border-border bg-background/95 backdrop-blur-md"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      aria-label="Mobile navigation"
+    >
+      {ITEMS.map(({ href, label, Icon }) => {
+        const active = pathname === href || pathname.startsWith(href + "/");
+        return (
+          <Link
+            key={href}
+            href={href}
+            aria-current={active ? "page" : undefined}
+            className={`flex flex-col items-center justify-center flex-1 gap-1 py-2 min-h-[56px] text-[10px] font-medium transition-colors ${
+              active ? "text-accent" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Icon weight={active ? "fill" : "regular"} className="size-5" />
+            {label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

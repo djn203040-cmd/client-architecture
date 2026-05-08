@@ -3,6 +3,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { MagnifyingGlass } from "@phosphor-icons/react";
+import type { Route } from "next";
 
 const TABS = [
   { id: "active", label: "Active" },
@@ -20,14 +21,14 @@ export function LeadListControls({ activeTab, q }: { activeTab: string; q: strin
   function setTab(t: string) {
     const sp = new URLSearchParams(search);
     sp.set("tab", t);
-    router.replace(`${pathname}?${sp.toString()}`);
+    router.replace(`${pathname}?${sp.toString()}` as Route<string>);
   }
 
   function setQ(v: string) {
     const sp = new URLSearchParams(search);
     if (v) sp.set("q", v);
     else sp.delete("q");
-    router.replace(`${pathname}?${sp.toString()}`);
+    router.replace(`${pathname}?${sp.toString()}` as Route<string>);
   }
 
   return (

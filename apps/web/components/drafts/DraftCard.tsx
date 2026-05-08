@@ -89,8 +89,8 @@ export function DraftCard({
       initial={{ x: 300, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: -300, opacity: 0 }}
-      transition={{ type: "spring", stiffness: 120, damping: 18 }}
-      className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+      transition={{ type: "spring", stiffness: 200, damping: 20 }}
+      className="rounded-2xl backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 p-6 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
     >
       <header className="flex items-start justify-between gap-4">
         <div>
@@ -109,9 +109,10 @@ export function DraftCard({
         </div>
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={() => setEditing(true)}
           aria-label="Edit draft"
+          className="min-h-[44px] min-w-[44px]"
         >
           <PencilSimple weight="regular" className="size-4" />
         </Button>
@@ -125,15 +126,15 @@ export function DraftCard({
       </p>
 
       <footer className="flex items-center gap-3 mt-6">
-        <Button onClick={() => setStatus("approved")}>
+        <Button className="min-h-[44px]" onClick={() => setStatus("approved")}>
           <CheckCircle weight="regular" className="size-4 mr-2" />
           Approve <KeyBadge k="A" />
         </Button>
-        <Button variant="outline" onClick={skip}>
+        <Button className="min-h-[44px]" variant="outline" onClick={skip}>
           <SkipForward weight="regular" className="size-4 mr-2" />
           Skip <KeyBadge k="S" />
         </Button>
-        <Button variant="outline" onClick={() => setStatus("held")}>
+        <Button className="min-h-[44px]" variant="outline" onClick={() => setStatus("held")}>
           <PauseCircle weight="regular" className="size-4 mr-2" />
           Hold <KeyBadge k="H" />
         </Button>
@@ -144,7 +145,10 @@ export function DraftCard({
 
 function KeyBadge({ k }: { k: string }) {
   return (
-    <kbd className="ml-2 inline-flex items-center justify-center min-w-[28px] h-7 px-1.5 rounded-md text-xs font-mono bg-white/10 border border-white/10">
+    <kbd
+      aria-hidden="true"
+      className="ml-2 inline-flex items-center justify-center min-w-[28px] h-7 px-1.5 rounded-md text-xs font-mono bg-black/5 dark:bg-white/10 border border-border dark:border-white/10"
+    >
       {k}
     </kbd>
   );
