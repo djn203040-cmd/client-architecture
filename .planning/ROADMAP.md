@@ -49,12 +49,20 @@ INFRA-001, INFRA-002, INFRA-003, INFRA-004, INFRA-005, INFRA-006, INFRA-007, INF
 
 **Weeks:** 4–6
 
-### Plans
-1. **Voice model builder** — structured profile UI, example message ingestion, Layer 1 + Layer 2 construction
-2. **Transcript integration** — Fireflies.ai webhook, Zoom webhook, transcript storage + lead matching, manual upload fallback
-3. **AI draft engine** — context assembler, Anthropic API, XML delimiters, token counting, stage-aware generation
-4. **Draft regeneration + confidence indicator** — one-click regen, thin-context warning
-5. **Email thread view** — Gmail API thread reading, display in lead profile
+**Plans:** 5 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Voice model builder (Phase 2 schema migration, ai-engine client/guardrails/voice-analysis, Settings → My Voice corpus import + Layer 1/Layer 2 review)
+- [ ] 02-02-PLAN.md — Transcript integration (Fireflies + Zoom webhooks with signature verification, lead matching, Unmatched queue tab, manual upload)
+- [ ] 02-03-PLAN.md — AI draft engine (context assembler + token budgeting, state-aware prompts, generateDraft, generate route, AI lead description card)
+- [ ] 02-04-PLAN.md — Draft regeneration + confidence indicator (one-click regen route, DraftCard regen button + amber confidence badge)
+- [ ] 02-05-PLAN.md — Email thread view (Gmail API thread fetch, EmailThreadView as first lead-profile tab)
+
+### Wave structure
+- Wave 1: 02-01 (includes BLOCKING schema migration)
+- Wave 2: 02-02 (depends on 02-01 — transcripts Realtime publication)
+- Wave 3: 02-03 (depends on 02-01 + 02-02 — voice model + transcripts)
+- Wave 4: 02-04 + 02-05 (parallel — depend on 02-03 / 02-01 respectively)
 
 ### Requirements covered
 AI-001, AI-002, AI-003, AI-004, AI-005, AI-006, AI-007, AI-010, AI-011,
@@ -177,5 +185,5 @@ VOICE-005
 
 ---
 
-*Roadmap version: 1.0 — 2026-05-05*
-*Next update: after Phase 1 exit criteria met*
+*Roadmap version: 1.1 — 2026-05-19*
+*Next update: after Phase 2 exit criteria met*
