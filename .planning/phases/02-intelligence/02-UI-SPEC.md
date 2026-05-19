@@ -1,10 +1,11 @@
 ---
 phase: 2
 slug: intelligence
-status: draft
+status: approved
 shadcn_initialized: true
 preset: new-york / neutral / css-variables / rsc
 created: 2026-05-19
+reviewed_at: 2026-05-19T00:00:00Z
 ---
 
 # Phase 2 — UI Design Contract
@@ -55,17 +56,16 @@ Declared values — multiples of 4 only. All values from established DESIGN.md r
 
 ## Typography
 
-All values carried from DESIGN.md. Phase 2 introduces no new type roles.
+All values carried from DESIGN.md. Phase 2 introduces no new type roles. Maximum 4 roles declared.
 
 | Role | Size | Weight | Line Height | Usage in Phase 2 |
 |------|------|--------|-------------|-----------------|
 | Display | 28px (`text-[28px]`) | 600 | 1.2 | Settings page section heading "My Voice" |
 | Heading | 20px (`text-xl`) | 600 | 1.25 | Card titles: "Tone Profile", "Your Writing Style", "Unmatched Transcripts" |
 | Body | 14px (`text-sm`) | 400 | 1.5 | Email body preview, transcript preview, AI description paragraph, chip labels |
-| Label | 12px (`text-xs`) | 400 | 1.4 | Channel section labels (Gmail, LinkedIn), metadata (call date, duration), confidence count |
-| Micro | 10px (`text-[10px]`) | 400 | 1.3 | "AI-generated" indicator, keyboard shortcut badges |
+| Label | 12px (`text-xs`) | 400 | 1.4 | Channel section labels (Gmail, LinkedIn), metadata (call date, duration), confidence count, "AI-written" indicator, keyboard shortcut badges, touchpoint index metadata on DraftCard |
 
-**Mono usage in Phase 2:** Geist Mono at `text-xs` for: touchpoint index metadata on DraftCard, example count badge ("12 of 15 selected"), transcript character count.
+**Mono usage in Phase 2:** Geist Mono at `text-xs` (Label scale) for: touchpoint index metadata on DraftCard, example count badge ("12 of 15 selected"), transcript character count, call duration and date in transcript rows.
 
 **Body text max-width:** `max-w-[65ch]` on AI lead description paragraph and any email body text in thread view. Not applied to chip containers or transcript previews (they use full card width).
 
@@ -91,7 +91,7 @@ Full palette carried from DESIGN.md (OKLCH). No new colors introduced for Phase 
 4. Focus rings on all interactive elements (`focus:ring-accent`)
 5. Re-analyze button (primary, only one per voice builder section)
 
-**Accent is NOT used for:** never-say chip borders, example row hover states, inline edit save, confidence warning badges, "AI-generated" label, email expand/collapse chevrons.
+**Accent is NOT used for:** never-say chip borders, example row hover states, inline edit save, confidence warning badges, "AI-written" label, email expand/collapse chevrons.
 
 **Confidence warning badge color contract:**
 - Background: warm amber `oklch(72% 0.12 70)` in light / `oklch(25% 0.08 65)` in dark
@@ -100,7 +100,7 @@ Full palette carried from DESIGN.md (OKLCH). No new colors introduced for Phase 
 - No border. Subtle fill only.
 - This is the same amber treatment used on both the DraftCard confidence badge (existing) and the new voice builder confidence warning.
 
-**AI-generated indicator:** Small inline label using `--muted-foreground` text, `text-[10px]`, no background. Text: "AI-written". Sits below the AI lead description paragraph, right-aligned.
+**AI-generated indicator:** Small inline label using `--muted-foreground` text, `text-xs`, no background. Text: "AI-written". Sits below the AI lead description paragraph, right-aligned.
 
 ---
 
@@ -186,7 +186,7 @@ All components must be under 200 lines. Extract sub-components when approaching 
 **Elevation:** Raised card per row (within DraftQueueScaffold tab)
 **Structure:**
 - Tab label: "Unmatched" — added to DraftQueueScaffold tab bar alongside existing draft tabs
-- Unmatched count badge: `rounded-full text-[10px] font-mono px-1.5 py-0.5 bg-muted text-muted-foreground` shown next to "Unmatched" tab label when count > 0
+- Unmatched count badge: `rounded-full text-xs font-mono px-1.5 py-0.5 bg-muted text-muted-foreground` shown next to "Unmatched" tab label when count > 0
 - Each transcript row: `rounded-2xl bg-card dark:bg-white/5 border border-border dark:border-white/10 p-5 space-y-4`
   - Metadata row: call date + duration as `text-xs font-mono text-muted-foreground`
   - Transcript preview: `text-sm text-foreground line-clamp-3` (~200 chars visible)
@@ -201,7 +201,7 @@ All components must be under 200 lines. Extract sub-components when approaching 
 **Structure:**
 - No card title — the content IS the lead description. Keeps it scannable.
 - AI paragraph: `text-sm leading-[1.5] text-foreground max-w-[65ch]` — full plain text
-- "AI-written" label: `text-[10px] text-muted-foreground text-right mt-2` — right-aligned below paragraph
+- "AI-written" label: `text-xs text-muted-foreground text-right mt-2` — right-aligned below paragraph
 - Inline edit: clicking anywhere on the paragraph text activates a textarea in place (no modal). Save button: accent fill `min-h-[44px]`. Cancel: ghost `min-h-[44px]`.
 - When coach has manually edited: Phosphor `LockSimple size-3` icon inline with the "AI-written" label — changes to "Edited by you". Protected from AI overwrites (visual cue only, not a toggle).
 - Loading skeleton: two lines of `Skeleton` component matching text line widths
@@ -234,7 +234,7 @@ All components must be under 200 lines. Extract sub-components when approaching 
 - Save button: accent fill, `min-h-[44px]`, text "Save transcript"
 - Spinner on save: inline spinner in button, no overlay
 - Success state: shows transcript preview (first 200 chars) + `text-xs text-muted-foreground` "Saved — a draft will be generated shortly."
-- Existing transcript state: shows saved preview with "Replace" ghost button
+- Existing transcript state: shows saved preview with "Replace transcript" ghost button
 
 ### 8. GenerateDraftButton
 **Location:** `apps/web/app/(dashboard)/leads/[id]/GenerateDraftButton.tsx`
@@ -342,7 +342,7 @@ All from established patterns. No new motion systems introduced.
 | Confidence warning (DraftCard) | "Voice model needs more examples" | Shorter for inline badge |
 | Generate draft CTA | "Generate draft" | Verb + noun, no icon-only |
 | Generating state | "Generating..." | |
-| Draft ready toast | "Draft ready — check your queue" | Em dash replaced by en dash per impeccable rules: "Draft ready — check your queue" — actually use en dash: "Draft ready — check your queue." Note: copy spec uses em-dash here per project voice; review with impeccable audit |
+| Draft ready toast | "Draft ready — check your queue" | Em dash per project voice; review with impeccable audit |
 | AI description empty state | "No lead description yet. Generate a draft to build context." | Explains the trigger |
 | AI-written label | "AI-written" | Not "AI-generated" — shorter |
 | Coach-edited label | "Edited by you" | First-person |
@@ -355,10 +355,13 @@ All from established patterns. No new motion systems introduced.
 | Email empty state | "No emails yet." | Three-word, period — no explanation needed |
 | Transcript card heading | "Call Transcript" | |
 | Transcript saved confirmation | "Saved. A draft will be generated shortly." | Period-separated, factual |
-| Transcript replace button | "Replace" | One word |
+| Transcript replace button | "Replace transcript" | Verb + noun |
 | Unmatched queue empty state | "All transcripts matched." | Positive framing — not "Nothing here" |
-| Destructive: remove chip | Remove chip: no confirmation dialog. Immediate removal with undo toast: "Removed. Undo?" with 4s timeout. | Undo via toast — not modal. |
+| Destructive: remove chip | No confirmation dialog. Immediate removal with undo toast: "Removed. Undo?" with 4s timeout. | Undo via toast — not modal. |
 | Destructive: remove example row | Same undo toast pattern as chip removal. | |
+| Error: voice analysis failure | "Something went wrong analyzing your writing. Try again or add more content." | Warm, non-technical. Points to action. |
+| Error: draft generation failure | "Draft couldn't be generated. Try again from the lead profile." | Short. Tells coach where to go. |
+| Error: email thread load failure | "Couldn't load emails. Check your Gmail connection in Settings." | Links problem to actionable fix location. |
 
 **Absolute copy bans (from design skills):**
 - No "Elevate", "Seamless", "Unleash", "Next-Gen" — banned AI clichés
@@ -398,7 +401,7 @@ No third-party registries declared for Phase 2. All components are built from fi
 | Decision | Source |
 |----------|--------|
 | Spacing scale | DESIGN.md `## Spacing & Radius` |
-| Typography (all 5 roles) | DESIGN.md `## Typography` |
+| Typography (4 roles) | DESIGN.md `## Typography` |
 | Color palette (all tokens) | DESIGN.md `## Color` |
 | Glass elevation treatment | DESIGN.md `## Elevation` + DraftCard.tsx exact className |
 | shadcn style + aliases | components.json |
