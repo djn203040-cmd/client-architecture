@@ -3,10 +3,18 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   PencilSimple,
   CheckCircle,
   SkipForward,
   PauseCircle,
+  ArrowsClockwise,
+  WarningCircle,
 } from "@phosphor-icons/react";
 import { InlineDraftEditor } from "./InlineDraftEditor";
 import { toast } from "sonner";
@@ -24,11 +32,19 @@ export function DraftCard({
   onAdvance: () => void;
 }) {
   const [editing, setEditing] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     cardRef.current?.focus();
   }, [draft.id]);
+
+  // Clear spinning state when Realtime delivers the regenerated draft
+  useEffect(() => {
+    if (draft.status === "pending" && isRegenerating) {
+      setIsRegenerating(false);
+    }
+  }, [draft.status, isRegenerating]);
 
   async function setStatus(status: "approved" | "held", body?: string) {
     const r = await fetch(`/api/drafts/${draft.id}`, {
@@ -44,27 +60,27 @@ export function DraftCard({
     onAdvance();
   }
 
+  async function regenerate() {
+    setIsRegenerating(true);
+    const r = await fetch(`/api/drafts/${draft.id}/regenerate`, { method: "POST" });
+    if (!r.ok) {
+      toast.error("Regeneration failed. Try again.");
+      setIsRegenerating(false);
+    } else {
+      toast.success("Regenerating draft...");
+    }
+  }
+
   function skip() {
     onAdvance();
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
     if (editing) return;
-    if (e.key === "a" || e.key === "A") {
-      e.preventDefault();
-      setStatus("approved");
-    }
-    if (e.key === "s" || e.key === "S") {
-      e.preventDefault();
-      skip();
-    }
-    if (e.key === "h" || e.key === "H") {
-      e.preventDefault();
-      setStatus("held");
-    }
-    if (e.key === "Escape") {
-      (e.target as HTMLElement).blur();
-    }
+    if (e.key === "a" || e.key === "A") { e.preventDefault(); setStatus("approved"); }
+    if (e.key === "s" || e.key === "S") { e.preventDefault(); skip(); }
+    if (e.key === "h" || e.key === "H") { e.preventDefault(); setStatus("held"); }
+    if (e.key === "Escape") { (e.target as HTMLElement).blur(); }
   }
 
   if (editing) {
@@ -102,20 +118,45 @@ export function DraftCard({
             {sched.toLocaleString()}
           </p>
           {draft.confidence_level === "low" && (
-            <span className="inline-block mt-2 text-xs px-2 py-1 rounded-md bg-secondary text-secondary-foreground">
-              Low voice confidence
+            <span className="inline-flex items-center gap-1 mt-2 text-xs px-2 py-1 rounded-md bg-[oklch(72%_0.12_70)] text-[oklch(40%_0.10_65)] dark:bg-[oklch(25%_0.08_65)] dark:text-[oklch(85%_0.08_65)]">
+              <WarningCircle weight="fill" className="size-3" />
+              Voice model needs more examples
             </span>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setEditing(true)}
-          aria-label="Edit draft"
-          className="min-h-[44px] min-w-[44px]"
-        >
-          <PencilSimple weight="regular" className="size-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={regenerate}
+                  disabled={isRegenerating}
+                  aria-label="Regenerate draft"
+                  className="min-h-[44px] min-w-[44px]"
+                >
+                  <ArrowsClockwise
+                    weight="regular"
+                    className={`size-4 ${isRegenerating ? "animate-spin" : ""}`}
+                  />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isRegenerating ? "Generating new draft..." : "Regenerate draft"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setEditing(true)}
+            aria-label="Edit draft"
+            className="min-h-[44px] min-w-[44px]"
+          >
+            <PencilSimple weight="regular" className="size-4" />
+          </Button>
+        </div>
       </header>
 
       {draft.subject && (

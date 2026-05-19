@@ -2,9 +2,174 @@
 if (typeof window !== "undefined") {
   throw new Error(
     "@client/ai-engine must not be imported in client-side code. " +
-    "This package wraps Anthropic API calls (server-side only)."
+    "This package wraps Anthropic API calls (server-only)."
   );
 }
 
-// Phase 2 implementation lives here. Phase 1 ships only the guard.
-export const AI_ENGINE_VERSION = "0.0.1-scaffold";
+import { anthropic } from './client';
+import { buildVoiceAnalysisPrompt } from './prompts/voice-analysis';
+import { buildLeadDescriptionPrompt } from './prompts/lead-description';
+import { VoiceProfileSchema } from '@client/shared/validators';
+import { assembleContext } from './context-assembler';
+import { countTokens } from './token-counter';
+import { isHardBlocked, scanNeverSayList, assertCoachIdScope } from './guardrails';
+import { traceGeneration } from './tracing';
+import type { VoiceAnalysisParams, DraftGenerationParams } from './types';
+import type { TVoiceProfile } from '@client/shared/validators';
+
+export { isHardBlocked, scanNeverSayList, assertCoachIdScope } from './guardrails';
+export type { DraftGenerationParams, VoiceAnalysisParams, VoiceAnalysisResult } from './types';
+
+export class VoiceParseError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'VoiceParseError';
+  }
+}
+
+function extractVoiceProfile(text: string): unknown {
+  const match = text.match(/<voice_profile>([\s\S]*?)<\/voice_profile>/);
+  if (!match || match[1] === undefined) throw new VoiceParseError('No <voice_profile> block found in response');
+  return JSON.parse(match[1].trim());
+}
+
+export async function analyzeVoiceCorpus(params: VoiceAnalysisParams): Promise<TVoiceProfile> {
+  const { system, user } = buildVoiceAnalysisPrompt(params);
+
+  const attempt = async (extraInstruction?: string): Promise<TVoiceProfile> => {
+    const userContent = extraInstruction ? `${user}\n\n${extraInstruction}` : user;
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1500,
+      system,
+      messages: [{ role: 'user', content: userContent }],
+    });
+
+    const block = message.content[0];
+    if (!block || block.type !== 'text') throw new VoiceParseError('Unexpected content block type from Anthropic');
+
+    const parsed = extractVoiceProfile(block.text);
+    const result = VoiceProfileSchema.safeParse(parsed);
+    if (!result.success) {
+      throw new VoiceParseError(`Voice profile schema validation failed: ${result.error.message}`);
+    }
+    return result.data;
+  };
+
+  try {
+    return await attempt();
+  } catch (err) {
+    if (err instanceof VoiceParseError) {
+      return await attempt(
+        'IMPORTANT: Your previous response did not match the required JSON schema. Return ONLY a JSON object inside <voice_profile>...</voice_profile> tags with all required fields.'
+      );
+    }
+    throw err;
+  }
+}
+
+export interface GenerateDraftResult {
+  body: string;
+  confidenceLevel: 'high' | 'low';
+  truncationLog: string[];
+  qualityFlags: string[];
+}
+
+export async function generateDraft(
+  params: DraftGenerationParams,
+  coachName: string,
+): Promise<GenerateDraftResult | null> {
+  // T-02-13: Hard-block gate — must run before any API call
+  if (isHardBlocked(params.leadStatus)) return null;
+
+  if (!params.voiceModel) {
+    throw new Error('Voice model is required to generate a draft.');
+  }
+
+  // T-02-14: Scope check
+  assertCoachIdScope(params.coachId, params.coachId);
+
+  const ctx = await assembleContext(params, coachName);
+
+  // AI-004: Token gate before the real API call
+  const inputTokens = await countTokens(ctx.systemPrompt, ctx.userPrompt);
+
+  const attemptGeneration = async (): Promise<string> => {
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 600,
+      system: ctx.systemPrompt,
+      messages: [{ role: 'user', content: ctx.userPrompt }],
+    });
+    const block = message.content[0];
+    if (!block || block.type !== 'text') throw new Error('Unexpected content block type from Anthropic');
+    return block.text.trim();
+  };
+
+  let body = await attemptGeneration();
+  const qualityFlags: string[] = [];
+
+  // AI-003: Never-say scan with one auto-regen attempt
+  const violations = scanNeverSayList(body, params.voiceModel.never_say_list);
+  if (violations.length > 0) {
+    body = await attemptGeneration();
+    const secondViolations = scanNeverSayList(body, params.voiceModel.never_say_list);
+    if (secondViolations.length > 0) {
+      qualityFlags.push('never_say_violation');
+    }
+  }
+
+  traceGeneration('generateDraft', {
+    leadId: params.leadId,
+    coachId: params.coachId,
+    confidenceLevel: ctx.confidenceLevel,
+    truncationLog: ctx.truncationLog,
+    inputTokens,
+  });
+
+  return {
+    body,
+    confidenceLevel: ctx.confidenceLevel,
+    truncationLog: ctx.truncationLog,
+    qualityFlags,
+  };
+}
+
+export async function updateLeadDescription(params: {
+  leadId: string;
+  coachId: string;
+  leadName: string;
+  transcript?: string;
+  conversationHistory?: string;
+  existingSummary?: string;
+  isProtected: boolean;
+  coachNotes?: string;
+}): Promise<string | null> {
+  // D-22: Coach edits win — never overwrite a protected summary
+  if (params.isProtected) return null;
+
+  const { system, user } = buildLeadDescriptionPrompt({
+    transcript: params.transcript,
+    conversationHistory: params.conversationHistory,
+    existingSummary: params.existingSummary,
+    coachNotes: params.coachNotes,
+    leadName: params.leadName,
+  });
+
+  const message = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 300,
+    system,
+    messages: [{ role: 'user', content: user }],
+  });
+
+  const block = message.content[0];
+  if (!block || block.type !== 'text') return null;
+
+  traceGeneration('updateLeadDescription', {
+    leadId: params.leadId,
+    coachId: params.coachId,
+  });
+
+  return block.text.trim();
+}

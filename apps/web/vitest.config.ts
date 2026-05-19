@@ -16,6 +16,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "."),
       "@client/shared": path.resolve(__dirname, "../../packages/shared/src"),
       "@client/database": path.resolve(__dirname, "../../packages/database/src"),
+      "@client/ai-engine": path.resolve(__dirname, "../../packages/ai-engine/src"),
+      "server-only": path.resolve(__dirname, "tests/mocks/server-only.ts"),
     },
   },
 });

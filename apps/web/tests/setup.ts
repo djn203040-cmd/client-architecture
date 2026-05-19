@@ -1,5 +1,8 @@
 import { vi } from "vitest";
 
+// server-only throws outside Next.js bundler context — no-op in tests
+vi.mock("server-only", () => ({}));
+
 // Mock next/headers for unit tests (not available outside route handlers)
 vi.mock("next/headers", () => ({
   cookies: () => ({

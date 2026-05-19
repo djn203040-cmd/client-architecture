@@ -28,6 +28,21 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@client/ai-engine": [
+        "../../packages/ai-engine/src/index.ts"
+      ],
+      "@client/ai-engine/*": [
+        "../../packages/ai-engine/src/*"
+      ],
+      "@client/shared": [
+        "../../packages/shared/src/index.ts"
+      ],
+      "@client/shared/*": [
+        "../../packages/shared/src/*"
+      ],
+      "@client/database": [
+        "../../packages/database/src/index.ts"
       ]
     }
   },

@@ -388,6 +388,8 @@ export type Database = {
       }
       leads: {
         Row: {
+          ai_summary: string | null
+          ai_summary_protected: boolean
           bounced: boolean
           coach_id: string
           coach_notes: string | null
@@ -404,6 +406,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_summary?: string | null
+          ai_summary_protected?: boolean
           bounced?: boolean
           coach_id: string
           coach_notes?: string | null
@@ -420,6 +424,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_summary?: string | null
+          ai_summary_protected?: boolean
           bounced?: boolean
           coach_id?: string
           coach_notes?: string | null
@@ -555,7 +561,7 @@ export type Database = {
           duration_seconds: number | null
           external_id: string | null
           id: string
-          lead_id: string
+          lead_id: string | null
           matched_by: string | null
           provider: string
           token_count: number | null
@@ -568,7 +574,7 @@ export type Database = {
           duration_seconds?: number | null
           external_id?: string | null
           id?: string
-          lead_id: string
+          lead_id?: string | null
           matched_by?: string | null
           provider: string
           token_count?: number | null
@@ -581,7 +587,7 @@ export type Database = {
           duration_seconds?: number | null
           external_id?: string | null
           id?: string
-          lead_id?: string
+          lead_id?: string | null
           matched_by?: string | null
           provider?: string
           token_count?: number | null
@@ -623,6 +629,8 @@ export type Database = {
         | "slack"
         | "twilio"
         | "instagram"
+        | "zoom"
+        | "fireflies"
       integration_status: "connected" | "disconnected" | "error"
       lead_event_type:
         | "call_booked"
@@ -819,6 +827,8 @@ export const Constants = {
         "slack",
         "twilio",
         "instagram",
+        "zoom",
+        "fireflies",
       ],
       integration_status: ["connected", "disconnected", "error"],
       lead_event_type: [

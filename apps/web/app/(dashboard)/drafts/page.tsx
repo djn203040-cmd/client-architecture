@@ -11,19 +11,35 @@ export default async function DraftsPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const { data: drafts } = await supabase
-    .from("drafts")
-    .select("*, leads(name)")
-    .eq("coach_id", user!.id)
-    .eq("status", "pending")
-    .order("scheduled_send_at", { ascending: true });
+
+  const [draftsResult, unmatchedResult, leadsResult] = await Promise.all([
+    supabase
+      .from("drafts")
+      .select("*, leads(name)")
+      .eq("coach_id", user!.id)
+      .eq("status", "pending")
+      .order("scheduled_send_at", { ascending: true }),
+    supabase
+      .from("transcripts")
+      .select("*")
+      .eq("coach_id", user!.id)
+      .is("lead_id", null)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("leads")
+      .select("id, name, email")
+      .eq("coach_id", user!.id)
+      .order("name", { ascending: true }),
+  ]);
 
   return (
     <section className="space-y-6">
       <h1 className="text-[28px] font-semibold leading-[1.2]">Drafts</h1>
       <DraftQueueScaffold
         coachId={user!.id}
-        initialDrafts={(drafts ?? []) as DraftRow[]}
+        initialDrafts={(draftsResult.data ?? []) as DraftRow[]}
+        initialUnmatched={unmatchedResult.data ?? []}
+        leads={leadsResult.data ?? []}
       />
     </section>
   );
