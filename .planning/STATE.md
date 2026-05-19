@@ -6,8 +6,8 @@
 
 ## Current Status
 
-**Stage:** Phase 2 planned — ready to execute; Phase 3 context gathered
-**Active phase:** Phase 2 — Intelligence (PLANNED — 5 plans, 4 waves)
+**Stage:** Phase 3 planned — ready to execute
+**Active phase:** Phase 3 — Automation (PLANNED — 6 plans, 4 waves)
 **Current wave:** Not started
 **Date:** 2026-05-19
 

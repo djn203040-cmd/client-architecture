@@ -856,27 +856,23 @@ Not applicable. Phase 3 introduces new functionality; no string renames or runti
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **MS Bookings integration approach**
+1. **MS Bookings integration approach** — RESOLVED
    - What we know: MS Bookings has no native webhook API; the Microsoft Graph API does not support Bookings subscriptions as of 2026.
-   - What's unclear: Whether Graph Calendar API change subscriptions can proxy Bookings appointment notifications.
-   - Recommendation: For Phase 3, MS Bookings adapter receives `booking.created` only via manual outbound webhook setup (if available) or is documented as "manual trigger only." Investigate Microsoft Graph `calendarView` subscription as a potential signal.
+   - RESOLVED: MS Bookings adapter is manual-trigger-only per D-08. No webhook events received. IntegrationHealthCard tooltip shows "Manual" (D-11).
 
-2. **Setmore webhook availability**
+2. **Setmore webhook availability** — RESOLVED
    - What we know: Setmore API requires direct sign-up (`api@setmore.com`). Public docs confirm API exists but don't list webhook event types.
-   - What's unclear: Whether Setmore supports booking.created webhooks or requires polling.
-   - Recommendation: Treat as polling-only in Phase 3 implementation. Add a comment in the adapter noting this needs verification.
+   - RESOLVED: Treated as manual-trigger-only per D-08. Adapter stub accepts booking.created if available; no-show = manual trigger. Comment in adapter notes verification pending Setmore API access.
 
-3. **GCP Pub/Sub topic setup**
+3. **GCP Pub/Sub topic setup** — RESOLVED (Wave 0 prerequisite)
    - What we know: The topic name must be set as `GMAIL_PUBSUB_TOPIC_NAME` env var; `gmail-api-push@system.gserviceaccount.com` must have `publish` permission on the topic.
-   - What's unclear: Whether the GCP project is already set up for this deployment.
-   - Recommendation: Wave 0 prerequisite: confirm GCP project exists, create Pub/Sub topic, add IAM binding, set env var.
+   - RESOLVED: Added as explicit Wave 0 prerequisite in Plan 03-03. Before executing Wave 3: (1) confirm or create GCP project, (2) create Pub/Sub topic, (3) add IAM binding for `gmail-api-push@system.gserviceaccount.com`, (4) set `GMAIL_PUBSUB_TOPIC_NAME` env var in Vercel + local `.env.local`. Polling fallback (D-13) operates without Pub/Sub — absence of topic only degrades push latency.
 
-4. **Acuity no-show signal**
+4. **Acuity no-show signal** — RESOLVED
    - What we know: Acuity's official webhook docs list `scheduled`, `rescheduled`, `canceled`, `changed`, `order.completed` — no `no_show`.
-   - What's unclear: Whether Acuity has an undocumented or enterprise-only no-show flag.
-   - Recommendation: Implement Acuity adapter with booking.created (`scheduled`) for `lead/call_booked` only. No-show = manual trigger only.
+   - RESOLVED: Acuity adapter handles `scheduled` (call_booked) only. No-show = manual trigger per D-08.
 
 ---
 
