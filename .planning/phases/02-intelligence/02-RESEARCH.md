@@ -832,22 +832,13 @@ async function fetchFirefliesTranscript(meetingId: string, apiKey: string) {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Fireflies API key scoping**
-   - What we know: Fireflies uses a workspace API key (Bearer token) for GraphQL queries
-   - What's unclear: Is the API key per coach account or is it a single Daniel-level workspace key?
-   - Recommendation: Treat as per-coach (each coach registers their own Fireflies account and provides their API key in Settings). Store in Supabase Vault alongside Gmail tokens.
+1. **Fireflies API key scoping** — RESOLVED: Treat as per-coach. Each coach registers their own Fireflies account and provides their API key in Settings. Stored in Supabase Vault alongside Gmail tokens. Per-coach webhook URL (`/api/webhooks/transcripts/fireflies?coachId=<uuid>`) identifies which coach's lead pool to match against (implemented in 02-02).
 
-2. **Zoom OAuth vs Zoom Server-to-Server OAuth**
-   - What we know: Zoom transcripts require coach OAuth for `download_url` authenticated access
-   - What's unclear: Whether the current `integrations` table + Vault pattern needs a `zoom` provider entry in the `integration_provider` enum (it currently does NOT — enum has: gmail, calendly, cal_com, acuity, setmore, square, ms_bookings, tidycal, slack, twilio, instagram)
-   - Recommendation: Add `zoom` to the `integration_provider` enum in a Phase 2 migration (alongside the `ai_summary` migration).
+2. **Zoom OAuth vs Zoom Server-to-Server OAuth** — RESOLVED: Add `zoom` (and `fireflies`) to the `integration_provider` enum in the Phase 2 migration (02-01 migration task). Zoom access token is per-coach OAuth stored in Vault. If no Zoom integration exists for a coach, the VTT download is skipped and the manual upload fallback (D-13) covers the gap. The webhook handler gracefully skips the download and logs a warning if no Zoom integration is found.
 
-3. **Unmatched transcript queue: HTTP poll vs Realtime?**
-   - What we know: The `transcripts` table is not in the Realtime publication
-   - What's unclear: Whether the unmatched queue needs live updates or if a page refresh is acceptable
-   - Recommendation: Add `transcripts` to the Realtime publication in the Phase 2 migration, so unmatched counts update live. The existing publication syntax (`ALTER PUBLICATION supabase_realtime ADD TABLE public.transcripts;`) is a 1-line migration.
+3. **Unmatched transcript queue: HTTP poll vs Realtime?** — RESOLVED: Add `transcripts` to the Realtime publication in the Phase 2 migration (02-01 migration task) so unmatched counts update live: `ALTER PUBLICATION supabase_realtime ADD TABLE public.transcripts;`
 
 ---
 

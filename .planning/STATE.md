@@ -6,10 +6,10 @@
 
 ## Current Status
 
-**Stage:** Phase 1 complete — Phase 2 planning next
-**Active phase:** Phase 1 — Foundation (COMPLETE)
-**Current wave:** All waves complete
-**Date:** 2026-05-07
+**Stage:** Phase 2 planned — ready to execute
+**Active phase:** Phase 2 — Intelligence (PLANNED — 5 plans, 4 waves)
+**Current wave:** Not started
+**Date:** 2026-05-19
 
 ---
 
@@ -81,6 +81,7 @@
 | Phase | Completed | Notes |
 |-------|-----------|-------|
 | Phase 1 — Foundation | 2026-05-07 | Monorepo, Supabase schema, auth, lead management, Gmail OAuth, coach dashboard (19/20 impeccable), admin dashboard. All exit criteria met. |
+| Phase 2 — Intelligence | PLANNED 2026-05-19 | 5 plans (02-01 voice model, 02-02 transcripts, 02-03 AI engine, 02-04 regen, 02-05 thread view). 4 waves. All 23 requirement IDs covered. Ready to execute. |
 
 ---
 
