@@ -86,13 +86,21 @@ GMAIL-009
 
 **Weeks:** 7–9
 
-### Plans
-1. **Calendar abstraction layer** — unified `CalendarEvent` type, all 7 provider adapters
-2. **Inngest sequence engine** — full state machine, concurrency keys, `cancelOn`, `step.sleepUntil`, pre-send safety check
-3. **Gmail monitoring** — Pub/Sub watch, 6-day renewal cron, polling fallback, reply detection
-4. **Reply handling** — `lead/replied` event, sequence pause, AI reply draft, approval flow entry
-5. **Compliance layer** — unsubscribe link + API route, hard bounce detection, do-not-contact enforcement
-6. **Lead intake monitoring** — Gmail signal detection, "add to sequence?" coach prompt
+**Plans:** 6 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Calendar abstraction layer (schema migration + pending_actions table, Wave 0 test stubs, TCalendarEvent type, 7 provider adapters with per-provider HMAC verification)
+- [ ] 03-02-PLAN.md — Inngest sequence engine (sequence-no-show + sequence-call-completed functions, enrollment API, Vercel cron routes, Sequence Settings UI, Pending Actions UI, sequence-status-panel wired)
+- [ ] 03-03-PLAN.md — Gmail monitoring (lib/gmail/monitor.ts, lib/gmail/bounce-detector.ts, gmail-watch + gmail-monitor Inngest functions, Pub/Sub push receiver, tracking pixel)
+- [ ] 03-04-PLAN.md — Reply handling (reply-handler.ts Inngest function — 4-step: status update + pause + cancel drafts + fire reply draft)
+- [ ] 03-05-PLAN.md — Compliance layer (HMAC unsubscribe token lib, /api/unsubscribe route, /unsubscribe page, bounce-handler.ts Inngest function)
+- [ ] 03-06-PLAN.md — Lead intake monitoring + Pending Actions UI (dismiss API route, full PendingActionCard + PendingActionsSection implementation)
+
+### Wave structure
+- Wave 1: 03-01 (schema migration — BLOCKING; 7 calendar provider routes; Wave 0 test stubs)
+- Wave 2: 03-02 (Inngest engine — depends on 03-01 for sequence_config column)
+- Wave 3: 03-03 + 03-04 (parallel — Gmail monitoring + reply handler; both depend on 03-02)
+- Wave 4: 03-05 + 03-06 (parallel — compliance + lead intake UI; both depend on 03-02)
 
 ### Requirements covered
 STATE-002, STATE-003, STATE-004, STATE-005, STATE-006, STATE-008, STATE-010,
@@ -179,11 +187,11 @@ VOICE-005
 |-------|------|-------|--------|
 | 1 | Foundation | 1–3 | Not started |
 | 2 | Intelligence | 4–6 | Not started |
-| 3 | Automation | 7–9 | Not started |
+| 3 | Automation | 7–9 | PLANNED 2026-05-19 |
 | 4 | Approval Channels | 10–12 | Not started |
 | 5 | Polish | 13–14 | Not started |
 
 ---
 
-*Roadmap version: 1.1 — 2026-05-19*
-*Next update: after Phase 2 exit criteria met*
+*Roadmap version: 1.2 — 2026-05-19*
+*Next update: after Phase 3 exit criteria met*
