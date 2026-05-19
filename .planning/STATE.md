@@ -6,7 +6,7 @@
 
 ## Current Status
 
-**Stage:** Phase 2 planned — ready to execute
+**Stage:** Phase 2 planned — ready to execute; Phase 3 context gathered
 **Active phase:** Phase 2 — Intelligence (PLANNED — 5 plans, 4 waves)
 **Current wave:** Not started
 **Date:** 2026-05-19
@@ -82,6 +82,7 @@
 |-------|-----------|-------|
 | Phase 1 — Foundation | 2026-05-07 | Monorepo, Supabase schema, auth, lead management, Gmail OAuth, coach dashboard (19/20 impeccable), admin dashboard. All exit criteria met. |
 | Phase 2 — Intelligence | PLANNED 2026-05-19 | 5 plans (02-01 voice model, 02-02 transcripts, 02-03 AI engine, 02-04 regen, 02-05 thread view). 4 waves. All 23 requirement IDs covered. Ready to execute. |
+| Phase 3 — Automation | CONTEXT 2026-05-19 | 25 decisions captured: sequence cadence (5-touchpoint no-show, 3-touchpoint call-completed), per-coach Settings config, calendar provider strategy (auto/manual), call follow-up Pending Actions cards, Gmail Pub/Sub monitoring, reply handling, compliance, lead intake monitoring. |
 
 ---
 
