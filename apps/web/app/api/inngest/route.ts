@@ -5,6 +5,7 @@ import { sequenceCallCompleted } from "@/inngest/functions/sequence-call-complet
 import { gmailWatch } from "@/inngest/functions/gmail-watch";
 import { gmailMonitor, gmailNotificationReceived } from "@/inngest/functions/gmail-monitor";
 import { replyHandler } from "@/inngest/functions/reply-handler";
+import { bounceHandler } from "@/inngest/functions/bounce-handler";
 
 // REQUIRED: Vercel default 10s timeout breaks Inngest long-polling (RESEARCH.md Pitfall 4)
 export const maxDuration = 300;
@@ -18,5 +19,6 @@ export const { GET, POST, PUT } = serve({
     gmailMonitor,
     gmailNotificationReceived,
     replyHandler,
+    bounceHandler,
   ],
 });
