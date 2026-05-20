@@ -19,6 +19,7 @@
     "@client/shared": "workspace:*",
     "@phosphor-icons/react": "2.1.10",
     "@radix-ui/react-slot": "^1.2.4",
+    "@slack/web-api": "^7.16.0",
     "@supabase/ssr": "0.10.2",
     "@supabase/supabase-js": "2.105.3",
     "@upstash/ratelimit": "2.0.8",
