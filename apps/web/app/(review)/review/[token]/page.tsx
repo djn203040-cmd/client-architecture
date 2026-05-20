@@ -1,5 +1,6 @@
 import "server-only";
 import type { ReactNode } from "react";
+import type { Route } from "next";
 import Link from "next/link";
 import { verifyReviewToken } from "@/lib/review-token";
 import { adminClient } from "@/lib/supabase/admin";
@@ -80,7 +81,7 @@ function StateCard({
   icon: ReactNode;
   heading: string;
   body: string;
-  ctaHref?: string;
+  ctaHref?: Route;
   ctaLabel?: string;
 }) {
   return (
