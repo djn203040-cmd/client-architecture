@@ -130,13 +130,31 @@ LEAD-006, LEAD-007
 
 **Weeks:** 10–12
 
-### Plans
-1. **Dashboard approval queue (full)** — live queue via Supabase Realtime, keyboard shortcuts, Approve + Next flow
-2. **Email notifications** — Resend integration, draft notification with review link
-3. **Slack integration** — webhook setup, full draft in message, Approve / Hold buttons, approve-from-Slack flow
-4. **Twilio WhatsApp + SMS** — draft notification, delivery tracking, SMS fallback
-5. **Autonomous mode** — Mode A (full auto-send) and Mode B (auto-send on 24h timeout), Postgres lock on status transition
-6. **24h follow-up + HOLD flow** — second notification, HOLD state, indefinite hold management
+**Plans:** 9 plans
+
+Plans:
+- [ ] 04-00-PLAN.md — Wave 0 test scaffolding (22 vitest/playwright test stubs + 5 shared utility/mock files; flips 04-VALIDATION.md nyquist_compliant)
+- [ ] 04-01-PLAN.md — Schema migration + advisory-lock RPCs + shared types (D-25 columns/tables, 4 SECURITY DEFINER RPCs in private schema, BLOCKING schema push to ktxgtpvilrydmedvzgft, type regen, approveDraftAtomic/holdDraftAtomic/consumeReviewToken wrappers, seedNotificationPreferences)
+- [ ] 04-02-PLAN.md — Dashboard approval queue (full) + /api/drafts/[id] PATCH (Held tab, HeldDraftActions R/E/C, CelebrationEmptyState "You're all caught up.", DraftCard variant/surface props, Realtime status filter)
+- [ ] 04-03-PLAN.md — Email channel + tokenized review page + short-link + Resend webhook (review-token lib, Resend client/signature, draft-ready/follow-up/bounce templates, /(review)/review/[token] page with 4 states, /r/[token] redirect, /r/invalid, PATCH /api/review/[token] single-use nonce, GET /api/review/[token]/data read-only, /api/webhooks/resend Svix verify)
+- [ ] 04-04-PLAN.md — Slack channel (per-coach OAuth install+callback, signature verify, Block Kit message with full body + 3 buttons, interactivity webhook with atomic approve/hold and Edit modal, sendSlack adapter)
+- [ ] 04-05-PLAN.md — Twilio WhatsApp + SMS + status webhook (Content API with approved utility templates, MessagingServiceSid SMS, buildSmsBody ≤160-char enforcement, /api/webhooks/twilio/status delivery tracking)
+- [ ] 04-06-PLAN.md — Autonomous modes A + B (Settings UI with RadioGroup, AutonomousModeAConfirmModal type-to-confirm "send without review", PATCH /api/settings/autonomous-mode server-side phrase check, autonomous-mode-b-timer Inngest function with sleepUntil + cancelOn + CAS approve)
+- [ ] 04-07-PLAN.md — Multi-channel dispatcher + 24h follow-up + 48h HOLD cascade + bounce wiring + Notification matrix UI (lib/notifications/dispatcher.ts, Promise.allSettled fan-out with distinct step ids, dashboard channel adapter, draft-followup-cta with two sleepUntil steps, bounce-handler rewired through dispatcher, 4×5 NotificationMatrix with dashboard+hard-bounce-SMS locks, settings index links)
+- [ ] 04-08-PLAN.md — Upstream draft-creation autonomous-mode branching (B-2 reviewer fix — apps/web/app/api/drafts/generate/route.ts branches on coach.autonomous_mode to fire draft/created_mode_b, draft/created_pending, notification/draft_ready, or direct status='approved' + draft/send_via_gmail; consumed by 04-06 + 04-07)
+
+### Wave structure
+- Wave 0: 04-00 (test scaffolding — Nyquist gate)
+- Wave 1: 04-01 (schema migration + RPCs — BLOCKING schema push to live Supabase; required by every downstream plan)
+- Wave 2 (parallel — no file overlap):
+  - 04-02 dashboard queue
+  - 04-04 Slack OAuth + interactivity
+  - 04-05 Twilio WhatsApp + SMS + status webhook
+  - 04-06 Autonomous mode UI + Mode B timer
+- Wave 3: 04-03 email + review page (depends on 04-02 DraftCard variant/surface props)
+- Wave 4 (parallel — both depend on 04-06 + 04-07):
+  - 04-07 dispatcher + matrix UI + follow-up + hold cascade + bounce rewire
+  - 04-08 upstream draft-creation autonomous-mode branching (B-2 reviewer fix)
 
 ### Requirements covered
 DRAFT-001, DRAFT-002, DRAFT-007, DRAFT-008, DRAFT-009, DRAFT-010, DRAFT-011,
@@ -189,10 +207,10 @@ VOICE-005
 | 1 | Foundation | 1–3 | Not started |
 | 2 | Intelligence | 4–6 | Not started |
 | 3 | Automation | 7–9 | PLANNED 2026-05-19 |
-| 4 | Approval Channels | 10–12 | Not started |
+| 4 | Approval Channels | 10–12 | PLANNED 2026-05-20 |
 | 5 | Polish | 13–14 | Not started |
 
 ---
 
-*Roadmap version: 1.2 — 2026-05-19*
-*Next update: after Phase 3 exit criteria met*
+*Roadmap version: 1.3 — 2026-05-20*
+*Next update: after Phase 4 execution*

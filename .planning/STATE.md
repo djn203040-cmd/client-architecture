@@ -6,9 +6,9 @@
 
 ## Current Status
 
-**Stage:** Phase 4 UI-SPEC approved — ready for planning
-**Active phase:** Phase 4 — Approval Channels (CONTEXT.md + UI-SPEC.md complete)
-**Current wave:** —
+**Stage:** Phase 4 plans approved — ready to execute
+**Active phase:** Phase 4 — Approval Channels (9 plans across 5 waves, PLAN CHECK PASSED)
+**Current wave:** Wave 0 (test scaffolding) next
 **Date:** 2026-05-20
 
 ---
@@ -83,7 +83,7 @@
 | Phase 1 — Foundation | 2026-05-07 | Monorepo, Supabase schema, auth, lead management, Gmail OAuth, coach dashboard (19/20 impeccable), admin dashboard. All exit criteria met. |
 | Phase 2 — Intelligence | PLANNED 2026-05-19 | 5 plans (02-01 voice model, 02-02 transcripts, 02-03 AI engine, 02-04 regen, 02-05 thread view). 4 waves. All 23 requirement IDs covered. Ready to execute. |
 | Phase 3 — Automation | COMPLETE 2026-05-20 | 03-01 ✅ (calendar webhooks, schema migration), 03-02 ✅ (Inngest sequence engine, enrollment API, cron routes, Pending Actions UI, Sequence Cadence settings), 03-03 ✅ (Gmail monitoring: Pub/Sub push receiver, watch renewal, polling fallback, bounce-detector, tracking pixel), 03-04 ✅ (reply handler: LEAD_REPLIED → pause sequence, cancel drafts, fire reply draft), 03-05 ✅ (compliance layer: HMAC unsubscribe tokens, /api/unsubscribe, /unsubscribe page, bounce-handler), 03-06 ✅ (Pending Actions UI: dismiss API with idempotency + Inngest enrollment, PendingActionCard 3/2 buttons, PendingActionsSection). |
-| Phase 4 — Approval Channels | UI-SPEC 2026-05-20 | CONTEXT.md captures 26 decisions across Slack OAuth app + DM + Block Kit interactivity (D-01 to D-05), tokenized review-link UX for email/WhatsApp/SMS (D-06 to D-10), notification matrix preferences + parallel dispatcher (D-11 to D-16), HOLD tab + Approve+Next urgency ordering + celebration empty-state (D-17 to D-21), Postgres advisory-lock CAS for autonomous mode A/B (D-22 to D-24), and one new schema migration (D-25/D-26: drafts.followup_count, drafts.review_token_nonce, notification_preferences table, consumed_tokens table). UI-SPEC.md approved — 12 new surfaces (HeldTab, Held DraftCard variant, CelebrationEmptyState, NotificationMatrix 4×5, AutonomousModeCard, Mode A confirm modal, public /review/{token} page, /r/{token} short-link, Resend email template, Slack Block Kit message, WhatsApp Meta utility templates, SMS bodies). 5 new shadcn additions (Switch, Checkbox, RadioGroup, Alert, Toast). All 6 design dimensions PASS clean. Ready for /gsd:plan-phase 4. |
+| Phase 4 — Approval Channels | PLANNED 2026-05-20 | 9 plans across 5 waves (PLAN CHECK PASSED iteration 2). W0: 04-00 test scaffolding (22 vitest/playwright stubs + 5 utility mocks). W1: 04-01 schema migration + 4 SECURITY DEFINER RPCs (`approve_draft_atomic`, `hold_draft_atomic`, `consume_review_token`, `increment_followup_count`) + `notification_log.payload` column (amends D-26) — includes [BLOCKING] `supabase db push --linked` task. W2 parallel: 04-02 (Dashboard queue + Held tab + Celebration + missing `/api/drafts/[id]` PATCH route), 04-04 (Slack OAuth per-coach + Block Kit + interactivity webhook), 04-05 (Twilio WhatsApp Content API + SMS + status webhook), 04-06 (Autonomous modes A+B Settings UI + type-to-confirm modal + Mode B timer). W3: 04-03 (Email + tokenized review page `/r/{token}` + Resend webhook). W4 parallel: 04-07 (Multi-channel dispatcher + 24h follow-up + 48h HOLD cascade + Notification matrix 4×5 UI), 04-08 (Upstream draft-creation branching on `coach.autonomous_mode` — fires `draft/created_pending` / `draft/created_mode_b` / `draft/send_via_gmail` events). All 16 REQ IDs covered. All threat models present. Total ~6770 plan lines. Ready for /gsd:execute-phase 4. |
 
 ---
 
