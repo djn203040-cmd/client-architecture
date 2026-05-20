@@ -2,21 +2,10 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  PencilSimple,
-  CheckCircle,
-  SkipForward,
-  PauseCircle,
-  ArrowsClockwise,
-  WarningCircle,
-} from "@phosphor-icons/react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { PencilSimple, CheckCircle, SkipForward, PauseCircle, ArrowsClockwise, WarningCircle } from "@phosphor-icons/react";
 import { InlineDraftEditor } from "./InlineDraftEditor";
+import { HeldDraftActions } from "./HeldDraftActions";
 import { toast } from "sonner";
 import type { Database } from "@client/database";
 
@@ -24,13 +13,21 @@ type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
   leads: { name: string } | null;
 };
 
+interface DraftCardProps {
+  draft: DraftRow;
+  variant?: "pending" | "held";
+  surface?: "app" | "review";
+  reviewToken?: string;
+  onAdvance?: () => void;
+}
+
 export function DraftCard({
   draft,
+  variant = "pending",
+  surface = "app",
+  reviewToken,
   onAdvance,
-}: {
-  draft: DraftRow;
-  onAdvance: () => void;
-}) {
+}: DraftCardProps) {
   const [editing, setEditing] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -39,25 +36,32 @@ export function DraftCard({
     cardRef.current?.focus();
   }, [draft.id]);
 
-  // Clear spinning state when Realtime delivers the regenerated draft
   useEffect(() => {
     if (draft.status === "pending" && isRegenerating) {
       setIsRegenerating(false);
     }
   }, [draft.status, isRegenerating]);
 
-  async function setStatus(status: "approved" | "held", body?: string) {
-    const r = await fetch(`/api/drafts/${draft.id}`, {
+  async function callPatch(payload: object) {
+    const url =
+      surface === "review"
+        ? `/api/review/${reviewToken}`
+        : `/api/drafts/${draft.id}`;
+    return fetch(url, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ status, ...(body ? { body } : {}) }),
+      body: JSON.stringify(payload),
     });
+  }
+
+  async function setStatus(status: "approved" | "held", body?: string) {
+    const r = await callPatch({ status, ...(body ? { body } : {}) });
     if (!r.ok) {
       toast.error("This action didn't go through. Refresh and try again.");
       return;
     }
     toast.success(status === "approved" ? "Approved" : "Held");
-    onAdvance();
+    onAdvance?.();
   }
 
   async function regenerate() {
@@ -71,15 +75,11 @@ export function DraftCard({
     }
   }
 
-  function skip() {
-    onAdvance();
-  }
-
   function onKeyDown(e: React.KeyboardEvent) {
-    if (editing) return;
-    if (e.key === "a" || e.key === "A") { e.preventDefault(); setStatus("approved"); }
-    if (e.key === "s" || e.key === "S") { e.preventDefault(); skip(); }
-    if (e.key === "h" || e.key === "H") { e.preventDefault(); setStatus("held"); }
+    if (editing || variant === "held") return;
+    if (e.key === "a" || e.key === "A") { e.preventDefault(); void setStatus("approved"); }
+    if (e.key === "s" || e.key === "S") { e.preventDefault(); onAdvance?.(); }
+    if (e.key === "h" || e.key === "H") { e.preventDefault(); void setStatus("held"); }
     if (e.key === "Escape") { (e.target as HTMLElement).blur(); }
   }
 
@@ -94,6 +94,10 @@ export function DraftCard({
   }
 
   const sched = new Date(draft.scheduled_send_at ?? Date.now());
+  const isReview = surface === "review";
+  const wrapClass = isReview
+    ? "bg-white/10 backdrop-blur-md border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+    : "backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]";
 
   return (
     <motion.div
@@ -106,7 +110,7 @@ export function DraftCard({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: -300, opacity: 0 }}
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
-      className="rounded-2xl backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 p-6 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+      className={`rounded-2xl p-6 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${wrapClass}`}
     >
       <header className="flex items-start justify-between gap-4">
         <div>
@@ -125,37 +129,41 @@ export function DraftCard({
           )}
         </div>
         <div className="flex items-center gap-1">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={regenerate}
-                  disabled={isRegenerating}
-                  aria-label="Regenerate draft"
-                  className="min-h-[44px] min-w-[44px]"
-                >
-                  <ArrowsClockwise
-                    weight="regular"
-                    className={`size-4 ${isRegenerating ? "animate-spin" : ""}`}
-                  />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {isRegenerating ? "Generating new draft..." : "Regenerate draft"}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setEditing(true)}
-            aria-label="Edit draft"
-            className="min-h-[44px] min-w-[44px]"
-          >
-            <PencilSimple weight="regular" className="size-4" />
-          </Button>
+          {!isReview && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={regenerate}
+                    disabled={isRegenerating}
+                    aria-label="Regenerate draft"
+                    className="min-h-[44px] min-w-[44px]"
+                  >
+                    <ArrowsClockwise
+                      weight="regular"
+                      className={`size-4 ${isRegenerating ? "animate-spin" : ""}`}
+                    />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isRegenerating ? "Generating new draft..." : "Regenerate draft"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          {variant === "pending" && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setEditing(true)}
+              aria-label="Edit draft"
+              className="min-h-[44px] min-w-[44px]"
+            >
+              <PencilSimple weight="regular" className="size-4" />
+            </Button>
+          )}
         </div>
       </header>
 
@@ -166,20 +174,26 @@ export function DraftCard({
         {draft.body}
       </p>
 
-      <footer className="flex items-center gap-3 mt-6">
-        <Button className="min-h-[44px]" onClick={() => setStatus("approved")}>
-          <CheckCircle weight="regular" className="size-4 mr-2" />
-          Approve <KeyBadge k="A" />
-        </Button>
-        <Button className="min-h-[44px]" variant="outline" onClick={skip}>
-          <SkipForward weight="regular" className="size-4 mr-2" />
-          Skip <KeyBadge k="S" />
-        </Button>
-        <Button className="min-h-[44px]" variant="outline" onClick={() => setStatus("held")}>
-          <PauseCircle weight="regular" className="size-4 mr-2" />
-          Hold <KeyBadge k="H" />
-        </Button>
-      </footer>
+      {variant === "pending" && (
+        <footer className="flex items-center gap-3 mt-6">
+          <Button className="min-h-[44px]" onClick={() => setStatus("approved")}>
+            <CheckCircle weight="regular" className="size-4 mr-2" />
+            Approve <KeyBadge k="A" />
+          </Button>
+          <Button className="min-h-[44px]" variant="outline" onClick={onAdvance}>
+            <SkipForward weight="regular" className="size-4 mr-2" />
+            Skip <KeyBadge k="S" />
+          </Button>
+          <Button className="min-h-[44px]" variant="outline" onClick={() => setStatus("held")}>
+            <PauseCircle weight="regular" className="size-4 mr-2" />
+            Hold <KeyBadge k="H" />
+          </Button>
+        </footer>
+      )}
+
+      {variant === "held" && (
+        <HeldDraftActions draft={draft} onAdvance={onAdvance} />
+      )}
     </motion.div>
   );
 }

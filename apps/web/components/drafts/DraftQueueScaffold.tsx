@@ -1,7 +1,9 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 import { DraftCard } from "./DraftCard";
+import { HeldTab } from "./HeldTab";
+import { CelebrationEmptyState } from "./CelebrationEmptyState";
 import { UnmatchedTranscriptQueue } from "./UnmatchedTranscriptQueue";
 import { useDraftRealtime } from "./draft-realtime";
 import type { Database } from "@client/database";
@@ -12,7 +14,7 @@ type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
 type TranscriptRow = Database["public"]["Tables"]["transcripts"]["Row"];
 type LeadRow = Pick<Database["public"]["Tables"]["leads"]["Row"], "id" | "name" | "email">;
 
-type Tab = "drafts" | "unmatched";
+type Tab = "drafts" | "held" | "unmatched";
 
 export function DraftQueueScaffold({
   coachId,
@@ -25,58 +27,71 @@ export function DraftQueueScaffold({
   initialUnmatched?: TranscriptRow[];
   leads?: LeadRow[];
 }) {
-  const [drafts, setDrafts] = useState<DraftRow[]>(initialDrafts);
   const [activeTab, setActiveTab] = useState<Tab>("drafts");
-  useDraftRealtime(coachId, setDrafts);
+  const [justEmptied, setJustEmptied] = useState(false);
+  const prevLengthRef = useRef(initialDrafts.length);
 
-  const advance = useCallback((draftId: string) => {
-    setDrafts((prev) => prev.filter((d) => d.id !== draftId));
-  }, []);
+  const { drafts, loading: draftsLoading } = useDraftRealtime(coachId, {
+    status: "pending",
+    initialDrafts,
+  });
+  const { drafts: heldDrafts } = useDraftRealtime(coachId, { status: "held" });
+
+  // Detect when queue drains via a coach action (not initial empty load)
+  const prevLength = prevLengthRef.current;
+  if (prevLength > 0 && drafts.length === 0 && !justEmptied) {
+    setJustEmptied(true);
+  }
+  if (drafts.length > 0 && justEmptied) {
+    setJustEmptied(false);
+  }
+  prevLengthRef.current = drafts.length;
+
+  const advance = useCallback(
+    (draftId: string) => {
+      // Realtime will remove the draft; but we track justEmptied via length change
+      void draftId;
+    },
+    [],
+  );
 
   const unmatchedCount = initialUnmatched.length;
+  const heldCount = heldDrafts.length;
 
   return (
     <div className="space-y-4">
-      {/* Tab bar */}
-      <div role="tablist" aria-label="Draft queue sections" className="flex items-center gap-1 border-b border-border pb-3">
-        <button
-          role="tab"
+      <div
+        role="tablist"
+        aria-label="Draft queue sections"
+        className="flex items-center gap-1 border-b border-border pb-3"
+      >
+        <TabButton
           id="tab-drafts"
-          aria-selected={activeTab === "drafts"}
-          aria-controls="tabpanel-drafts"
+          controls="tabpanel-drafts"
+          active={activeTab === "drafts"}
           onClick={() => setActiveTab("drafts")}
-          className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors min-h-[44px] ${
-            activeTab === "drafts"
-              ? "bg-accent text-accent-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-          }`}
+          badge={drafts.length > 0 ? drafts.length : undefined}
         >
-          Drafts
-          {drafts.length > 0 && (
-            <span className="ml-2 rounded-full text-xs font-mono px-1.5 py-0.5 bg-muted text-muted-foreground">
-              {drafts.length}
-            </span>
-          )}
-        </button>
-        <button
-          role="tab"
+          Pending
+        </TabButton>
+        <TabButton
+          id="tab-held"
+          controls="tabpanel-held"
+          active={activeTab === "held"}
+          onClick={() => setActiveTab("held")}
+          badge={heldCount > 0 ? heldCount : undefined}
+        >
+          Held
+        </TabButton>
+        <TabButton
           id="tab-unmatched"
-          aria-selected={activeTab === "unmatched"}
-          aria-controls="tabpanel-unmatched"
+          controls="tabpanel-unmatched"
+          active={activeTab === "unmatched"}
           onClick={() => setActiveTab("unmatched")}
-          className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors min-h-[44px] ${
-            activeTab === "unmatched"
-              ? "bg-accent text-accent-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-          }`}
+          badge={unmatchedCount > 0 ? unmatchedCount : undefined}
         >
           Unmatched
-          {unmatchedCount > 0 && (
-            <span className="ml-2 rounded-full text-xs font-mono px-1.5 py-0.5 bg-muted text-muted-foreground">
-              {unmatchedCount}
-            </span>
-          )}
-        </button>
+        </TabButton>
       </div>
 
       <div
@@ -86,7 +101,9 @@ export function DraftQueueScaffold({
         tabIndex={0}
         hidden={activeTab !== "drafts"}
       >
-        {drafts.length === 0 ? (
+        {!draftsLoading && justEmptied ? (
+          <CelebrationEmptyState />
+        ) : drafts.length === 0 ? (
           <div className="rounded-2xl backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 p-16 text-center">
             <h2 className="text-xl font-semibold mb-2">No drafts waiting</h2>
             <p className="text-muted-foreground max-w-md mx-auto">
@@ -112,6 +129,16 @@ export function DraftQueueScaffold({
 
       <div
         role="tabpanel"
+        id="tabpanel-held"
+        aria-labelledby="tab-held"
+        tabIndex={0}
+        hidden={activeTab !== "held"}
+      >
+        {activeTab === "held" && <HeldTab coachId={coachId} />}
+      </div>
+
+      <div
+        role="tabpanel"
         id="tabpanel-unmatched"
         aria-labelledby="tab-unmatched"
         tabIndex={0}
@@ -124,5 +151,43 @@ export function DraftQueueScaffold({
         />
       </div>
     </div>
+  );
+}
+
+function TabButton({
+  id,
+  controls,
+  active,
+  onClick,
+  badge,
+  children,
+}: {
+  id: string;
+  controls: string;
+  active: boolean;
+  onClick: () => void;
+  badge?: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      role="tab"
+      id={id}
+      aria-selected={active}
+      aria-controls={controls}
+      onClick={onClick}
+      className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors min-h-[44px] ${
+        active
+          ? "bg-accent text-accent-foreground"
+          : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+      }`}
+    >
+      {children}
+      {badge !== undefined && (
+        <span className="ml-2 rounded-full text-xs font-mono px-1.5 py-0.5 bg-muted text-muted-foreground">
+          {badge}
+        </span>
+      )}
+    </button>
   );
 }
