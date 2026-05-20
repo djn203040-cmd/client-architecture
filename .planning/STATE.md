@@ -6,9 +6,9 @@
 
 ## Current Status
 
-**Stage:** Phase 4 executing — Wave 1 next
+**Stage:** Phase 4 executing — Wave 3 next
 **Active phase:** Phase 4 — Approval Channels (9 plans across 5 waves)
-**Current plan:** 04-01 (schema migration + 4 SECURITY DEFINER RPCs) — Wave 1 start
+**Current plan:** 04-03 (tokenized review page) — Wave 3
 **Date:** 2026-05-20
 
 ---
@@ -83,7 +83,7 @@
 | Phase 1 — Foundation | 2026-05-07 | Monorepo, Supabase schema, auth, lead management, Gmail OAuth, coach dashboard (19/20 impeccable), admin dashboard. All exit criteria met. |
 | Phase 2 — Intelligence | PLANNED 2026-05-19 | 5 plans (02-01 voice model, 02-02 transcripts, 02-03 AI engine, 02-04 regen, 02-05 thread view). 4 waves. All 23 requirement IDs covered. Ready to execute. |
 | Phase 3 — Automation | COMPLETE 2026-05-20 | 03-01 ✅ (calendar webhooks, schema migration), 03-02 ✅ (Inngest sequence engine, enrollment API, cron routes, Pending Actions UI, Sequence Cadence settings), 03-03 ✅ (Gmail monitoring: Pub/Sub push receiver, watch renewal, polling fallback, bounce-detector, tracking pixel), 03-04 ✅ (reply handler: LEAD_REPLIED → pause sequence, cancel drafts, fire reply draft), 03-05 ✅ (compliance layer: HMAC unsubscribe tokens, /api/unsubscribe, /unsubscribe page, bounce-handler), 03-06 ✅ (Pending Actions UI: dismiss API with idempotency + Inngest enrollment, PendingActionCard 3/2 buttons, PendingActionsSection). |
-| Phase 4 — Approval Channels | IN PROGRESS 2026-05-20 | W0: 04-00 ✅ COMPLETE (22 RED test stubs + 5 utility/mock files, nyquist_compliant=true, 4 commits). W1 NEXT: 04-01 (schema migration + 4 SECURITY DEFINER RPCs: `approve_draft_atomic`, `hold_draft_atomic`, `consume_review_token`, `increment_followup_count` + `notification_log.payload` column — [BLOCKING] `supabase db push --linked` task). W2 parallel: 04-02 (Dashboard queue), 04-04 (Slack OAuth + Block Kit), 04-05 (Twilio WhatsApp + SMS), 04-06 (Autonomous modes A+B). W3: 04-03 (Email + tokenized review page). W4 parallel: 04-07 (dispatcher + follow-up cascade), 04-08 (draft-creation branching). |
+| Phase 4 — Approval Channels | IN PROGRESS 2026-05-20 | W0: 04-00 ✅ (22 RED test stubs + utility/mock files). W1: 04-01 ✅ (schema migration + 5 SECURITY DEFINER RPCs + public wrappers, PGRST106 confirmed). W2: 04-02 ✅ (PATCH /api/drafts/[id], Held tab, HeldDraftActions, CelebrationEmptyState, DraftCard variant+surface props, useDraftRealtime refactor, 28 tests GREEN). W3 NEXT: 04-03 (tokenized review page). W2 parallel still pending: 04-04 (Slack), 04-05 (Twilio), 04-06 (Autonomous modes). W4: 04-07 (dispatcher), 04-08 (branching). |
 
 ---
 
