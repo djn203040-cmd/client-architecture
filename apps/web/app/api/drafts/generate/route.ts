@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { isHardBlocked } from '@client/ai-engine';
 import { VoiceProfileSchema } from '@client/shared/validators';
+import { inngest } from '@/inngest/client';
+import { buildDraftOutcome } from '@/lib/autonomous-mode';
 import type { TLeadStatus } from '@client/shared/types';
 
 const GenerateRequestSchema = z.object({
@@ -49,7 +51,7 @@ export async function POST(request: Request) {
   // Load voice model
   const { data: coach, error: coachError } = await supabase
     .from('coaches')
-    .select('voice_model, name')
+    .select('voice_model, name, autonomous_mode')
     .eq('id', user.id)
     .single();
 
@@ -102,6 +104,7 @@ export async function POST(request: Request) {
   const draftId = draft.id;
   const coachName = coach.name;
   const coachId = user.id;
+  const autonomousMode = coach.autonomous_mode as string | null;
 
   // Fire-and-forget generation
   void (async () => {
@@ -159,11 +162,21 @@ export async function POST(request: Request) {
         return;
       }
 
+      const now = new Date().toISOString();
+      const outcome = buildDraftOutcome(
+        autonomousMode,
+        draftId,
+        coachId,
+        lead.name,
+        result.confidenceLevel,
+        now,
+      );
+
       await supabase
         .from('drafts')
         .update({
           body: result.body,
-          status: 'pending',
+          status: outcome.status,
           confidence_level: result.confidenceLevel,
           generation_context: {
             truncation_applied: result.truncationLog.length > 0,
@@ -173,6 +186,12 @@ export async function POST(request: Request) {
           },
         })
         .eq('id', draftId);
+
+      await Promise.all(
+        outcome.events.map((e) =>
+          inngest.send(e as Parameters<typeof inngest.send>[0]),
+        ),
+      );
 
       // D-19: Update ai_summary if not protected
       if (!lead.ai_summary_protected) {

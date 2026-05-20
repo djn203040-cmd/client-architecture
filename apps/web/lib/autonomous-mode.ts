@@ -40,3 +40,61 @@ export function dbModeToApiMode(dbMode: AutonomousMode | string | null | undefin
   if (dbMode === "mode_b") return "mode_b";
   return "manual";
 }
+
+export interface TDraftOutcomeEvent {
+  name: string;
+  data: Record<string, unknown>;
+}
+
+export interface TDraftOutcome {
+  status: "approved" | "pending";
+  events: TDraftOutcomeEvent[];
+}
+
+/**
+ * Pure helper: given a coach's autonomous mode, return the terminal draft status
+ * and the Inngest events to fire after generation completes.
+ *   mode_a  → approved, fire send_via_gmail immediately
+ *   mode_b  → pending, start 24h auto-send timer
+ *   off/null → pending, start follow-up CTA + notify coach on all channels
+ */
+export function buildDraftOutcome(
+  mode: string | null | undefined,
+  draftId: string,
+  coachId: string,
+  leadName: string,
+  confidenceLevel: "high" | "low",
+  now: string,
+): TDraftOutcome {
+  if (mode === "mode_a") {
+    return {
+      status: "approved",
+      events: [{ name: "draft/send_via_gmail", data: { draftId, coachId, source: "mode_a" } }],
+    };
+  }
+
+  if (mode === "mode_b") {
+    const scheduledSendAt = new Date(
+      new Date(now).getTime() + 24 * 60 * 60 * 1000,
+    ).toISOString();
+    return {
+      status: "pending",
+      events: [{ name: "draft/created_mode_b", data: { draftId, coachId, scheduledSendAt } }],
+    };
+  }
+
+  return {
+    status: "pending",
+    events: [
+      { name: "draft/created_pending", data: { draftId, coachId, createdAt: now } },
+      {
+        name: "notification/draft_ready",
+        data: {
+          coachId,
+          eventType: "draft_ready",
+          payload: { draftId, leadName, confidenceLevel },
+        },
+      },
+    ],
+  };
+}
