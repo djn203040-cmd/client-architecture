@@ -22,3 +22,4 @@ export type TNotificationChannel = Database["public"]["Enums"]["notification_cha
 export type TIntegrationStatus = Database["public"]["Enums"]["integration_status"];
 
 export * from "./calendar";
+export * from "./notifications";

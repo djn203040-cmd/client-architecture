@@ -20,9 +20,45 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_draft_atomic: {
+        Args: { p_actor: string; p_draft_id: string }
+        Returns: {
+          new_status: Database["public"]["Enums"]["draft_status"]
+          ok: boolean
+          reason: string
+        }[]
+      }
+      consume_review_token: {
+        Args: {
+          p_action: string
+          p_coach_id: string
+          p_draft_id: string
+          p_token_id: string
+        }
+        Returns: {
+          ok: boolean
+          reason: string
+        }[]
+      }
       get_gmail_tokens: { Args: { p_coach_id: string }; Returns: Json }
+      hold_draft_atomic: {
+        Args: { p_actor: string; p_draft_id: string }
+        Returns: {
+          new_status: Database["public"]["Enums"]["draft_status"]
+          ok: boolean
+          reason: string
+        }[]
+      }
+      increment_followup_count: {
+        Args: { p_draft_id: string }
+        Returns: number
+      }
       store_gmail_tokens: {
         Args: { p_coach_id: string; p_tokens: Json }
+        Returns: string
+      }
+      store_slack_token: {
+        Args: { p_coach_id: string; p_token: string }
         Returns: string
       }
     }
@@ -84,6 +120,7 @@ export type Database = {
           id: string
           name: string
           role: string
+          sequence_config: Json | null
           service_info: Json | null
           updated_at: string
           voice_model: Json | null
@@ -95,6 +132,7 @@ export type Database = {
           id: string
           name: string
           role?: string
+          sequence_config?: Json | null
           service_info?: Json | null
           updated_at?: string
           voice_model?: Json | null
@@ -106,11 +144,51 @@ export type Database = {
           id?: string
           name?: string
           role?: string
+          sequence_config?: Json | null
           service_info?: Json | null
           updated_at?: string
           voice_model?: Json | null
         }
         Relationships: []
+      }
+      consumed_tokens: {
+        Row: {
+          action: string
+          coach_id: string
+          consumed_at: string
+          draft_id: string | null
+          token_id: string
+        }
+        Insert: {
+          action: string
+          coach_id: string
+          consumed_at?: string
+          draft_id?: string | null
+          token_id: string
+        }
+        Update: {
+          action?: string
+          coach_id?: string
+          consumed_at?: string
+          draft_id?: string | null
+          token_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consumed_tokens_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumed_tokens_draft_id_fkey"
+            columns: ["draft_id"]
+            isOneToOne: false
+            referencedRelation: "drafts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       draft_edits: {
         Row: {
@@ -158,10 +236,12 @@ export type Database = {
           coach_id: string
           confidence_level: string | null
           created_at: string
+          followup_count: number
           generation_context: Json | null
           held_at: string | null
           id: string
           lead_id: string
+          review_token_nonce: string | null
           scheduled_send_at: string | null
           sent_at: string | null
           sequence_id: string | null
@@ -179,10 +259,12 @@ export type Database = {
           coach_id: string
           confidence_level?: string | null
           created_at?: string
+          followup_count?: number
           generation_context?: Json | null
           held_at?: string | null
           id?: string
           lead_id: string
+          review_token_nonce?: string | null
           scheduled_send_at?: string | null
           sent_at?: string | null
           sequence_id?: string | null
@@ -200,10 +282,12 @@ export type Database = {
           coach_id?: string
           confidence_level?: string | null
           created_at?: string
+          followup_count?: number
           generation_context?: Json | null
           held_at?: string | null
           id?: string
           lead_id?: string
+          review_token_nonce?: string | null
           scheduled_send_at?: string | null
           sent_at?: string | null
           sequence_id?: string | null
@@ -460,6 +544,7 @@ export type Database = {
           error_message: string | null
           external_id: string | null
           id: string
+          payload: Json | null
           sent_at: string | null
           status: string
         }
@@ -471,6 +556,7 @@ export type Database = {
           error_message?: string | null
           external_id?: string | null
           id?: string
+          payload?: Json | null
           sent_at?: string | null
           status?: string
         }
@@ -482,6 +568,7 @@ export type Database = {
           error_message?: string | null
           external_id?: string | null
           id?: string
+          payload?: Json | null
           sent_at?: string | null
           status?: string
         }
@@ -491,6 +578,86 @@ export type Database = {
             columns: ["draft_id"]
             isOneToOne: false
             referencedRelation: "drafts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          channel: Database["public"]["Enums"]["notification_channel"]
+          coach_id: string
+          created_at: string
+          enabled: boolean
+          event_type: string
+          updated_at: string
+        }
+        Insert: {
+          channel: Database["public"]["Enums"]["notification_channel"]
+          coach_id: string
+          created_at?: string
+          enabled?: boolean
+          event_type: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: Database["public"]["Enums"]["notification_channel"]
+          coach_id?: string
+          created_at?: string
+          enabled?: boolean
+          event_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pending_actions: {
+        Row: {
+          coach_id: string
+          created_at: string
+          dismissed_at: string | null
+          id: string
+          lead_id: string | null
+          payload: Json | null
+          type: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          lead_id?: string | null
+          payload?: Json | null
+          type: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          lead_id?: string | null
+          payload?: Json | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_actions_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_actions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
         ]
@@ -607,7 +774,42 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      approve_draft_atomic: {
+        Args: { p_actor: string; p_draft_id: string }
+        Returns: {
+          new_status: Database["public"]["Enums"]["draft_status"]
+          ok: boolean
+          reason: string
+        }[]
+      }
+      consume_review_token: {
+        Args: {
+          p_action: string
+          p_coach_id: string
+          p_draft_id: string
+          p_token_id: string
+        }
+        Returns: {
+          ok: boolean
+          reason: string
+        }[]
+      }
+      hold_draft_atomic: {
+        Args: { p_actor: string; p_draft_id: string }
+        Returns: {
+          new_status: Database["public"]["Enums"]["draft_status"]
+          ok: boolean
+          reason: string
+        }[]
+      }
+      increment_followup_count: {
+        Args: { p_draft_id: string }
+        Returns: number
+      }
+      store_slack_token: {
+        Args: { p_coach_id: string; p_token: string }
+        Returns: string
+      }
     }
     Enums: {
       draft_status:
@@ -675,7 +877,7 @@ export type Database = {
         | "unsubscribed"
         | "do_not_contact"
         | "bounced"
-      notification_channel: "email" | "slack" | "whatsapp" | "sms"
+      notification_channel: "email" | "slack" | "whatsapp" | "sms" | "dashboard"
       sequence_status: "active" | "paused" | "completed" | "cancelled" | "held"
     }
     CompositeTypes: {
@@ -877,7 +1079,7 @@ export const Constants = {
         "do_not_contact",
         "bounced",
       ],
-      notification_channel: ["email", "slack", "whatsapp", "sms"],
+      notification_channel: ["email", "slack", "whatsapp", "sms", "dashboard"],
       sequence_status: ["active", "paused", "completed", "cancelled", "held"],
     },
   },
