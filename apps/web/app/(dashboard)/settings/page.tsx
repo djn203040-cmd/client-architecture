@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { SequenceSettingsClient } from "@/components/settings/SequenceSettingsClient";
 
 export default async function SettingsPage({
   searchParams,
@@ -11,11 +12,19 @@ export default async function SettingsPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const { data: integrations } = await supabase
-    .from("integrations")
-    .select("*")
-    .eq("coach_id", user!.id);
+  const [{ data: integrations }, { data: coachData }] = await Promise.all([
+    supabase.from("integrations").select("*").eq("coach_id", user!.id),
+    supabase.from("coaches").select("sequence_config").eq("id", user!.id).single(),
+  ]);
   const gmail = integrations?.find((i) => i.provider === "gmail");
+  const sequenceConfig = (coachData?.sequence_config as {
+    no_show_delays?: number[];
+    call_completed_delays?: number[];
+  } | null) ?? {};
+  const normalizedConfig = {
+    no_show_delays: sequenceConfig.no_show_delays ?? [1, 3, 7, 14, 21],
+    call_completed_delays: sequenceConfig.call_completed_delays ?? [1, 4, 10],
+  };
 
   return (
     <section className="space-y-6 max-w-2xl">
@@ -55,6 +64,11 @@ export default async function SettingsPage({
             Connect Gmail
           </Link>
         )}
+      </div>
+
+      <div className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-4">
+        <h2 className="text-xl font-semibold">Sequence Cadence</h2>
+        <SequenceSettingsClient sequenceConfig={normalizedConfig} />
       </div>
     </section>
   );
