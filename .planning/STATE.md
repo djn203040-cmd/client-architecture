@@ -8,7 +8,7 @@
 
 **Stage:** Phase 3 in progress
 **Active phase:** Phase 3 — Automation (Wave 4 in progress)
-**Current wave:** Wave 4 — 03-01 ✅, 03-02 ✅, 03-03 ✅, 03-04 ✅, 03-05 ✅, 03-06 ⏳ next
+**Current wave:** Wave 4 — 03-01 ✅, 03-02 ✅, 03-03 ✅, 03-04 ✅, 03-05 ✅, 03-06 ✅
 **Date:** 2026-05-20
 
 ---
@@ -82,7 +82,7 @@
 |-------|-----------|-------|
 | Phase 1 — Foundation | 2026-05-07 | Monorepo, Supabase schema, auth, lead management, Gmail OAuth, coach dashboard (19/20 impeccable), admin dashboard. All exit criteria met. |
 | Phase 2 — Intelligence | PLANNED 2026-05-19 | 5 plans (02-01 voice model, 02-02 transcripts, 02-03 AI engine, 02-04 regen, 02-05 thread view). 4 waves. All 23 requirement IDs covered. Ready to execute. |
-| Phase 3 — Automation | IN PROGRESS 2026-05-20 | 03-01 ✅ (calendar webhooks, schema migration), 03-02 ✅ (Inngest sequence engine, enrollment API, cron routes, Pending Actions UI, Sequence Cadence settings), 03-03 ✅ (Gmail monitoring: Pub/Sub push receiver, watch renewal, polling fallback, bounce-detector, tracking pixel), 03-04 ✅ (reply handler: LEAD_REPLIED → pause sequence, cancel drafts, fire reply draft), 03-05 ✅ (compliance layer: HMAC unsubscribe tokens, /api/unsubscribe, /unsubscribe page, bounce-handler). 03-06 next (notification channels). |
+| Phase 3 — Automation | COMPLETE 2026-05-20 | 03-01 ✅ (calendar webhooks, schema migration), 03-02 ✅ (Inngest sequence engine, enrollment API, cron routes, Pending Actions UI, Sequence Cadence settings), 03-03 ✅ (Gmail monitoring: Pub/Sub push receiver, watch renewal, polling fallback, bounce-detector, tracking pixel), 03-04 ✅ (reply handler: LEAD_REPLIED → pause sequence, cancel drafts, fire reply draft), 03-05 ✅ (compliance layer: HMAC unsubscribe tokens, /api/unsubscribe, /unsubscribe page, bounce-handler), 03-06 ✅ (Pending Actions UI: dismiss API with idempotency + Inngest enrollment, PendingActionCard 3/2 buttons, PendingActionsSection). |
 
 ---
 
