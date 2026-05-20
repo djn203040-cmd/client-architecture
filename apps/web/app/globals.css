@@ -81,6 +81,11 @@
   --radius-sm: calc(var(--radius) - 8px);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui;
   --font-mono: var(--font-geist-mono), ui-monospace;
+  --font-display: var(--font-display);
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
 }
 
 body {

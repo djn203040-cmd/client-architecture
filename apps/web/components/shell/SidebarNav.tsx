@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { House, Users, EnvelopeSimple, Gear, LockSimple } from "@phosphor-icons/react";
+import type { Route } from "next";
 
 const ITEMS = [
   { href: "/dashboard", label: "Dashboard", Icon: House },
@@ -15,13 +16,15 @@ const LOCKED = [
     id: "module-2",
     label: "The Threshold Experience",
     subtitle: "Your client's first 48 hours, built from your sales call.",
-    cta: "Book a call",
+    cta: "Learn more →",
+    href: "/modules/threshold" as const,
   },
   {
     id: "module-3",
     label: "The Continuation",
     subtitle: "Thirty days before they leave, we remind them why they stayed.",
-    cta: "Book a call",
+    cta: "Learn more →",
+    href: "/modules/continuation" as const,
   },
 ];
 
@@ -53,26 +56,22 @@ export function SidebarNav() {
       </div>
 
       {LOCKED.map((m) => (
-        <div
+        <Link
           key={m.id}
-          className="mx-1 rounded-xl border border-border dark:border-white/10 bg-secondary/60 dark:bg-white/5 p-3 mb-2"
+          href={m.href as Route}
+          className="mx-1 mb-2 block rounded-xl border border-border bg-secondary/60 p-3 transition-colors hover:bg-secondary/80 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
         >
           <div className="flex items-start gap-2">
-            <LockSimple weight="regular" className="size-4 mt-0.5 text-muted-foreground shrink-0" />
+            <LockSimple weight="regular" className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
             <div className="min-w-0">
               <p className="text-xs font-medium leading-tight">{m.label}</p>
-              <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">{m.subtitle}</p>
-              <a
-                href="https://cal.com/daniel"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block mt-1.5 text-[11px] font-medium text-accent hover:underline"
-              >
-                {m.cta} →
-              </a>
+              <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{m.subtitle}</p>
+              <span className="mt-1.5 inline-block text-[11px] font-medium text-accent">
+                {m.cta}
+              </span>
             </div>
           </div>
-        </div>
+        </Link>
       ))}
     </nav>
   );
