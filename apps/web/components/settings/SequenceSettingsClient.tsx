@@ -49,16 +49,18 @@ export function SequenceSettingsClient({ sequenceConfig }: Props) {
         Days from sequence start for each touchpoint. Comma-separated.
       </p>
       <div className="space-y-2">
-        <label className="text-sm font-medium">No-show touchpoints</label>
+        <label htmlFor="seq-no-show" className="text-sm font-medium">No-show touchpoints</label>
         <Input
+          id="seq-no-show"
           value={noShowDelays}
           onChange={(e) => setNoShowDelays(e.target.value)}
           placeholder="1, 3, 7, 14, 21"
         />
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-medium">Call-completed touchpoints</label>
+        <label htmlFor="seq-call-completed" className="text-sm font-medium">Call-completed touchpoints</label>
         <Input
+          id="seq-call-completed"
           value={callCompletedDelays}
           onChange={(e) => setCallCompletedDelays(e.target.value)}
           placeholder="1, 4, 10"

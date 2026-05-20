@@ -31,11 +31,9 @@ export function HeroSection({ eyebrow, title, tagline, primaryCta, secondaryCta 
             {tagline}
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-4">
-            <a href={primaryHref}>
-              <Button size="lg" className="rounded-full px-8">
-                {primaryCta.label}
-              </Button>
-            </a>
+            <Button asChild size="lg" className="rounded-full px-8">
+              <a href={primaryHref}>{primaryCta.label}</a>
+            </Button>
             <a
               href={secondaryCta.href}
               className="text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"

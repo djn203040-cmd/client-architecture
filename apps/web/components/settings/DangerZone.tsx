@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -153,7 +153,8 @@ function ActionCard({ action, email }: { action: ActionConfig; email: string }) 
 
 export function DangerZone({ coach }: Props) {
   const email = coach.email ?? "";
-  const actions = buildActions(email);
+  // buildActions depends only on email — stable across renders
+  const actions = useMemo(() => buildActions(email), [email]);
 
   return (
     <div className="space-y-4">

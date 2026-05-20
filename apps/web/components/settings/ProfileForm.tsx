@@ -117,12 +117,13 @@ export function ProfileForm({ coach }: Props) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label>Display name</Label>
-          <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+          <Label htmlFor="pf-display-name">Display name</Label>
+          <Input id="pf-display-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label>Role / title</Label>
+          <Label htmlFor="pf-role-title">Role / title</Label>
           <Input
+            id="pf-role-title"
             placeholder="e.g. Executive Coach"
             value={roleTitle}
             onChange={(e) => setRoleTitle(e.target.value)}
@@ -131,8 +132,9 @@ export function ProfileForm({ coach }: Props) {
       </div>
 
       <div className="space-y-1.5">
-        <Label>Timezone</Label>
+        <Label htmlFor="pf-timezone">Timezone</Label>
         <select
+          id="pf-timezone"
           value={timezone}
           onChange={(e) => setTimezone(e.target.value)}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -144,9 +146,10 @@ export function ProfileForm({ coach }: Props) {
       </div>
 
       <div className="space-y-1.5">
-        <Label>Working hours</Label>
+        <Label htmlFor="pf-work-start">Working hours</Label>
         <div className="flex items-center gap-3">
           <Input
+            id="pf-work-start"
             type="time"
             value={workStart}
             onChange={(e) => setWorkStart(e.target.value)}
@@ -155,6 +158,7 @@ export function ProfileForm({ coach }: Props) {
           />
           <span className="text-sm text-muted-foreground">to</span>
           <Input
+            id="pf-work-end"
             type="time"
             value={workEnd}
             onChange={(e) => setWorkEnd(e.target.value)}
@@ -165,8 +169,9 @@ export function ProfileForm({ coach }: Props) {
       </div>
 
       <div className="space-y-1.5">
-        <Label>Public booking URL</Label>
+        <Label htmlFor="pf-booking-url">Public booking URL</Label>
         <Input
+          id="pf-booking-url"
           type="url"
           placeholder="https://cal.com/your-name"
           value={bookingUrl}
@@ -175,8 +180,9 @@ export function ProfileForm({ coach }: Props) {
       </div>
 
       <div className="space-y-1.5">
-        <Label>Email signature</Label>
+        <Label htmlFor="pf-signature">Email signature</Label>
         <Textarea
+          id="pf-signature"
           placeholder="Appended to the bottom of outbound emails"
           value={signature}
           onChange={(e) => setSignature(e.target.value)}

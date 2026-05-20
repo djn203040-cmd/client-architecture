@@ -48,9 +48,8 @@ export function DraftQueueScaffold({
   prevLengthRef.current = drafts.length;
 
   const advance = useCallback(
-    (draftId: string) => {
-      // Realtime will remove the draft; but we track justEmptied via length change
-      void draftId;
+    (_draftId: string) => {
+      // Realtime removes the draft; justEmptied is tracked via length change above
     },
     [],
   );

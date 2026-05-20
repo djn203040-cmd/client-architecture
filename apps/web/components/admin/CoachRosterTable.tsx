@@ -23,12 +23,12 @@ export function CoachRosterTable({ rows }: { rows: CoachRosterRow[] }) {
       <table className="w-full">
         <thead className="border-b border-border">
           <tr className="text-left text-sm text-muted-foreground">
-            <th className="px-4 py-3 font-normal">Name / email</th>
-            <th className="px-4 py-3 font-normal">Gmail</th>
-            <th className="px-4 py-3 font-normal">Leads</th>
-            <th className="px-4 py-3 font-normal">Active sequences</th>
-            <th className="px-4 py-3 font-normal">Onboarding</th>
-            <th className="px-4 py-3 font-normal">Created</th>
+            <th scope="col" className="px-4 py-3 font-normal">Name / email</th>
+            <th scope="col" className="px-4 py-3 font-normal">Gmail</th>
+            <th scope="col" className="px-4 py-3 font-normal">Leads</th>
+            <th scope="col" className="px-4 py-3 font-normal">Active sequences</th>
+            <th scope="col" className="px-4 py-3 font-normal">Onboarding</th>
+            <th scope="col" className="px-4 py-3 font-normal">Created</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -37,7 +37,7 @@ export function CoachRosterTable({ rows }: { rows: CoachRosterRow[] }) {
               <td className="px-4 py-3">
                 <Link
                   href={`/admin/coaches/${c.id}`}
-                  className="block min-h-[44px] flex flex-col justify-center"
+                  className="min-h-[44px] flex flex-col justify-center"
                 >
                   <div className="font-medium">{c.name}</div>
                   <div className="text-xs text-muted-foreground">{c.email}</div>

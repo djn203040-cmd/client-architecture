@@ -17,6 +17,12 @@ export function AdminShell({
 }) {
   return (
     <div className="min-h-[100dvh] grid grid-cols-1 lg:grid-cols-[240px_1fr]">
+      <a
+        href="#admin-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-1.5 focus:rounded-lg focus:bg-background focus:text-foreground focus:text-sm focus:border focus:border-border"
+      >
+        Skip to content
+      </a>
       <aside className="hidden lg:flex flex-col border-r border-border bg-secondary/40">
         <div className="p-6">
           <Link href="/admin" className="font-semibold tracking-tight">
@@ -50,7 +56,7 @@ export function AdminShell({
         </div>
       </aside>
 
-      <main className="flex flex-col">
+      <main id="admin-main" className="flex flex-col">
         <div className="hidden lg:flex justify-end p-4 border-b border-border">
           <ThemeToggle />
         </div>

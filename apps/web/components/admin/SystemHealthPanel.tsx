@@ -8,7 +8,7 @@ export function SystemHealthPanel({ health }: { health: SystemHealth }) {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span>Queue depth</span>
-            <span className="font-mono">{health.inngest.queue_depth ?? "— (Phase 3)"}</span>
+            <span className="font-mono">{health.inngest.queue_depth ?? "—"}</span>
           </div>
         </div>
       </div>
@@ -18,7 +18,7 @@ export function SystemHealthPanel({ health }: { health: SystemHealth }) {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span>Last run</span>
-            <span className="font-mono">{health.cron.last_run_at ?? "— (Phase 3)"}</span>
+            <span className="font-mono">{health.cron.last_run_at ?? "—"}</span>
           </div>
         </div>
       </div>
@@ -28,9 +28,9 @@ export function SystemHealthPanel({ health }: { health: SystemHealth }) {
         <table className="w-full text-sm">
           <thead className="border-b border-border text-muted-foreground">
             <tr>
-              <th className="px-4 py-2 text-left font-normal">Coach</th>
-              <th className="px-4 py-2 text-left font-normal">Status</th>
-              <th className="px-4 py-2 text-left font-normal">Watch expires</th>
+              <th scope="col" className="px-4 py-2 text-left font-normal">Coach</th>
+              <th scope="col" className="px-4 py-2 text-left font-normal">Status</th>
+              <th scope="col" className="px-4 py-2 text-left font-normal">Watch expires</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">

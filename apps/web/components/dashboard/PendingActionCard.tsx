@@ -40,7 +40,6 @@ export function PendingActionCard({ id, type, leadName, leadEmail }: Props) {
         <p className="text-xs text-muted-foreground mb-4">
           How did the call go?
         </p>
-        {/* D-09: exactly 3 buttons */}
         <div className="flex flex-wrap gap-2">
           <Button size="sm" onClick={() => act("start_follow_up")} disabled={!!loading}>
             {loading === "start_follow_up" ? "Starting…" : "Start follow-up"}
@@ -52,6 +51,7 @@ export function PendingActionCard({ id, type, leadName, leadEmail }: Props) {
             {loading === "rescheduled" ? "Saving…" : "Rescheduled"}
           </Button>
         </div>
+
       </div>
     );
   }
@@ -63,7 +63,6 @@ export function PendingActionCard({ id, type, leadName, leadEmail }: Props) {
         <p className="text-xs text-muted-foreground mb-4">
           {leadEmail} emailed you — start their intake sequence?
         </p>
-        {/* D-22: exactly 2 buttons */}
         <div className="flex gap-2">
           <Button size="sm" onClick={() => act("enroll")} disabled={!!loading}>
             {loading === "enroll" ? "Starting…" : "Yes, start sequence"}

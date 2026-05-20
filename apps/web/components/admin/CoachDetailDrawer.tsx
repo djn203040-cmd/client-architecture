@@ -53,10 +53,10 @@ export function CoachDetailDrawer({
             <table className="w-full">
               <thead className="border-b border-border">
                 <tr className="text-left text-sm text-muted-foreground">
-                  <th className="px-4 py-3 font-normal">Name</th>
-                  <th className="px-4 py-3 font-normal">State</th>
-                  <th className="px-4 py-3 font-normal">Source</th>
-                  <th className="px-4 py-3 font-normal">Created</th>
+                  <th scope="col" className="px-4 py-3 font-normal">Name</th>
+                  <th scope="col" className="px-4 py-3 font-normal">State</th>
+                  <th scope="col" className="px-4 py-3 font-normal">Source</th>
+                  <th scope="col" className="px-4 py-3 font-normal">Created</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
