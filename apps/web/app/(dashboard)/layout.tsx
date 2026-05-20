@@ -1,6 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { AppShell } from "@/components/shell/AppShell";
+import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
+import { type OnboardingProgress } from "@client/shared/validators";
+import { nextIncompleteStep } from "@/lib/onboarding/progress";
 
 export default async function DashboardLayout({
   children,
@@ -20,5 +24,31 @@ export default async function DashboardLayout({
     .maybeSingle();
   if (!coach) redirect("/login");
 
-  return <AppShell coachName={coach.name}>{children}</AppShell>;
+  const progress = (coach.onboarding_progress ?? {}) as OnboardingProgress;
+
+  // First-visit redirect gate: send incomplete coaches to the wizard once per session
+  if (!coach.onboarding_completed_at) {
+    const nextStep = nextIncompleteStep(progress);
+    if (nextStep) {
+      const cookieStore = await cookies();
+      const alreadyRedirected = cookieStore.get("onb_redirected")?.value === "1";
+      if (!alreadyRedirected) {
+        cookieStore.set("onb_redirected", "1", {
+          httpOnly: false,
+          sameSite: "lax",
+          path: "/",
+        });
+        redirect(`/onboarding/${nextStep}` as never);
+      }
+    }
+  }
+
+  return (
+    <AppShell coachName={coach.name}>
+      {!coach.onboarding_completed_at && (
+        <OnboardingBanner progress={progress} coachCreatedAt={coach.created_at} />
+      )}
+      {children}
+    </AppShell>
+  );
 }

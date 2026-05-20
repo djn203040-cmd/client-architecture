@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { CoachRosterRow } from "@/app/admin/admin-data";
 import type { Database } from "@client/database";
+import { completedCount } from "@/lib/onboarding/progress";
+import type { OnboardingProgress } from "@client/shared/validators";
 
 type IntegrationStatus = Database["public"]["Enums"]["integration_status"];
 
@@ -25,6 +27,7 @@ export function CoachRosterTable({ rows }: { rows: CoachRosterRow[] }) {
             <th className="px-4 py-3 font-normal">Gmail</th>
             <th className="px-4 py-3 font-normal">Leads</th>
             <th className="px-4 py-3 font-normal">Active sequences</th>
+            <th className="px-4 py-3 font-normal">Onboarding</th>
             <th className="px-4 py-3 font-normal">Created</th>
           </tr>
         </thead>
@@ -45,6 +48,13 @@ export function CoachRosterTable({ rows }: { rows: CoachRosterRow[] }) {
               </td>
               <td className="px-4 py-3 font-mono text-sm">{c.lead_count}</td>
               <td className="px-4 py-3 font-mono text-sm">{c.active_sequence_count}</td>
+              <td className="px-4 py-3 text-sm text-muted-foreground">
+                <OnboardingCell
+                  completedAt={c.onboarding_completed_at}
+                  progress={c.onboarding_progress}
+                  createdAt={c.created_at}
+                />
+              </td>
               <td className="px-4 py-3 text-sm text-muted-foreground font-mono">
                 {new Date(c.created_at).toLocaleDateString()}
               </td>
@@ -53,6 +63,30 @@ export function CoachRosterTable({ rows }: { rows: CoachRosterRow[] }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+function daysAgo(isoDate: string): number {
+  return Math.floor((Date.now() - new Date(isoDate).getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function OnboardingCell({
+  completedAt,
+  progress,
+  createdAt,
+}: {
+  completedAt: string | null;
+  progress: Record<string, string | null> | null;
+  createdAt: string;
+}) {
+  if (completedAt) {
+    return <span>Completed {daysAgo(completedAt)}d ago</span>;
+  }
+  const n = completedCount((progress ?? {}) as OnboardingProgress);
+  return (
+    <span>
+      {n}/4 steps · started {daysAgo(createdAt)}d ago
+    </span>
   );
 }
 

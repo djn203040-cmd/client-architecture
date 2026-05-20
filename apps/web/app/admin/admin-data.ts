@@ -11,6 +11,8 @@ export type CoachRosterRow = TCoach & {
   watch_expiry_at: string | null;
   lead_count: number;
   active_sequence_count: number;
+  onboarding_completed_at: string | null;
+  onboarding_progress: Record<string, string | null> | null;
 };
 
 // ADMIN-005: adminClient bypasses RLS — used ONLY in this server-only module.
@@ -35,6 +37,10 @@ export async function fetchCoachRoster(): Promise<CoachRosterRow[]> {
   ]);
 
   return coaches.map((c) => {
+    const raw = c as typeof c & {
+      onboarding_completed_at?: string | null;
+      onboarding_progress?: Record<string, string | null> | null;
+    };
     const integ = integs?.find((i) => i.coach_id === c.id);
     return {
       ...c,
@@ -43,6 +49,8 @@ export async function fetchCoachRoster(): Promise<CoachRosterRow[]> {
       lead_count: leadCounts?.filter((l) => l.coach_id === c.id).length ?? 0,
       active_sequence_count:
         seqCounts?.filter((s) => s.coach_id === c.id && s.status === "active").length ?? 0,
+      onboarding_completed_at: raw.onboarding_completed_at ?? null,
+      onboarding_progress: raw.onboarding_progress ?? null,
     };
   });
 }

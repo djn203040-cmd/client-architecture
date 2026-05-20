@@ -12,8 +12,10 @@ type State = "idle" | "analyzing" | "complete";
 
 export function VoiceBuilderClient({
   initialVoiceModel,
+  onSaved,
 }: {
   initialVoiceModel: TVoiceProfile | null;
+  onSaved?: (profile: TVoiceProfile) => void;
 }) {
   const [state, setState] = useState<State>(initialVoiceModel ? "complete" : "idle");
   const [profile, setProfile] = useState<TVoiceProfile | null>(initialVoiceModel);
@@ -43,6 +45,7 @@ export function VoiceBuilderClient({
       });
       if (r.ok) {
         toast.success("Voice profile saved.");
+        if (profile) onSaved?.(profile);
       } else {
         toast.error("Couldn't save profile. Try again.");
       }
