@@ -1,9 +1,9 @@
 ---
 phase: 4
 slug: approval-channels
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-20
 ---
 
@@ -69,34 +69,34 @@ created: 2026-05-20
 Wave 0 (test scaffolding) must create the following before any feature task lands:
 
 **Unit tests**
-- [ ] `apps/web/tests/unit/slack-signature.test.ts`
-- [ ] `apps/web/tests/unit/sms-body.test.ts`
-- [ ] `apps/web/tests/unit/autonomous-mode.test.ts`
-- [ ] `apps/web/tests/unit/review-token.test.ts`
+- [x] `apps/web/tests/unit/slack-signature.test.ts`
+- [x] `apps/web/tests/unit/sms-body.test.ts`
+- [x] `apps/web/tests/unit/autonomous-mode.test.ts`
+- [x] `apps/web/tests/unit/review-token.test.ts`
 
 **Integration tests**
-- [ ] `apps/web/tests/integration/notification-dispatcher.test.ts`
-- [ ] `apps/web/tests/integration/draft-followup-cta.test.ts`
-- [ ] `apps/web/tests/integration/draft-hold-cascade.test.ts`
-- [ ] `apps/web/tests/integration/autonomous-mode-b.test.ts`
-- [ ] `apps/web/tests/integration/approve-atomic.test.ts`
-- [ ] `apps/web/tests/integration/bounce-notification.test.ts`
-- [ ] `apps/web/tests/integration/email-channel.test.ts`
-- [ ] `apps/web/tests/integration/slack-channel.test.ts`
-- [ ] `apps/web/tests/integration/whatsapp-channel.test.ts`
-- [ ] `apps/web/tests/integration/webhook-status.test.ts`
-- [ ] `apps/web/tests/integration/slack-interactivity.test.ts`
-- [ ] `apps/web/tests/integration/review-token.test.ts`
-- [ ] `apps/web/tests/integration/notification-preferences-seed.test.ts`
+- [x] `apps/web/tests/integration/notification-dispatcher.test.ts`
+- [x] `apps/web/tests/integration/draft-followup-cta.test.ts`
+- [x] `apps/web/tests/integration/draft-hold-cascade.test.ts`
+- [x] `apps/web/tests/integration/autonomous-mode-b.test.ts`
+- [x] `apps/web/tests/integration/approve-atomic.test.ts`
+- [x] `apps/web/tests/integration/bounce-notification.test.ts`
+- [x] `apps/web/tests/integration/email-channel.test.ts`
+- [x] `apps/web/tests/integration/slack-channel.test.ts`
+- [x] `apps/web/tests/integration/whatsapp-channel.test.ts`
+- [x] `apps/web/tests/integration/webhook-status.test.ts`
+- [x] `apps/web/tests/integration/slack-interactivity.test.ts`
+- [x] `apps/web/tests/integration/review-token.test.ts`
+- [x] `apps/web/tests/integration/notification-preferences-seed.test.ts`
 
 **E2E tests**
-- [ ] `apps/web/tests/e2e/dashboard-notifications.spec.ts`
-- [ ] `apps/web/tests/e2e/dashboard-approve-flow.spec.ts`
+- [x] `apps/web/tests/e2e/dashboard-notifications.spec.ts`
+- [x] `apps/web/tests/e2e/dashboard-approve-flow.spec.ts`
 
 **Shared utilities**
-- [ ] `apps/web/tests/utils/inngest-runner.ts` — in-process Inngest step runner
-- [ ] `apps/web/tests/utils/supabase-test-client.ts` — service-role test client + RLS impersonation helper
-- [ ] `apps/web/tests/utils/mocks/resend.ts`, `twilio.ts`, `slack.ts` — vendor SDK mocks
+- [x] `apps/web/tests/utils/inngest-runner.ts` — in-process Inngest step runner
+- [x] `apps/web/tests/utils/supabase-test-client.ts` — service-role test client + RLS impersonation helper
+- [x] `apps/web/tests/utils/mocks/resend.ts`, `twilio.ts`, `slack.ts` — vendor SDK mocks
 
 Framework install: **none** — Vitest 4.1.5 + Playwright 1.59.1 already installed in `apps/web/package.json`.
 
@@ -116,11 +116,13 @@ Framework install: **none** — Vitest 4.1.5 + Playwright 1.59.1 already install
 
 ## Validation Sign-Off
 
-- [ ] All Phase 4 tasks have an `<automated>` verify command or are listed as Wave 0 dependencies above
-- [ ] No 3 consecutive tasks without automated verify (sampling continuity)
-- [ ] Wave 0 covers every ❌ W0 marker in the verification map
-- [ ] No watch-mode flags in any command (`vitest run`, not `vitest`)
-- [ ] Feedback latency < 30s for quick path
-- [ ] `nyquist_compliant: true` set in frontmatter once Wave 0 lands
+- [x] All Phase 4 tasks have an `<automated>` verify command or are listed as Wave 0 dependencies above
+- [x] No 3 consecutive tasks without automated verify (sampling continuity)
+- [x] Wave 0 covers every ❌ W0 marker in the verification map
+- [x] No watch-mode flags in any command (`vitest run`, not `vitest`)
+- [x] Feedback latency < 30s for quick path
+- [x] `nyquist_compliant: true` set in frontmatter once Wave 0 lands
 
 **Approval:** pending
+
+**Approval:** scaffolded by 04-00 — 2026-05-20
