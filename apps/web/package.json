@@ -39,6 +39,7 @@
     "sonner": "1.7.1",
     "svix": "^1.94.0",
     "tailwind-merge": "^3.5.0",
+    "twilio": "^6.0.2",
     "zod": "4.4.3"
   },
   "devDependencies": {
