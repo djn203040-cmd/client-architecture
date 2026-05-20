@@ -6,6 +6,7 @@ import { gmailWatch } from "@/inngest/functions/gmail-watch";
 import { gmailMonitor, gmailNotificationReceived } from "@/inngest/functions/gmail-monitor";
 import { replyHandler } from "@/inngest/functions/reply-handler";
 import { bounceHandler } from "@/inngest/functions/bounce-handler";
+import { autonomousModeBTimer } from "@/inngest/functions/autonomous-mode-b-timer";
 
 // REQUIRED: Vercel default 10s timeout breaks Inngest long-polling (RESEARCH.md Pitfall 4)
 export const maxDuration = 300;
@@ -20,5 +21,6 @@ export const { GET, POST, PUT } = serve({
     gmailNotificationReceived,
     replyHandler,
     bounceHandler,
+    autonomousModeBTimer,
   ],
 });
