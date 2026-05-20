@@ -6,10 +6,13 @@
 
 ## Current Status
 
-**Stage:** Phase 4 executing — Wave 4 final plan remaining
-**Active phase:** Phase 4 — Approval Channels (9 plans across 5 waves)
-**Current plan:** Wave 4 final — 04-08 (draft-generation branching by autonomous mode); 04-07 ✅ complete
+**Stage:** Phase 5 context gathered — ready for `/gsd-plan-phase 5`
+**Active phase:** Phase 5 — Polish
+**Current plan:** Context (05-CONTEXT.md) complete; planning not yet started
 **Date:** 2026-05-20
+
+**Last session:** Discuss-phase for Phase 5 complete. CONTEXT.md captures decisions across 4 areas: locked module sell screens (dedicated routes, long-form, editorial premium, Cal.com inline embed), onboarding wizard (4 required steps, dedicated /onboarding route, redirect-then-banner resume, demo-lead walkthrough), settings page (single-page 6 sections, full profile fields, in-page danger zone), Playwright suite (8 specs total, local Supabase via CLI, per-test fixtures, full impeccable sweep).
+**Resume file:** `.planning/phases/05-polish/05-CONTEXT.md`
 
 ---
 
@@ -83,7 +86,7 @@
 | Phase 1 — Foundation | 2026-05-07 | Monorepo, Supabase schema, auth, lead management, Gmail OAuth, coach dashboard (19/20 impeccable), admin dashboard. All exit criteria met. |
 | Phase 2 — Intelligence | PLANNED 2026-05-19 | 5 plans (02-01 voice model, 02-02 transcripts, 02-03 AI engine, 02-04 regen, 02-05 thread view). 4 waves. All 23 requirement IDs covered. Ready to execute. |
 | Phase 3 — Automation | COMPLETE 2026-05-20 | 03-01 ✅ (calendar webhooks, schema migration), 03-02 ✅ (Inngest sequence engine, enrollment API, cron routes, Pending Actions UI, Sequence Cadence settings), 03-03 ✅ (Gmail monitoring: Pub/Sub push receiver, watch renewal, polling fallback, bounce-detector, tracking pixel), 03-04 ✅ (reply handler: LEAD_REPLIED → pause sequence, cancel drafts, fire reply draft), 03-05 ✅ (compliance layer: HMAC unsubscribe tokens, /api/unsubscribe, /unsubscribe page, bounce-handler), 03-06 ✅ (Pending Actions UI: dismiss API with idempotency + Inngest enrollment, PendingActionCard 3/2 buttons, PendingActionsSection). |
-| Phase 4 — Approval Channels | IN PROGRESS 2026-05-20 | W0: 04-00 ✅. W1: 04-01 ✅. W2: 04-02 ✅. W3: 04-03 ✅. W2P: 04-04 ✅ 04-05 ✅ 04-06 ✅. W4: 04-07 ✅ (dispatcher + follow-up CTA + HOLD cascade + bounce rewire + NotificationMatrix UI, 34 tests GREEN, 227 total passing). 04-08 next (draft-generation branching by autonomous_mode). |
+| Phase 4 — Approval Channels | COMPLETE 2026-05-20 | W0: 04-00 ✅. W1: 04-01 ✅. W2: 04-02 ✅. W3: 04-03 ✅. W2P: 04-04 ✅ 04-05 ✅ 04-06 ✅. W4: 04-07 ✅ (dispatcher + follow-up CTA + HOLD cascade + bounce rewire + NotificationMatrix UI). 04-08 ✅ (draft-generation branching by autonomous_mode, buildDraftOutcome helper). 242 tests passing. |
 
 ---
 
