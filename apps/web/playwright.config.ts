@@ -1,7 +1,26 @@
 import { defineConfig, devices } from "@playwright/test";
+import { readFileSync, existsSync } from "node:fs";
+import path from "node:path";
+
+// Load .env.test for local runs without dotenv dependency.
+// CI populates these via: supabase status -o env >> apps/web/.env.test
+const envTestPath = path.resolve(__dirname, ".env.test");
+if (existsSync(envTestPath)) {
+  for (const line of readFileSync(envTestPath, "utf8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eqIdx = trimmed.indexOf("=");
+    if (eqIdx < 0) continue;
+    const key = trimmed.slice(0, eqIdx).trim();
+    const value = trimmed.slice(eqIdx + 1).trim();
+    // Don't overwrite values already set in process.env (CI / shell exports win)
+    if (!(key in process.env)) process.env[key] = value;
+  }
+}
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  globalSetup: "./tests/global-setup.ts",
   timeout: 30_000,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : 4,
@@ -15,7 +34,7 @@ export default defineConfig({
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
   ],
   webServer: process.env.CI ? undefined : {
-    command: "pnpm dev",
+    command: "NODE_ENV=test pnpm dev",
     url: "http://localhost:3000",
     timeout: 120_000,
     reuseExistingServer: true,

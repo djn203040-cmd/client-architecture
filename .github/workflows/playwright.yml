@@ -1,0 +1,62 @@
+name: Playwright E2E
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  e2e:
+    name: E2E test suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with: { version: 9.15.4 }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - uses: supabase/setup-cli@v2
+        with:
+          version: latest
+
+      - name: Start local Supabase
+        run: supabase start
+
+      - name: Export Supabase keys to .env.test
+        run: |
+          supabase status -o env \
+            --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
+            --override-name auth.anon_key=NEXT_PUBLIC_SUPABASE_ANON_KEY \
+            --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
+            >> apps/web/.env.test
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm --filter web exec playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: pnpm --filter web test:e2e
+        env:
+          # External service stubs — real APIs never called in tests
+          GOOGLE_CLIENT_ID: test-client-id
+          GOOGLE_CLIENT_SECRET: test-client-secret
+          RESEND_API_KEY: test-resend-key
+          SLACK_SIGNING_SECRET: test-slack-secret
+          TWILIO_AUTH_TOKEN: test-twilio-token
+          ANTHROPIC_API_KEY: test-anthropic-key
+          INNGEST_SIGNING_KEY: test-inngest-key
+          INNGEST_EVENT_KEY: test-inngest-event-key
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7
