@@ -6,10 +6,10 @@
 
 ## Current Status
 
-**Stage:** Phase 3 planned — ready to execute
-**Active phase:** Phase 3 — Automation (PLANNED — 6 plans, 4 waves)
-**Current wave:** Not started
-**Date:** 2026-05-19
+**Stage:** Phase 3 in progress
+**Active phase:** Phase 3 — Automation (Wave 2 in progress)
+**Current wave:** Wave 2 — 03-01 ✅, 03-02 ✅, 03-03 ⏳ next
+**Date:** 2026-05-20
 
 ---
 
@@ -82,7 +82,7 @@
 |-------|-----------|-------|
 | Phase 1 — Foundation | 2026-05-07 | Monorepo, Supabase schema, auth, lead management, Gmail OAuth, coach dashboard (19/20 impeccable), admin dashboard. All exit criteria met. |
 | Phase 2 — Intelligence | PLANNED 2026-05-19 | 5 plans (02-01 voice model, 02-02 transcripts, 02-03 AI engine, 02-04 regen, 02-05 thread view). 4 waves. All 23 requirement IDs covered. Ready to execute. |
-| Phase 3 — Automation | CONTEXT 2026-05-19 | 25 decisions captured: sequence cadence (5-touchpoint no-show, 3-touchpoint call-completed), per-coach Settings config, calendar provider strategy (auto/manual), call follow-up Pending Actions cards, Gmail Pub/Sub monitoring, reply handling, compliance, lead intake monitoring. |
+| Phase 3 — Automation | IN PROGRESS 2026-05-20 | 03-01 ✅ (calendar webhooks, schema migration), 03-02 ✅ (Inngest sequence engine, enrollment API, cron routes, Pending Actions UI, Sequence Cadence settings). 03-03 next (Gmail Pub/Sub monitor). |
 
 ---
 
