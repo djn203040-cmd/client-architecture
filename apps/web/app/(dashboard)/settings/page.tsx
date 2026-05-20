@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { SequenceSettingsClient } from "@/components/settings/SequenceSettingsClient";
+import { BellSimple, Lightning } from "@phosphor-icons/react/dist/ssr";
 
 export default async function SettingsPage({
   searchParams,
@@ -70,6 +71,28 @@ export default async function SettingsPage({
         <h2 className="text-xl font-semibold">Sequence Cadence</h2>
         <SequenceSettingsClient sequenceConfig={normalizedConfig} />
       </div>
+
+      <Link
+        href={"/settings/notifications" as never}
+        className="block rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] hover:bg-white/20 dark:hover:bg-white/10 transition-colors space-y-2"
+      >
+        <div className="flex items-center gap-3">
+          <BellSimple className="size-5" weight="regular" />
+          <h3 className="text-lg font-semibold">Notifications</h3>
+        </div>
+        <p className="text-sm text-muted-foreground">Choose which channels deliver each event.</p>
+      </Link>
+
+      <Link
+        href={"/settings/autonomous" as never}
+        className="block rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] hover:bg-white/20 dark:hover:bg-white/10 transition-colors space-y-2"
+      >
+        <div className="flex items-center gap-3">
+          <Lightning className="size-5" weight="regular" />
+          <h3 className="text-lg font-semibold">Autonomous mode</h3>
+        </div>
+        <p className="text-sm text-muted-foreground">Choose how much trust to give the AI.</p>
+      </Link>
     </section>
   );
 }

@@ -80,13 +80,19 @@ export const bounceHandler = inngest.createFunction(
       });
     });
 
-    // Queue notification row — Phase 4 (NOTIFY-001–008) owns multi-channel delivery
-    await step.run("queue-bounce-notification", async () => {
-      await adminClient.from("notification_log").insert({
-        coach_id: coachId,
-        event_type: "lead_bounced",
-        payload: { leadId: lead.id, email: bouncedEmail, bouncedMessageId: messageId },
-        status: "pending",
+    // Fan out multi-channel notifications via the dispatcher
+    await step.run("fire-bounce-notification", async () => {
+      await inngest.send({
+        name: "notification/hard_bounce",
+        data: {
+          coachId,
+          eventType: "hard_bounce",
+          payload: {
+            leadId: lead.id,
+            leadName: lead.name ?? undefined,
+            leadEmail: bouncedEmail,
+          },
+        },
       });
     });
 
