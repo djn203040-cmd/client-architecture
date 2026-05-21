@@ -1,0 +1,81 @@
+# Gitleaks config — The Client Architecture
+# Extends the default ruleset and adds project-specific allowlists.
+
+title = "client-architecture-gitleaks"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "anthropic-api-key"
+description = "Anthropic API key"
+regex = '''sk-ant-[A-Za-z0-9_\-]{20,}'''
+keywords = ["sk-ant-"]
+
+[[rules]]
+id = "supabase-service-role-jwt"
+description = "Supabase service-role JWT (header.payload.signature)"
+regex = '''eyJ[A-Za-z0-9_-]{20,}\.eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}'''
+keywords = ["eyJ"]
+
+[[rules]]
+id = "upstash-redis-token"
+description = "Upstash Redis REST token"
+regex = '''A[a-zA-Z0-9_-]{40,}'''
+keywords = ["UPSTASH_REDIS_REST_TOKEN"]
+
+[[rules]]
+id = "twilio-auth-token"
+description = "Twilio auth token (32 hex)"
+regex = '''(?i)TWILIO_AUTH_TOKEN\s*[:=]\s*['\"]?[a-f0-9]{32}['\"]?'''
+keywords = ["TWILIO_AUTH_TOKEN"]
+
+[[rules]]
+id = "resend-api-key"
+description = "Resend API key"
+regex = '''re_[A-Za-z0-9_]{20,}'''
+keywords = ["re_"]
+
+[[rules]]
+id = "slack-bot-token"
+description = "Slack bot token"
+regex = '''xox[baprs]-[A-Za-z0-9-]{10,}'''
+keywords = ["xox"]
+
+[allowlist]
+description = "Project-level allowlist (false positives, fixtures, placeholders)"
+paths = [
+  '''(.*/)?\.env\.example$''',
+  '''(.*/)?\.env\.test$''',
+  '''(.*/)?pnpm-lock\.yaml$''',
+  '''(.*/)?package-lock\.json$''',
+  '''(.*/)?CHANGELOG\.md$''',
+  '''node_modules/.*''',
+  '''\.next/.*''',
+  '''\.turbo/.*''',
+  '''apps/web/tests/.*''',
+  '''apps/web/load/.*''',
+  '''\.planning/.*''',
+  '''\.claude/.*''',
+  '''docs/.*''',
+  '''SECURITY\.md$''',
+  '''README\.md$''',
+]
+
+regexes = [
+  # Obvious fake / placeholder tokens used in tests + mocks
+  '''xox[baprs]-test([_-][a-zA-Z0-9]+)?''',
+  '''test-[a-z]+-(key|token|secret|client-id)''',
+  '''placeholder[a-zA-Z0-9-]*''',
+  '''(?i)example[._-]?(key|token|secret)''',
+  # Supabase local-dev anon key (deterministic, public, identical on every machine)
+  '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlLWRlbW8iLCJpYXQiOjE2NDE3NjkyMDAsImV4cCI6MTc5OTUzNTYwMH0\..*''',
+]
+
+stopwords = [
+  "placeholder",
+  "your-project",
+  "your-gcp-project",
+  "example",
+  "EXAMPLE",
+]

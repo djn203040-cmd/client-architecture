@@ -1,0 +1,113 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly OWASP ZAP baseline scan (Mondays 06:00 UTC)
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+  pull-requests: read
+  security-events: write
+
+jobs:
+  gitleaks:
+    name: gitleaks (secret scan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+          # Fail on any finding (working tree + history).
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: true
+          GITLEAKS_ENABLE_SUMMARY: true
+
+  audit:
+    name: pnpm audit (dependency CVEs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Audit production deps (block high/critical)
+        run: pnpm audit --prod --audit-level=high
+
+  bundle-secret-leak:
+    name: Client bundle secret leak check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build web app
+        run: pnpm --filter web build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
+          SUPABASE_SERVICE_ROLE_KEY: placeholder
+      - name: Verify no server secrets reachable from client bundle
+        run: |
+          set -e
+          LEAKED=0
+          for needle in "SUPABASE_SERVICE_ROLE_KEY" "ANTHROPIC_API_KEY" "TWILIO_AUTH_TOKEN" "RESEND_API_KEY" "SLACK_SIGNING_SECRET" "INNGEST_SIGNING_KEY" "UPSTASH_REDIS_REST_TOKEN" "GOOGLE_CLIENT_SECRET" "JWT_REVIEW_SECRET" "UNSUBSCRIBE_SECRET" "CRON_SECRET" "FIREFLIES_API_KEY" "ZOOM_WEBHOOK_SECRET_TOKEN"; do
+            if grep -rE "$needle" apps/web/.next/static 2>/dev/null; then
+              echo "FAIL: $needle reachable from client bundle"
+              LEAKED=1
+            fi
+          done
+          if [ "$LEAKED" = "1" ]; then exit 1; fi
+          echo "PASS: no server secrets in client bundle"
+
+  security-tests:
+    name: Security integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run security test suite
+        run: pnpm --filter web vitest run --dir apps/web/tests/security
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
+          SUPABASE_SERVICE_ROLE_KEY: placeholder
+
+  zap-baseline:
+    name: OWASP ZAP baseline scan (weekly)
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: ${{ vars.ZAP_TARGET_URL || 'https://staging.theclientarchitecture.com' }}
+          fail_action: false
+          allow_issue_writing: true
+          cmd_options: "-a"

@@ -1,6 +1,7 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
 import { inngest } from "@/inngest/client";
+import { verifyGmailPubSubJwt } from "@/lib/security/verify-gmail-pubsub";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,34 @@ interface PubSubMessage {
   subscription: string;
 }
 
+/**
+ * Expected JWT audience — set when creating the push subscription. Falls back
+ * to the full endpoint URL when not configured explicitly.
+ */
+function expectedAudience(req: Request): string {
+  const fromEnv = process.env["GMAIL_PUBSUB_PUSH_AUDIENCE"];
+  if (fromEnv) return fromEnv;
+  const url = new URL(req.url);
+  return `${url.protocol}//${url.host}${url.pathname}`;
+}
+
 export async function POST(request: Request) {
+  // Verify the Google-signed JWT BEFORE reading the payload (T-06-02-01).
+  const verification = await verifyGmailPubSubJwt(
+    request.headers.get("authorization"),
+    {
+      expectedAudience: expectedAudience(request),
+      ...(process.env["GMAIL_PUBSUB_PUSH_SERVICE_ACCOUNT"]
+        ? { expectedEmail: process.env["GMAIL_PUBSUB_PUSH_SERVICE_ACCOUNT"] }
+        : {}),
+    },
+  );
+  if (!verification.ok) {
+    // 401 for forged JWTs. We don't return 200 here — only Google-signed
+    // pushes should reach us; a forged push is not a real Pub/Sub retry.
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   try {
     const body = (await request.json()) as PubSubMessage;
 
@@ -61,7 +89,7 @@ export async function POST(request: Request) {
 
     return new Response("OK", { status: 200 });
   } catch {
-    // Any error: still return 200 to prevent GCP retry storm (T-03-13)
+    // Any error after verification: still return 200 to prevent GCP retry storm (T-03-13)
     return new Response("OK", { status: 200 });
   }
 }

@@ -10,6 +10,7 @@ import {
 import { adminClient } from "@/lib/supabase/admin";
 import { inngest } from "@/inngest/client";
 import { runPreSendSafetyCheck } from "@/inngest/functions/sequence-step";
+import { reviewTokenLimiter, enforce, ipFromRequest } from "@/lib/security/ratelimit";
 
 const BodySchema = z.object({
   status: z.enum(["approved", "held"]),
@@ -23,6 +24,20 @@ export async function PATCH(
   { params }: { params: Promise<{ token: string }> },
 ) {
   const { token } = await params;
+
+  // Brute-force guard (5 attempts / 5 min / token-prefix + IP).
+  const tokenPrefix = token.slice(0, 16);
+  const rl = await enforce(
+    reviewTokenLimiter,
+    `${tokenPrefix}:${ipFromRequest(req)}`,
+  );
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": "300" } },
+    );
+  }
+
   const payload = verifyReviewToken(token);
   if (!payload) {
     return NextResponse.json({ error: "invalid_token" }, { status: 401 });

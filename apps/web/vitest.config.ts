@@ -7,7 +7,11 @@ export default defineConfig({
   test: {
     environment: "happy-dom",
     setupFiles: ["./tests/setup.ts"],
-    include: ["tests/unit/**/*.test.ts", "tests/integration/**/*.test.ts"],
+    include: [
+      "tests/unit/**/*.test.ts",
+      "tests/integration/**/*.test.ts",
+      "tests/security/**/*.test.ts",
+    ],
     globals: true,
     testTimeout: 30000,
   },

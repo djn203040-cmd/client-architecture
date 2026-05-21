@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/supabase/admin";
+import { healthLimiter, enforce, ipFromRequest } from "@/lib/security/ratelimit";
 
 // 06-PLAN.md §1.10 — Health check with per-dependency status.
 // Public endpoint; rate-limited at the edge (Upstash). No PII leaked.
@@ -44,7 +45,15 @@ function probeTwilio(): DepHealth {
   };
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const rl = await enforce(healthLimiter, ipFromRequest(req));
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": "60" } },
+    );
+  }
+
   const [supabase] = await Promise.all([probeSupabase()]);
   const deps = {
     supabase,

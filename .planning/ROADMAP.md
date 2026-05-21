@@ -15,11 +15,11 @@
 Plans:
 - [x] 01-01-PLAN.md — Monorepo + project setup (Turborepo, TypeScript strict, Tailwind v4, shadcn/ui, test infrastructure, CI gates) ✓ 2026-05-05
 - [x] 01-02-PLAN.md — Supabase schema (complete: 11 tables + RLS + Vault + Realtime publication; type generation) ✓ 2026-05-05
-- [ ] 01-03-PLAN.md — Auth + invite flow (Supabase Auth invite-only, Daniel creates coach accounts, middleware admin gate, shadcn primitives)
-- [ ] 01-04-PLAN.md — Lead management (CRUD, lead profile, activity timeline, coach notes auto-save, state machine foundation)
-- [ ] 01-05-PLAN.md — Gmail OAuth connection (OAuth 2.0 flow, Vault token storage, scope validation, invalid_grant handler, HEALTH-008 review submission)
-- [ ] 01-06-PLAN.md — Coach dashboard (AppShell, sidebar, IntegrationHealthCard, DraftQueueScaffold with Realtime, DraftCard, InlineDraftEditor)
-- [ ] 01-07-PLAN.md — Admin dashboard (/admin role gate + CoachRosterTable + CreateCoachSheet + SystemHealthPanel + read-only coach detail)
+- [x] 01-03-PLAN.md — Auth + invite flow (Supabase Auth invite-only, Daniel creates coach accounts, middleware admin gate, shadcn primitives) ✓ 2026-05-06
+- [x] 01-04-PLAN.md — Lead management (CRUD, lead profile, activity timeline, coach notes auto-save, state machine foundation) ✓ 2026-05-07
+- [x] 01-05-PLAN.md — Gmail OAuth connection (OAuth 2.0 flow, Vault token storage, scope validation, invalid_grant handler, HEALTH-008 review submission) ✓ 2026-05-07
+- [x] 01-06-PLAN.md — Coach dashboard (AppShell, sidebar, IntegrationHealthCard, DraftQueueScaffold with Realtime, DraftCard, InlineDraftEditor) ✓ 2026-05-08
+- [x] 01-07-PLAN.md — Admin dashboard (/admin role gate + CoachRosterTable + CreateCoachSheet + SystemHealthPanel + read-only coach detail) ✓ 2026-05-08
 
 ### Requirements covered
 LEAD-001, LEAD-002, LEAD-003, LEAD-004, LEAD-005, LEAD-008, LEAD-009,
@@ -52,11 +52,11 @@ INFRA-001, INFRA-002, INFRA-003, INFRA-004, INFRA-005, INFRA-006, INFRA-007, INF
 **Plans:** 5 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Voice model builder (Phase 2 schema migration, ai-engine client/guardrails/voice-analysis, Settings → My Voice corpus import + Layer 1/Layer 2 review)
-- [ ] 02-02-PLAN.md — Transcript integration (Fireflies + Zoom webhooks with signature verification, lead matching, Unmatched queue tab, manual upload)
-- [ ] 02-03-PLAN.md — AI draft engine (context assembler + token budgeting, state-aware prompts, generateDraft, generate route, AI lead description card)
-- [ ] 02-04-PLAN.md — Draft regeneration + confidence indicator (one-click regen route, DraftCard regen button + amber confidence badge)
-- [ ] 02-05-PLAN.md — Email thread view (Gmail API thread fetch, EmailThreadView as first lead-profile tab)
+- [x] 02-01-PLAN.md — Voice model builder (Phase 2 schema migration, ai-engine client/guardrails/voice-analysis, Settings → My Voice corpus import + Layer 1/Layer 2 review) ✓ 2026-05-19
+- [x] 02-02-PLAN.md — Transcript integration (Fireflies + Zoom webhooks with signature verification, lead matching, Unmatched queue tab, manual upload) ✓ 2026-05-19
+- [x] 02-03-PLAN.md — AI draft engine (context assembler + token budgeting, state-aware prompts, generateDraft, generate route, AI lead description card) ✓ 2026-05-19
+- [x] 02-04-PLAN.md — Draft regeneration + confidence indicator (one-click regen route, DraftCard regen button + amber confidence badge) ✓ 2026-05-19
+- [x] 02-05-PLAN.md — Email thread view (Gmail API thread fetch, EmailThreadView as first lead-profile tab) ✓ 2026-05-19
 
 ### Wave structure
 - Wave 1: 02-01 (includes BLOCKING schema migration)
@@ -179,10 +179,11 @@ NOTIFY-001, NOTIFY-002, NOTIFY-003, NOTIFY-004, NOTIFY-005, NOTIFY-006, NOTIFY-0
 **Weeks:** 13–14
 
 ### Plans
-1. **Locked module sell screens** — Module 2 and Module 3 with premium copy and Book a Call CTA
-2. **Onboarding wizard** — Gmail connect, voice model setup, first lead walkthrough
-3. **Settings page** — autonomous mode toggle, notification channel management, profile settings
-4. **Playwright E2E tests** — duplicate sequence prevention, cross-tenant isolation, pre-send safety check, webhook signature bypass, full approval flow
+- [x] 05-01-PLAN.md — Locked module sell screens (Module 2 Threshold + Module 3 Continuation with Cal.com embed) ✓ 2026-05-21
+- [x] 05-02-PLAN.md — New-coach onboarding wizard (4-step flow with demo lead intercept) ✓ 2026-05-21
+- [x] 05-03-PLAN.md — Settings consolidation (Phase 5 schema + 6-section settings page) ✓ 2026-05-20
+- [x] 05-04-PLAN.md — Playwright E2E launch suite (8 specs + CI workflow) ✓ 2026-05-21
+- [x] 05-05-PLAN.md — Impeccable polish sweep (50 components audited, 2 REDs fixed) ✓ 2026-05-21
 
 ### Requirements covered
 MODULE-001, MODULE-002, MODULE-003,
@@ -200,17 +201,46 @@ VOICE-005
 
 ---
 
+## Phase 6 — Comprehensive Testing & Security Hardening
+**Goal:** Prove the product works (automated), Daniel personally signs off on every human-judgment surface (manual UAT), and the system is hardened for production — no leaks, no hardcoded secrets, encryption at rest and in transit, RLS verified, OAuth tokens vaulted, every webhook signed, zero PII in logs.
+
+**Weeks:** 15–16
+
+**Master plan:** `phases/06-testing/06-PLAN.md` — the canonical 494-line checklist (3 sections, 40+ subsections).
+
+**Executable sub-plans:**
+- [ ] 06-01-automated-test-suite-PLAN.md — Section 1: unit + integration + Playwright E2E suites, Lighthouse CI, k6 load, Sentry, /api/health, full CI matrix
+- [ ] 06-02-security-hardening-PLAN.md — Section 3: gitleaks gate, browser headers, 14-webhook signature audit, RLS pen-test, Vault audit, rate limits, PII redaction, audit_log, SECURITY.md + runbooks, /security-review
+- [ ] 06-03-manual-uat-prep-PLAN.md — Section 2: staging seeder, voice corpus slot, /admin/uat UI, UAT-LOG.md + LAUNCH-SIGN-OFF.md
+
+### Wave structure
+- Wave 1 (parallel-safe via explicit ownership boundaries):
+  - 06-01 — owns `.github/workflows/test.yml`, vitest configs, tests/unit/, tests/integration/ (non-security), tests/e2e/, Lighthouse, k6, size-limit, /api/health. Scaffolds sentry.{client,server}.config.ts with stub `beforeSend`.
+  - 06-02 — owns `.github/workflows/security.yml`, gitleaks/.env.example, middleware headers, webhook sig verification, RLS pen-test, Vault audit (incl. voice corpus encryption), rate limits, PII redactor (writes sentry beforeSend body + .eslintrc no-console), audit_log, GDPR endpoints, SECURITY.md + docs/.
+- Wave 2: 06-03 — depends on 06-01 (test-utils, factories) + 06-02 (audit_log, headers, Daniel-only middleware, MFA UI surface).
+
+### Exit criteria
+- [ ] CI green on `main` — all automated tests passing
+- [ ] Daniel has personally completed Section 2 UAT and signed off
+- [ ] Zero findings from gitleaks, `pnpm audit`, `/security-review`
+- [ ] All RLS policies cross-tenant pen-tested
+- [ ] All webhook signatures verified (14 sources)
+- [ ] Launch authorization signed by Daniel
+
+---
+
 ## Milestone Summary
 
 | Phase | Name | Weeks | Status |
 |-------|------|-------|--------|
-| 1 | Foundation | 1–3 | Not started |
-| 2 | Intelligence | 4–6 | Not started |
-| 3 | Automation | 7–9 | PLANNED 2026-05-19 |
-| 4 | Approval Channels | 10–12 | PLANNED 2026-05-20 |
-| 5 | Polish | 13–14 | Not started |
+| 1 | Foundation | 1–3 | DONE 2026-05-08 |
+| 2 | Intelligence | 4–6 | DONE 2026-05-19 |
+| 3 | Automation | 7–9 | DONE 2026-05-20 |
+| 4 | Approval Channels | 10–12 | DONE 2026-05-20 |
+| 5 | Polish | 13–14 | DONE 2026-05-21 |
+| 6 | Testing & Security | 15–16 | PLANNED 2026-05-21 — 3 sub-plans decomposed |
 
 ---
 
-*Roadmap version: 1.3 — 2026-05-20*
-*Next update: after Phase 4 execution*
+*Roadmap version: 1.6 — 2026-05-21*
+*Next update: after Phase 6 execution*

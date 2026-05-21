@@ -12,6 +12,7 @@ export function ThemeToggle() {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
     localStorage.setItem("theme", theme);
+    document.cookie = `theme=${theme};path=/;max-age=31536000;samesite=lax`;
   }, [theme]);
 
   function toggle() {

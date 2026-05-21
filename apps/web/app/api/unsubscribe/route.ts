@@ -3,10 +3,19 @@ import { adminClient } from "@/lib/supabase/admin";
 import { inngest } from "@/inngest/client";
 import { verifyUnsubscribeToken } from "@/lib/unsubscribe-token";
 import { LEAD_UNSUBSCRIBED } from "@client/shared/constants/events";
+import { unsubscribeLimiter, enforce, ipFromRequest } from "@/lib/security/ratelimit";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
+  const rl = await enforce(unsubscribeLimiter, ipFromRequest(request));
+  if (!rl.success) {
+    return new Response(null, {
+      status: 302,
+      headers: { Location: "/unsubscribe?error=rate_limited" },
+    });
+  }
+
   const token = new URL(request.url).searchParams.get("token");
 
   if (!token) {

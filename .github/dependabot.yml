@@ -1,0 +1,31 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    versioning-strategy: increase
+    groups:
+      security-patches:
+        applies-to: security-updates
+        patterns: ["*"]
+      dev-dependencies:
+        dependency-type: development
+        patterns: ["*"]
+        exclude-patterns:
+          - "@types/*"
+    labels:
+      - dependencies
+      - security
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - github-actions

@@ -5,6 +5,7 @@ import { isHardBlocked } from '@client/ai-engine';
 import { VoiceProfileSchema } from '@client/shared/validators';
 import { inngest } from '@/inngest/client';
 import { buildDraftOutcome } from '@/lib/autonomous-mode';
+import { draftsGenerateLimiter, enforce } from '@/lib/security/ratelimit';
 import type { TLeadStatus } from '@client/shared/types';
 
 const GenerateRequestSchema = z.object({
@@ -17,6 +18,15 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  // Cost-guard rate limit (T-06-02-06): 20 draft generations per coach per hour.
+  const rl = await enforce(draftsGenerateLimiter, `coach:${user.id}`);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded — try again in an hour.' },
+      { status: 429, headers: { 'Retry-After': '3600' } },
+    );
+  }
 
   const body = await request.json().catch(() => null);
   const parsed = GenerateRequestSchema.safeParse(body);

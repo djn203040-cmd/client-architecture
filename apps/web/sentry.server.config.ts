@@ -1,20 +1,28 @@
-// 06-PLAN.md §1.10 — Sentry server-side init scaffold.
-// The actual @sentry/nextjs init lands in 06-02 (security hardening).
+// 06-02 Task 6 — Sentry server config with PII-redacting beforeSend.
+//
+// Mirrors sentry.client.config.ts but for the server runtime. Both routes
+// share the redactor in lib/logging/redact.ts so client + server events have
+// identical scrubbing behavior.
 
-export interface SentryEventStub {
+import { scrubSentryEvent } from "./lib/logging/redact";
+
+export interface SentryEventStub extends Record<string, unknown> {
   request?: { headers?: Record<string, string> };
   user?: Record<string, unknown>;
   extra?: Record<string, unknown>;
+  message?: string;
+  breadcrumbs?: Array<Record<string, unknown>>;
+  exception?: Record<string, unknown>;
 }
 
-// 06-02 Task 6 replaces this stub body with the redactor.
 export function beforeSend(event: SentryEventStub): SentryEventStub {
-  return event;
+  return scrubSentryEvent(event);
 }
 
 export const sentryServerConfig = {
   dsn: process.env["SENTRY_DSN"] ?? "",
   enabled: !!process.env["SENTRY_DSN"] && process.env.NODE_ENV !== "test",
-  tracesSampleRate: 0.1,
+  tracesSampleRate: 0.05,
+  sendDefaultPii: false,
   beforeSend,
 } as const;
