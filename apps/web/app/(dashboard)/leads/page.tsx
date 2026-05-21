@@ -14,7 +14,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
   let query = supabase
     .from("leads")
     .select("*")
-    .not("external_ids->>demo" as never, "eq", "true")
+    .or("external_ids->>demo.is.null,external_ids->>demo.neq.true")
     .order("last_activity_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
 
