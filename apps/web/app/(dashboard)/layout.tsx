@@ -22,7 +22,13 @@ export default async function DashboardLayout({
     .select("*")
     .eq("id", user.id)
     .maybeSingle();
-  if (!coach) redirect("/login");
+  if (!coach) {
+    // Authenticated but no coaches row — orphan auth user (e.g. created directly
+    // in Supabase dashboard, skipping the invite flow that provisions the coach
+    // record). Sign them out so /login doesn't bounce them right back here.
+    await supabase.auth.signOut();
+    redirect("/login?error=no_coach_record");
+  }
 
   const progress = (coach.onboarding_progress ?? {}) as OnboardingProgress;
   const pathname = (await headers()).get("x-pathname") ?? "";
