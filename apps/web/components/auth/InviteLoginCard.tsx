@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import Link from "next/link";
+import { Eye, EyeSlash } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,6 +15,7 @@ interface InviteLoginCardProps {
 }
 
 export function InviteLoginCard({ error, formAction, pending }: InviteLoginCardProps) {
+  const [showPassword, setShowPassword] = useState(false);
   return (
     <div
       className={cn(
@@ -42,15 +46,39 @@ export function InviteLoginCard({ error, formAction, pending }: InviteLoginCardP
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            placeholder="••••••••"
-          />
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link
+              href="/forgot-password"
+              className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
+          <div className="relative">
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              placeholder="••••••••"
+              className="pr-11"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 rounded-r-md"
+            >
+              {showPassword ? (
+                <EyeSlash weight="regular" className="size-4" />
+              ) : (
+                <Eye weight="regular" className="size-4" />
+              )}
+            </button>
+          </div>
         </div>
 
         {error && (
