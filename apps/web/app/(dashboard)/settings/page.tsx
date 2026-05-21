@@ -7,6 +7,7 @@ import { AutonomousSection } from "@/components/settings/AutonomousSection";
 import { VoiceSection } from "@/components/settings/VoiceSection";
 import { IntegrationsSection } from "@/components/settings/IntegrationsSection";
 import { DangerZone } from "@/components/settings/DangerZone";
+import { SignOutSection } from "@/components/settings/SignOutSection";
 import type { TVoiceProfile } from "@client/shared/validators";
 
 export const dynamic = "force-dynamic";
@@ -85,6 +86,10 @@ export default async function SettingsPage({
 
       <section id="integrations" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <IntegrationsSection integrations={integrationsRes.data ?? []} />
+      </section>
+
+      <section id="session" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+        <SignOutSection email={coach.email} />
       </section>
 
       <section id="danger" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
