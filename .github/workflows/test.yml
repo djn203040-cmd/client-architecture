@@ -1,0 +1,214 @@
+name: Phase 6 Test Matrix
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    name: TypeScript type-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9.15.4 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web type-check
+
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9.15.4 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web lint
+
+  type-audit:
+    name: Type-safety audit (no unjustified any / ignore / eslint-disable)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/audit-types.sh
+
+  unit:
+    name: Unit tests (vitest)
+    runs-on: ubuntu-latest
+    needs: [typecheck, lint]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9.15.4 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web test:unit
+
+  integration:
+    name: Integration tests (vitest + local Supabase)
+    runs-on: ubuntu-latest
+    needs: [typecheck, lint]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9.15.4 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - uses: supabase/setup-cli@v2
+        with: { version: latest }
+      - run: supabase start
+      - name: Export Supabase keys
+        run: |
+          supabase status -o env \
+            --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
+            --override-name auth.anon_key=NEXT_PUBLIC_SUPABASE_ANON_KEY \
+            --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
+            >> $GITHUB_ENV
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web test:integration
+
+  e2e:
+    name: E2E (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [unit, integration]
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - chromium
+          - webkit
+          - firefox
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9.15.4 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - uses: supabase/setup-cli@v2
+        with: { version: latest }
+      - run: supabase start
+      - name: Export Supabase keys to .env.test
+        run: |
+          supabase status -o env \
+            --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
+            --override-name auth.anon_key=NEXT_PUBLIC_SUPABASE_ANON_KEY \
+            --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
+            >> apps/web/.env.test
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        run: pnpm --filter web exec playwright install --with-deps ${{ matrix.project }}
+      - name: Run E2E (${{ matrix.project }})
+        env:
+          CROSS_BROWSER: ${{ matrix.project != 'chromium' && '1' || '' }}
+          GOOGLE_CLIENT_ID: test-client-id
+          GOOGLE_CLIENT_SECRET: test-client-secret
+          RESEND_API_KEY: test-resend-key
+          SLACK_SIGNING_SECRET: test-slack-secret
+          TWILIO_AUTH_TOKEN: test-twilio-token
+          ANTHROPIC_API_KEY: test-anthropic-key
+          INNGEST_SIGNING_KEY: test-inngest-key
+          INNGEST_EVENT_KEY: test-inngest-event-key
+        run: pnpm --filter web exec playwright test --project=${{ matrix.project }}
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: apps/web/playwright-report/
+          retention-days: 7
+
+  size:
+    name: Bundle size (size-limit)
+    runs-on: ubuntu-latest
+    needs: [typecheck]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9.15.4 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
+          SUPABASE_SERVICE_ROLE_KEY: placeholder
+      - run: pnpm --filter web size
+        continue-on-error: true
+
+  db-integrity:
+    name: Migrations apply + orphan-FK check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v2
+        with: { version: latest }
+      - run: supabase start
+      - run: supabase db reset --no-seed
+      - run: supabase db diff -f post_reset_diff
+      - name: Fail if migrations drift
+        run: |
+          if [ -s "supabase/migrations/post_reset_diff.sql" ]; then
+            echo "FAIL: db diff after reset is non-empty"
+            cat supabase/migrations/post_reset_diff.sql
+            exit 1
+          fi
+      - name: Check orphans
+        run: |
+          orphan_count=$(supabase db query --file scripts/check-orphans.sql 2>/dev/null | grep -c '|' || true)
+          if [ "$orphan_count" -gt 1 ]; then
+            echo "FAIL: orphaned FK rows detected"
+            exit 1
+          fi
+
+  lighthouse:
+    name: Lighthouse CI (warn-only)
+    runs-on: ubuntu-latest
+    needs: [unit]
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9.15.4 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
+          SUPABASE_SERVICE_ROLE_KEY: placeholder
+      - name: Run Lighthouse CI
+        run: |
+          pnpm dlx @lhci/cli@0.14.x autorun || true
+
+  security-grep:
+    name: Security grep checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Block NEXT_PUBLIC_ on service role key (INFRA-002)
+        run: |
+          if grep -rn "NEXT_PUBLIC_[A-Z_]*SERVICE_ROLE\|NEXT_PUBLIC_[A-Z_]*service_role" \
+              --include="*.ts" --include="*.tsx" --include="*.env*" \
+              --exclude-dir=node_modules --exclude-dir=.next \
+              .; then
+            echo "FAIL: Service role key prefixed with NEXT_PUBLIC_ — security violation"
+            exit 1
+          fi
+      - name: Block port 5432 in env files (INFRA-004)
+        run: |
+          if grep -rn ":5432" .env.example 2>/dev/null; then
+            echo "FAIL: DATABASE_URL must use Supavisor port 6543 (transaction mode), not 5432"
+            exit 1
+          fi

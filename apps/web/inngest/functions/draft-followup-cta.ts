@@ -111,6 +111,6 @@ export const draftFollowupCta = inngest.createFunction(
     ],
     retries: 2,
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- reason: Inngest handler signature widened for event payload
   draftFollowupCtaHandler as any,
 );

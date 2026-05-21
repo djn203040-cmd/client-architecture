@@ -32,6 +32,32 @@ export default defineConfig({
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    // 06-PLAN.md §1.7 — cross-browser matrix. webkit + firefox run when
+    // CROSS_BROWSER=1 (keeps default PR cycle short).
+    ...(process.env.CROSS_BROWSER === "1"
+      ? [
+          { name: "webkit", use: { ...devices["Desktop Safari"] } },
+          { name: "firefox", use: { ...devices["Desktop Firefox"] } },
+        ]
+      : []),
+    // Mobile + tablet viewports for the dashboard smoke spec only
+    {
+      name: "mobile-chromium",
+      testMatch: /dashboard.*\.spec\.ts/,
+      use: { ...devices["Pixel 5"], viewport: { width: 375, height: 667 } },
+    },
+    {
+      name: "tablet-chromium",
+      testMatch: /dashboard.*\.spec\.ts/,
+      use: { ...devices["iPad (gen 7)"], viewport: { width: 768, height: 1024 } },
+    },
+    // 06-PLAN.md §1.6 — dual-mode axe scan: dark + light. Dark variant runs the
+    // critical visual surfaces in colorScheme: 'dark' for contrast violations.
+    {
+      name: "chromium-dark",
+      testMatch: /(reduced-motion|locked-module-pages|admin-dashboard|onboarding-completion)\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"], colorScheme: "dark" },
+    },
   ],
   webServer: process.env.CI ? undefined : {
     command: "NODE_ENV=test pnpm dev",

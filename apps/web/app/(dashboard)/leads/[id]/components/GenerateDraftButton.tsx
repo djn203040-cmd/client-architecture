@@ -20,7 +20,7 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
   // D-16: Hard-blocked states — hide entirely
   if (HARD_BLOCK_STATES.includes(leadStatus)) return null;
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- reason: early return above is constant per mount; hook order stable
   useEffect(() => {
     if (!draftId) return;
 

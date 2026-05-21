@@ -66,6 +66,6 @@ export const notificationDispatcher = inngest.createFunction(
     retries: 2,
     concurrency: { key: "event.data.coachId", limit: 5 },
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- reason: Inngest event payload is structurally typed at runtime; no static schema
   notificationDispatcherHandler as any,
 );

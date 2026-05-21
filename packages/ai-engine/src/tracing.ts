@@ -17,7 +17,7 @@ function getLangfuse() {
   }
   try {
     // Dynamic require to avoid bundling issues when keys are absent
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- reason: dynamic require avoids bundling when LANGFUSE keys absent
     const { Langfuse } = require('langfuse');
     langfuse = new Langfuse({
       publicKey: process.env['LANGFUSE_PUBLIC_KEY'],

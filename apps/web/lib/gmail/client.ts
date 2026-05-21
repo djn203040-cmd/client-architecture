@@ -30,12 +30,12 @@ export async function getGmailClientForCoach(coachId: string) {
   const gmail = google.gmail({ version: "v1", auth: oauth2Client });
   return new Proxy(gmail, {
     get(target, prop) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- reason: Proxy over googleapis gmail client; dynamic property access
       const value = (target as any)[prop];
       if (typeof value !== "function") return value;
       return (...args: unknown[]) => {
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- reason: Proxy over googleapis gmail client; dynamic call shape
           const r = (value as any).apply(target, args);
           if (r && typeof (r as Promise<unknown>).then === "function") {
             return (r as Promise<unknown>).catch(async (e) => {
