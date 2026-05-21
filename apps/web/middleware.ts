@@ -1,8 +1,28 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { buildCsp, generateCspNonce, STATIC_SECURITY_HEADERS } from "./lib/security/csp";
+
+function applySecurityHeaders(res: NextResponse, nonce: string, isDev: boolean): void {
+  for (const [k, v] of Object.entries(STATIC_SECURITY_HEADERS)) {
+    res.headers.set(k, v);
+  }
+  res.headers.set("Content-Security-Policy", buildCsp({ nonce, isDev }));
+  // Expose nonce to server components via downstream request headers.
+  res.headers.set("x-csp-nonce", nonce);
+}
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  const isDev = process.env.NODE_ENV !== "production";
+  const nonce = generateCspNonce();
+
+  // Forward the nonce + pathname on the inbound request so server components can read them.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-csp-nonce", nonce);
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
+
+  let supabaseResponse = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,7 +33,12 @@ export async function middleware(request: NextRequest) {
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
             request.cookies.set(name, value);
-            supabaseResponse.cookies.set(name, value, options);
+            supabaseResponse.cookies.set(name, value, {
+              ...options,
+              httpOnly: true,
+              secure: !isDev,
+              sameSite: "lax",
+            });
           });
         },
       },
@@ -27,7 +52,9 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/api/admin")) {
     const isAdmin = user?.app_metadata?.["role"] === "admin";
     if (!user || !isAdmin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const res = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      applySecurityHeaders(res, nonce, isDev);
+      return res;
     }
   }
 
@@ -35,7 +62,9 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/admin")) {
     const isAdmin = user?.app_metadata?.["role"] === "admin";
     if (!user || !isAdmin) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      const res = NextResponse.redirect(new URL("/login", request.url));
+      applySecurityHeaders(res, nonce, isDev);
+      return res;
     }
   }
 
@@ -47,13 +76,20 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/dashboard")
   ) {
     if (!user) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      const res = NextResponse.redirect(new URL("/login", request.url));
+      applySecurityHeaders(res, nonce, isDev);
+      return res;
     }
   }
 
+  applySecurityHeaders(supabaseResponse, nonce, isDev);
   return supabaseResponse;
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/inngest|api/webhooks|api/auth/gmail).*)"],
+  matcher: [
+    // Run middleware on every page + API route EXCEPT static assets and
+    // signature-verified webhook endpoints (they handle their own auth).
+    "/((?!_next/static|_next/image|favicon.ico|api/inngest|api/webhooks|api/auth/gmail).*)",
+  ],
 };
