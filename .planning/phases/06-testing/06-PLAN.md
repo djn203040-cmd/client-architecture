@@ -167,11 +167,52 @@ Everything in this section is automatable. Claude builds the test, CI runs it, y
 
 These are judgment calls, sensory checks, and "did it feel right?" verifications. **Claude cannot do these.** Daniel must run through this list personally — ideally on a fresh device, signed out, like a real first-time coach.
 
-## 2.1 — First Impression (5 min)
+---
 
-- [ ] Open `/` in an incognito browser — does the landing/login page feel premium? No generic placeholder copy?
-- [ ] Try to sign up (should fail — invite-only). Error message is friendly, not technical.
-- [ ] Daniel signs in to `/admin` — dashboard loads without flicker, all coaches listed.
+### Session progress log — 2026-05-21
+
+**Pre-UAT auth-surface hardening landed before the formal §2 walk began. These ship under commits b934543, c5215b0, 76eeb26, 51518cb on `main`.**
+
+What was added/fixed (verified working on `localhost:3000` by Daniel, not yet walked on staging):
+
+- ✅ **Forgot-password flow** — `/forgot-password` → Supabase reset email → `/reset-password` (PKCE-aware: `exchangeCodeForSession` with implicit-flow fallback). Privacy: never leaks whether an email is registered.
+- ✅ **Show/hide password toggle** — eye icon on the login password field.
+- ✅ **Sign-out section in `/settings`** — placed directly above Danger zone, with a `SettingsNav` chip.
+- ✅ **Redirect-loop fix for orphan auth users** — auth.users entries without a `public.coaches` row (e.g. created directly in the Supabase dashboard) used to bounce forever between `/leads` and `/login`. Layout now signs them out and surfaces a friendly `?error=no_coach_record` message.
+- ✅ **Orphan-coach provisioning script** — `scripts/provision-orphan-coaches.ts` (idempotent). One orphan auth user was provisioned during the session.
+- ✅ **Leads list filter bug** — the demo-lead filter excluded leads with no `external_ids.demo` key at all (Postgres `NOT(NULL='true')` evaluates to NULL → not-matching). Real non-demo leads were invisible. Fixed via `.or("...is.null, ...neq.true")`.
+
+What still requires a Supabase config step (manual, one-time per environment):
+
+- ⚠ **Add `<env>/reset-password` to Supabase → Authentication → URL Configuration → Redirect URLs** for localhost, staging, and production. Without this, reset-email links lose the `?code=` param and the recovery flow falls through to the "expired" branch.
+
+**Next steps for the formal §2 walk (in order):**
+
+1. Add `http://localhost:3000/reset-password` (and the staging/prod equivalents) to the Supabase redirect-URL allowlist — gates §2.1d below.
+2. Walk §2.1 in a fresh incognito browser as if you'd never seen the product. Record pass/fail + notes inline.
+3. Proceed through §2.2 → §2.14 in order. Critical sections (§2.4, §2.6, §2.11, §2.13, §2.14) must end GREEN before launch.
+
+---
+
+## 2.1 — First Impression (5 min) — ✅ passed 2026-05-21 on localhost
+
+- [x] Open `/` in an incognito browser — does the landing/login page feel premium? No generic placeholder copy?
+- [x] Try to sign up (should fail — invite-only). Error message is friendly, not technical.
+- [x] Daniel signs in to `/admin` — dashboard loads without flicker, all coaches listed.
+
+### 2.1a — Auth-surface additions (5 min) — added 2026-05-21 — ✅ passed 2026-05-21 on localhost
+
+- [x] **Login — Forgot password link** — visible next to the password label; clicking goes to `/forgot-password`.
+- [x] **Login — Show/hide password toggle** — eye icon toggles visibility; aria-label changes; tab order remains sane.
+- [x] **Forgot-password — submit known email** — confirmation copy reads "If an account exists for that email…" (never leaks account existence). Reset email arrives within ~1 min.
+- [x] **Forgot-password — submit unknown email** — same confirmation copy, no email arrives, no error leaked.
+- [x] **Reset-password — happy path** — clicking the email link in the same browser where the request was made lands on the "Choose a new password" card; saving signs you in and redirects to `/leads`.
+- [x] **Reset-password — error visibility** — opening the email link in a *different* browser surfaces a readable error in the red mono box (PKCE verifier missing). Friendly "Send a new link" CTA works.
+- [x] **Sign-out — settings page** — `/settings` shows the Sign out section above Danger zone; clicking signs you out and lands on `/login`.
+- [x] **Sign-out — re-login** — signing back in lands cleanly on `/leads` (no redirect loop, no flicker).
+- [x] **Orphan-user guard** — create a user directly in Supabase Auth (skipping invite). Sign in. You should be signed out immediately with the friendly "Your account isn't set up yet" message — **not** a redirect loop.
+
+> **Outstanding for non-localhost:** Re-walk §2.1 + §2.1a on staging once the Supabase redirect-URL allowlist there includes `<staging-domain>/reset-password`. Same for production before launch.
 
 ## 2.2 — Onboarding Wizard (15 min)
 
