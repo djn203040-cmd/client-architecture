@@ -1,5 +1,6 @@
 import "server-only";
 import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
   CompleteStepSchema,
@@ -101,7 +102,22 @@ export async function PATCH(req: NextRequest) {
   const updatePayload: Record<string, unknown> = { onboarding_progress: updatedProgress };
   if (allComplete) updatePayload.onboarding_completed_at = now;
 
-  await supabase.from("coaches").update(updatePayload).eq("id", user.id);
+  const { error: updateError } = await supabase
+    .from("coaches")
+    .update(updatePayload)
+    .eq("id", user.id);
+  if (updateError) {
+    return NextResponse.json(
+      { error: `Couldn't save progress (${updateError.code ?? "unknown"})` },
+      { status: 500 },
+    );
+  }
+
+  // Invalidate the cached onboarding step pages. Without this, a route the
+  // client prefetched while the step was still incomplete (cached as a
+  // redirect back to the unfinished step) is replayed on router.push and
+  // bounces the coach backwards.
+  revalidatePath("/onboarding/[step]", "page");
 
   const nextStep = nextIncompleteStep(updatedProgress);
   return NextResponse.json({ nextStep, completed: allComplete });

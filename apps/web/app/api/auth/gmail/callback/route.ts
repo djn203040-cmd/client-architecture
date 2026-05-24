@@ -66,7 +66,9 @@ export async function GET(request: Request) {
     });
     if (vaultErr || !data) throw new Error(vaultErr?.message ?? "vault store returned null");
     vaultId = data;
-  } catch {
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("[gmail-callback] vault store failed:", err);
     return NextResponse.redirect(new URL("/settings?error=oauth_vault_failed", APP_URL));
   }
 
@@ -79,5 +81,16 @@ export async function GET(request: Request) {
     last_checked_at: new Date().toISOString(),
   }).eq("coach_id", coachId).eq("provider", "gmail");
 
-  return NextResponse.redirect(new URL("/settings?connected=gmail", APP_URL));
+  // 5. Return the coach to where they came from. A coach still in onboarding
+  // goes back to the wizard's Gmail step (which polls for the connected status
+  // and unlocks Continue); a fully-onboarded coach goes to settings.
+  const { data: coach } = await adminClient
+    .from("coaches")
+    .select("onboarding_completed_at")
+    .eq("id", coachId)
+    .maybeSingle();
+  const dest = coach?.onboarding_completed_at
+    ? "/settings?connected=gmail"
+    : "/onboarding/gmail";
+  return NextResponse.redirect(new URL(dest, APP_URL));
 }

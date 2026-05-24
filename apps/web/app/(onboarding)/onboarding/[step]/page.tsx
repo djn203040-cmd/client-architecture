@@ -52,7 +52,19 @@ export default async function OnboardingStepPage({ params }: Props) {
   if (step === "gmail") {
     stepContent = <StepGmail />;
   } else if (step === "voice") {
-    const voiceModel = coach?.voice_model as TVoiceProfile | null;
+    // coaches.voice_model defaults to an empty JSONB {}. Treat anything without
+    // a real profile shape as "not built yet" (null) so the wizard shows the
+    // importer instead of crashing VoiceProfileCard on undefined arrays.
+    const rawVoiceModel = coach?.voice_model as
+      | TVoiceProfile
+      | null
+      | Record<string, never>;
+    const voiceModel =
+      rawVoiceModel &&
+      typeof rawVoiceModel === "object" &&
+      "tone_adjectives" in rawVoiceModel
+        ? (rawVoiceModel as TVoiceProfile)
+        : null;
     const exampleCount = voiceModel?.selected_examples?.length ?? 0;
     stepContent = (
       <StepVoice initialVoiceModel={voiceModel} initialExampleCount={exampleCount} />

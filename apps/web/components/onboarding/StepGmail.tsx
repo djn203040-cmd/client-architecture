@@ -46,6 +46,9 @@ export function StepGmail() {
         toast.error(body.error ?? "Couldn't advance. Try again.");
         return;
       }
+      // Drop the client Router Cache so the prefetched /onboarding/voice
+      // (cached as a redirect while Gmail was incomplete) isn't replayed.
+      router.refresh();
       router.push("/onboarding/voice" as never);
     } finally {
       setAdvancing(false);
