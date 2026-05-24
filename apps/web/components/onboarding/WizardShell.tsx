@@ -4,6 +4,7 @@ import { StepIndicator } from "./StepIndicator";
 
 const STEP_HEADINGS: Record<OnboardingStep, string> = {
   gmail: "Connect your Gmail",
+  booking: "Add your booking link",
   voice: "Teach the AI your voice",
   "first-lead": "Your first AI draft",
   notifications: "Where should we reach you?",

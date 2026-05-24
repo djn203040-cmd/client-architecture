@@ -4,6 +4,7 @@ import { OnboardingStepEnum, type OnboardingProgress } from "@client/shared/vali
 import { nextIncompleteStep } from "@/lib/onboarding/progress";
 import { WizardShell } from "@/components/onboarding/WizardShell";
 import { StepGmail } from "@/components/onboarding/StepGmail";
+import { StepBooking } from "@/components/onboarding/StepBooking";
 import { StepVoice } from "@/components/onboarding/StepVoice";
 import { StepFirstLead } from "@/components/onboarding/StepFirstLead";
 import { StepNotifications } from "@/components/onboarding/StepNotifications";
@@ -26,7 +27,7 @@ export default async function OnboardingStepPage({ params }: Props) {
 
   const { data: coach } = await supabase
     .from("coaches")
-    .select("voice_model, onboarding_progress, notification_settings, onboarding_completed_at")
+    .select("voice_model, onboarding_progress, notification_settings, onboarding_completed_at, public_booking_url")
     .eq("id", user.id)
     .single();
 
@@ -51,6 +52,8 @@ export default async function OnboardingStepPage({ params }: Props) {
 
   if (step === "gmail") {
     stepContent = <StepGmail />;
+  } else if (step === "booking") {
+    stepContent = <StepBooking initialUrl={coach?.public_booking_url ?? null} />;
   } else if (step === "voice") {
     // coaches.voice_model defaults to an empty JSONB {}. Treat anything without
     // a real profile shape as "not built yet" (null) so the wizard shows the

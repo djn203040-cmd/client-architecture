@@ -1,10 +1,11 @@
 import { z } from "zod";
 
-export const OnboardingStepEnum = z.enum(["gmail", "voice", "first-lead", "notifications"]);
+export const OnboardingStepEnum = z.enum(["gmail", "booking", "voice", "first-lead", "notifications"]);
 export type OnboardingStep = z.infer<typeof OnboardingStepEnum>;
 
 export const OnboardingProgressSchema = z.object({
   gmail_connected_at: z.string().datetime().nullable().optional(),
+  booking_url_added_at: z.string().datetime().nullable().optional(),
   voice_model_completed_at: z.string().datetime().nullable().optional(),
   first_lead_completed_at: z.string().datetime().nullable().optional(),
   notifications_picked_at: z.string().datetime().nullable().optional(),
@@ -18,6 +19,7 @@ export const CompleteStepSchema = z.object({
 
 export const STEP_TO_PROGRESS_KEY: Record<OnboardingStep, keyof OnboardingProgress> = {
   gmail: "gmail_connected_at",
+  booking: "booking_url_added_at",
   voice: "voice_model_completed_at",
   "first-lead": "first_lead_completed_at",
   notifications: "notifications_picked_at",
@@ -25,6 +27,7 @@ export const STEP_TO_PROGRESS_KEY: Record<OnboardingStep, keyof OnboardingProgre
 
 export const STEP_ORDER: readonly OnboardingStep[] = [
   "gmail",
+  "booking",
   "voice",
   "first-lead",
   "notifications",
