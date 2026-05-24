@@ -8,7 +8,7 @@ import type { Route } from "next";
 const TABS = [
   { id: "active", label: "Active" },
   { id: "replied", label: "Replied" },
-  { id: "completed", label: "Completed" },
+  { id: "won", label: "Won" },
   { id: "held", label: "Held" },
   { id: "closed", label: "Closed" },
 ] as const;

@@ -190,8 +190,9 @@ What still requires a Supabase config step (manual, one-time per environment):
 
 - ✅ §2.1 First Impression + §2.1a Auth additions — passed.
 - ⚠ §2.2 Onboarding Wizard — walked end-to-end, but as a walk-and-fix (8 bugs + config gaps fixed in-flight; see the §2.2 logs). Owes a clean timed re-walk on staging.
-- ▶ **Next: §2.3 Lead Management.** Then §2.4 → §2.14 in order. Critical sections (§2.4, §2.6, §2.11, §2.13, §2.14) must end GREEN before launch.
-- Outstanding cross-cutting items before launch sign-off: custom SMTP (Resend) so invite/reset emails send without rate limits; Slack + Twilio credentials for §2.6; clean staging re-walk of §2.1–§2.2.
+- ⚠ §2.3 Lead Management — walked end-to-end as a walk-and-fix (11 bugs + 1 architectural change to transcript history; see the §2.3 logs). Owes a clean timed re-walk on staging.
+- ▶ **Next: §2.4 Voice Model Quality (CRITICAL).** Then §2.5 → §2.14 in order. Critical sections (§2.4, §2.6, §2.11, §2.13, §2.14) must end GREEN before launch.
+- Outstanding cross-cutting items before launch sign-off: custom SMTP (Resend) so invite/reset emails send without rate limits; Slack + Twilio credentials for §2.6; clean staging re-walk of §2.1–§2.3.
 
 ---
 
@@ -268,13 +269,54 @@ What still requires a Supabase config step (manual, one-time per environment):
 
 - **Slack + Twilio (WhatsApp/SMS) channels** — no credentials configured. Notifications step completed via the **Email** channel. Slack/Twilio setup + testing deferred to **§2.6 Approval Channels**.
 
-## 2.3 — Lead Management (10 min)
+## 2.3 — Lead Management (10 min) — ⚠ walked-and-fixed 2026-05-24 on localhost
 
-- [ ] Add a lead manually — form is intuitive, validation messages helpful
-- [ ] Lead profile page: timeline reads naturally, notes auto-save without spinner anxiety
-- [ ] State badge color/wording matches what Daniel expects for each state
-- [ ] Search and filter actually work and feel fast
-- [ ] Delete a lead — confirmation modal prevents accidental deletion
+> Walked end-to-end as test coach `augustaevv@gmail.com`. **Not a clean pass** —
+> the walk surfaced 11 real bugs and 1 architectural change to how transcript
+> history feeds the AI engine, all fixed in-flight (see logs below). A clean
+> timed re-walk on staging is owed before launch sign-off.
+
+- [x] Add a lead manually — form is intuitive, validation messages helpful (after bugs #1 + #2)
+- [x] Lead profile page: timeline reads naturally, notes auto-save without spinner anxiety
+- [x] State badge color/wording matches what Daniel expects for each state (after bugs #7 + #9 + #10)
+- [x] Search and filter actually work and feel fast (after bug #9 — tab/status alignment)
+- [x] Delete a lead — confirmation modal prevents accidental deletion (built during walk — bug #3)
+
+### 2.3 — Bugs found and fixed during the walk (2026-05-24)
+
+| # | Symptom | Root cause | Fix |
+|---|---------|-----------|-----|
+| 1 | "Add lead" sheet content cramped against the left edge | Base `SheetContent` primitive had no horizontal padding; only `SheetHeader`/`SheetFooter` had `p-4` | `p-6` on `SheetContent`, dropped redundant `p-4` from header/footer ([apps/web/components/ui/sheet.tsx:63](apps/web/components/ui/sheet.tsx#L63)) — fixes both Sheets in the app |
+| 2 | Native HTML5 validation tooltip ("Udfyld dette felt") hidden behind Chrome email autocomplete | `<form>` allowed browser constraint validation to fire before Zod | `noValidate` on both Sheets; existing Zod inline errors take over |
+| 3 | No way to delete a lead from the profile page | UI never built | New [delete-lead-button.tsx](apps/web/app/(dashboard)/leads/[id]/delete-lead-button.tsx) with Dialog confirmation; wired into header |
+| 4 | "Failed to create draft" on every Generate-draft click | Generate route inserted `status='generating'`, but the `draft_status` enum was `{pending, approved, edited, sent, held, cancelled}` — `'generating'` and `'error'` were never added | Migration [20260524000001_draft_status_generating_error.sql](supabase/migrations/20260524000001_draft_status_generating_error.sql); also pushed §2.2 hot-patches that had drifted from git (idempotent no-ops) |
+| 5 | Draft spinner hangs forever despite a valid generated body sitting in the DB with `status='error'` | Single outer `try/catch` wrapped Inngest events + `ai_summary` refresh + the AI call. Side-effect failures (e.g. Inngest config) overrode a successful draft's status from `'pending'` → `'error'` | Split into three phases: AI generation (errors → `'error'`), persist (errors → `'error'`), side-effects (errors → `console.error`, draft stays valid) ([generate/route.ts](apps/web/app/api/drafts/generate/route.ts)) |
+| 6 | Dashboard "Leads" counter showed 3 when only 2 visible on `/leads` | Dashboard count query didn't apply the demo-lead filter that `/leads` page does | Same `.or("external_ids->>demo.is.null,...")` filter applied to dashboard ([dashboard/page.tsx:14](apps/web/app/(dashboard)/dashboard/page.tsx#L14)) |
+| 7 | "An error has occurred" page when flipping a lead to `unsubscribed` / `do_not_contact` / `bounced` | `GenerateDraftButton` had `if (HARD_BLOCK_STATES.includes(leadStatus)) return null` **before** a `useEffect`. Author silenced the lint warning. When status flipped to a hard-block, the hook count changed → React threw `Rendered fewer hooks than expected` → page error boundary | Moved the early return AFTER all hooks ([GenerateDraftButton.tsx](apps/web/app/(dashboard)/leads/[id]/components/GenerateDraftButton.tsx)) |
+| 8 | Hydration mismatch on `ThemeToggle` (server "Switch to dark", client "Switch to light") | `useState` initializer used `typeof window === 'undefined'` branching, so server always rendered `light` while client read the real `dark` class set by the layout cookie | `mounted` state pattern — server renders an invisible placeholder, client swaps in real icon/label after hydrate ([ThemeToggle.tsx](apps/web/components/shell/ThemeToggle.tsx)) |
+| 9 | Lead with status `closed` showed in the "Completed" tab; tab labeled "Closed" actually filtered for `unsubscribed`/`bounced` | Tab→status mapping diverged from intuitive labels — both a tab and a status named "closed" with different meanings | Renamed tab "Completed" → "Won" (`converted` only). Moved status `closed` into the "Closed" tab alongside `unsubscribed` + `bounced`. Every status now lives in a tab whose label fits it ([leads/page.tsx:21](apps/web/app/(dashboard)/leads/page.tsx#L21), [lead-list-controls.tsx:8](apps/web/app/(dashboard)/leads/lead-list-controls.tsx#L8)) |
+| 10 | Once `do_not_contact` was set, no way to lift it from the UI even if the lead re-engaged | `overrideLeadState` only set `do_not_contact=true` on transition to that state; flipping away didn't clear the sticky flag | New `liftDoNotContact` server action + subtle "Lift" link rendered inside the red "Do not contact" badge. Opens a confirmation Dialog ("Only lift if they have explicitly opted back in") → resets `do_not_contact=false` and status→`identified` ([lift-dnc-action.ts](apps/web/app/(dashboard)/leads/[id]/lift-dnc-action.ts), [lift-dnc-button.tsx](apps/web/app/(dashboard)/leads/[id]/lift-dnc-button.tsx)) |
+| 11 | Transcript card grew unboundedly with content; saved view only showed first 200 chars; no way to delete a mistake | Base `Textarea` uses `field-sizing-content` (modern CSS auto-grow); saved view was a `line-clamp-3` snippet; no `DELETE /api/transcripts/[id]` route existed | Card now has fixed 200px scroll area with Expand/Collapse; saved view shows full transcript in scrollable block; `field-sizing: fixed` override on the input; added DELETE endpoint + trash icons on latest + every historical row with shared confirmation Dialog ([ManualTranscriptUpload.tsx](apps/web/app/(dashboard)/leads/[id]/components/ManualTranscriptUpload.tsx), [api/transcripts/[id]/route.ts](apps/web/app/api/transcripts/[id]/route.ts)) |
+
+### 2.3 — Architectural change: transcript history feeds Continuation, not day-to-day
+
+Daniel surfaced a misalignment between the intent of the product and the implementation: drafts were joining the entire transcript history every time. The intent is that **day-to-day drafts use only the latest call**, while the full history stays on file so the future **Module 3 Continuation** product can write recap-style messages ("we went through X, Y, Z, now we're heading toward…"). Aligned:
+
+- Generate-draft route now reads only the most-recent transcript per lead ([generate/route.ts](apps/web/app/api/drafts/generate/route.ts)). When Continuation is built, add a `useFullHistory: true` flag and switch back to ascending-ordered full join.
+- DB still keeps every transcript; the page now fetches all and passes `latestTranscript` + `priorTranscripts[]` to the component.
+- UI: header shows "Latest call · N total on file"; collapsible "Show N earlier calls" disclosure exposes each historical transcript with date + individually expandable body.
+- Button renamed "Replace transcript" → "Add new call" so the append semantics are honest.
+- Card has Cancel to back out of an accidental "Add new call".
+
+### 2.3 — Recovered data
+
+- One draft (id `77f4eec5-…`) was wrongly flipped to `status='error'` by the over-broad catch (bug #5) despite having a valid generated body. Recovered to `status='pending'` via REST so it appears in the `/drafts` queue.
+
+### 2.3 — Deferred / follow-ups
+
+- **Inngest side-effects still throw silently** on draft generation (logged as `[drafts/generate] inngest events failed (draft still valid)` in the dev terminal). Not blocking §2.3 because drafts persist correctly, but should be diagnosed before §2.6 Approval Channels — likely the same missing-credentials story as Slack/Twilio.
+- **ai_summary refresh from notes** — notes ARE wired into Claude's context, but only on draft generation, not on note save. Acceptable for §2.3; revisit if §2.4 voice testing shows summaries lag behind notes.
+- **Re-walk on staging** owed before launch sign-off, same as §2.2.
 
 ## 2.4 — Voice Model Quality (20 min) — **CRITICAL**
 

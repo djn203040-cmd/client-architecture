@@ -1,6 +1,8 @@
 import type { TLead } from "@client/shared/types";
 import { LeadStateBadge } from "@/components/leads/LeadStateBadge";
 import { ManualStateOverride } from "./manual-state-override";
+import { DeleteLeadButton } from "./delete-lead-button";
+import { LiftDoNotContactButton } from "./lift-dnc-button";
 
 export function LeadProfileHeader({ lead }: { lead: TLead }) {
   return (
@@ -18,17 +20,21 @@ export function LeadProfileHeader({ lead }: { lead: TLead }) {
               {lead.source}
             </span>
             {lead.do_not_contact && (
-              <span className="text-xs px-2 py-1 rounded-md bg-destructive text-destructive-foreground">
+              <span className="inline-flex items-center gap-2 text-xs px-2 py-1 rounded-md bg-destructive text-destructive-foreground">
                 Do not contact
+                <LiftDoNotContactButton leadId={lead.id} leadName={lead.name} />
               </span>
             )}
           </div>
         </div>
-        <ManualStateOverride
-          leadId={lead.id}
-          currentStatus={lead.status}
-          leadName={lead.name}
-        />
+        <div className="flex items-center gap-2">
+          <ManualStateOverride
+            leadId={lead.id}
+            currentStatus={lead.status}
+            leadName={lead.name}
+          />
+          <DeleteLeadButton leadId={lead.id} leadName={lead.name} />
+        </div>
       </div>
     </header>
   );

@@ -17,10 +17,6 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
   const [generating, setGenerating] = useState(false);
   const [draftId, setDraftId] = useState<string | null>(null);
 
-  // D-16: Hard-blocked states — hide entirely
-  if (HARD_BLOCK_STATES.includes(leadStatus)) return null;
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- reason: early return above is constant per mount; hook order stable
   useEffect(() => {
     if (!draftId) return;
 
@@ -54,6 +50,10 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
       void supabase.removeChannel(channel);
     };
   }, [draftId]);
+
+  // D-16: Hard-blocked states — hide entirely. Must happen AFTER all hooks
+  // to keep hook order stable across renders when status flips.
+  if (HARD_BLOCK_STATES.includes(leadStatus)) return null;
 
   async function handleGenerate() {
     setGenerating(true);

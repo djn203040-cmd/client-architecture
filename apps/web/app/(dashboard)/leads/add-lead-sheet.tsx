@@ -77,7 +77,7 @@ export function AddLeadSheet() {
         <SheetHeader>
           <SheetTitle>Add lead</SheetTitle>
         </SheetHeader>
-        <form onSubmit={onSubmit} className="space-y-4 mt-6">
+        <form onSubmit={onSubmit} noValidate className="space-y-4 mt-6">
           <div className="space-y-2">
             <Label htmlFor="lead-name">Name</Label>
             <Input

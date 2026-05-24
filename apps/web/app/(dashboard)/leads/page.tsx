@@ -22,12 +22,12 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
     query = query.in("status", ["identified", "call_booked", "no_show", "call_completed", "in_sequence"]);
   } else if (tab === "replied") {
     query = query.eq("status", "replied");
-  } else if (tab === "completed") {
-    query = query.in("status", ["converted", "closed"]);
+  } else if (tab === "won") {
+    query = query.eq("status", "converted");
   } else if (tab === "held") {
     query = query.eq("status", "do_not_contact");
   } else if (tab === "closed") {
-    query = query.in("status", ["unsubscribed", "bounced"]);
+    query = query.in("status", ["closed", "unsubscribed", "bounced"]);
   }
 
   if (q) query = query.ilike("name", `%${q}%`);

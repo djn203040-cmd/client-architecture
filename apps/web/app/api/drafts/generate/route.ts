@@ -118,23 +118,27 @@ export async function POST(request: Request) {
 
   // Fire-and-forget generation
   void (async () => {
-    try {
-      const { generateDraft, updateLeadDescription } = await import('@client/ai-engine');
+    let transcript: string | null = null;
+    let conversationHistory: string | null = null;
+    let generated: Awaited<ReturnType<typeof import('@client/ai-engine').generateDraft>> = null;
 
-      // Fetch transcript (oldest-first per TRANS-008)
-      const { data: transcripts } = await supabase
+    // PHASE 1: AI generation — failure here means the draft is unusable, flip to 'error'
+    try {
+      const { generateDraft } = await import('@client/ai-engine');
+
+      // Day-to-day drafts use the LATEST transcript only. Full transcript history
+      // is kept in the DB and will be consumed by the future "Continuation" module
+      // for recap-style messages. For now: most-recent call drives the next message.
+      const { data: latestTranscript } = await supabase
         .from('transcripts')
         .select('content')
         .eq('lead_id', leadId)
         .eq('coach_id', coachId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      transcript = latestTranscript?.content ?? null;
 
-      const transcript =
-        transcripts && transcripts.length > 0
-          ? transcripts.map((t) => t.content).join('\n\n---\n\n')
-          : null;
-
-      // Fetch prior sent emails as conversation history
       const { data: sentDrafts } = await supabase
         .from('drafts')
         .select('body, created_at')
@@ -142,13 +146,12 @@ export async function POST(request: Request) {
         .eq('coach_id', coachId)
         .eq('status', 'sent')
         .order('sent_at', { ascending: true });
-
-      const conversationHistory =
+      conversationHistory =
         sentDrafts && sentDrafts.length > 0
           ? sentDrafts.map((d) => d.body).join('\n\n')
           : null;
 
-      const result = await generateDraft(
+      generated = await generateDraft(
         {
           coachId,
           leadId,
@@ -163,48 +166,68 @@ export async function POST(request: Request) {
         },
         coachName,
       );
+    } catch (err) {
+      console.error('[drafts/generate] AI generation failed', { draftId, err });
+      await supabase.from('drafts').update({ status: 'error' }).eq('id', draftId);
+      return;
+    }
 
-      if (!result) {
-        await supabase
-          .from('drafts')
-          .update({ status: 'error' })
-          .eq('id', draftId);
-        return;
-      }
+    if (!generated) {
+      await supabase.from('drafts').update({ status: 'error' }).eq('id', draftId);
+      return;
+    }
 
-      const now = new Date().toISOString();
-      const outcome = buildDraftOutcome(
-        autonomousMode,
-        draftId,
-        coachId,
-        lead.name,
-        result.confidenceLevel,
-        now,
-      );
+    // PHASE 2: persist successful draft — once this lands the draft is "ready"
+    const now = new Date().toISOString();
+    const outcome = buildDraftOutcome(
+      autonomousMode,
+      draftId,
+      coachId,
+      lead.name,
+      generated.confidenceLevel,
+      now,
+    );
 
-      await supabase
-        .from('drafts')
-        .update({
-          body: result.body,
-          status: outcome.status,
-          confidence_level: result.confidenceLevel,
-          generation_context: {
-            truncation_applied: result.truncationLog.length > 0,
-            truncation_log: result.truncationLog,
-            input_tokens: null,
-            quality_flags: result.qualityFlags,
-          },
-        })
-        .eq('id', draftId);
+    const { error: persistError } = await supabase
+      .from('drafts')
+      .update({
+        body: generated.body,
+        status: outcome.status,
+        confidence_level: generated.confidenceLevel,
+        generation_context: {
+          truncation_applied: generated.truncationLog.length > 0,
+          truncation_log: generated.truncationLog,
+          input_tokens: null,
+          quality_flags: generated.qualityFlags,
+        },
+      })
+      .eq('id', draftId);
 
+    if (persistError) {
+      console.error('[drafts/generate] persist failed', { draftId, persistError });
+      await supabase.from('drafts').update({ status: 'error' }).eq('id', draftId);
+      return;
+    }
+
+    // PHASE 3: side-effects — failures here MUST NOT flip the draft to 'error'.
+    // The draft is already valid and visible to the coach.
+    try {
       await Promise.all(
         outcome.events.map((e) =>
           inngest.send(e as Parameters<typeof inngest.send>[0]),
         ),
       );
+    } catch (err) {
+      console.error('[drafts/generate] inngest events failed (draft still valid)', {
+        draftId,
+        err,
+      });
+    }
 
-      // D-19: Update ai_summary if not protected
-      if (!lead.ai_summary_protected) {
+    // D-19: Update ai_summary if not protected — best-effort, never poisons the draft
+    if (!lead.ai_summary_protected) {
+      try {
+        const { updateLeadDescription } = await import('@client/ai-engine');
         const summary = await updateLeadDescription({
           leadId,
           coachId,
@@ -223,12 +246,12 @@ export async function POST(request: Request) {
             .eq('id', leadId)
             .eq('coach_id', coachId);
         }
+      } catch (err) {
+        console.error('[drafts/generate] ai_summary refresh failed (draft still valid)', {
+          draftId,
+          err,
+        });
       }
-    } catch {
-      await supabase
-        .from('drafts')
-        .update({ status: 'error' })
-        .eq('id', draftId);
     }
   })();
 

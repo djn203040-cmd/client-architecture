@@ -73,7 +73,7 @@ export function CreateCoachSheet() {
         <SheetHeader>
           <SheetTitle>Invite a new coach</SheetTitle>
         </SheetHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4 mt-6">
           <div className="space-y-2">
             <Label htmlFor="invite-name">Name</Label>
             <Input

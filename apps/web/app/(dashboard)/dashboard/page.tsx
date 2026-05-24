@@ -11,7 +11,8 @@ export default async function DashboardPage() {
     supabase
       .from("leads")
       .select("*", { count: "exact", head: true })
-      .eq("coach_id", user!.id),
+      .eq("coach_id", user!.id)
+      .or("external_ids->>demo.is.null,external_ids->>demo.neq.true"),
     supabase
       .from("drafts")
       .select("*", { count: "exact", head: true })

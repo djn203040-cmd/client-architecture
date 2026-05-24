@@ -22,7 +22,7 @@ export default async function LeadProfilePage({
   const { data: lead } = await supabase.from("leads").select("*").eq("id", id).maybeSingle();
   if (!lead) notFound();
 
-  const [eventsResult, transcriptResult] = await Promise.all([
+  const [eventsResult, transcriptsResult] = await Promise.all([
     supabase
       .from("lead_events")
       .select("*")
@@ -30,12 +30,14 @@ export default async function LeadProfilePage({
       .order("created_at", { ascending: true }),
     supabase
       .from("transcripts")
-      .select("content")
+      .select("id, content, created_at")
       .eq("lead_id", id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      .order("created_at", { ascending: false }),
   ]);
+
+  const allTranscripts = transcriptsResult.data ?? [];
+  const latestTranscript = allTranscripts[0] ?? null;
+  const priorTranscripts = allTranscripts.slice(1);
 
   return (
     <article className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
@@ -73,7 +75,8 @@ export default async function LeadProfilePage({
         <SequenceStatusPanel leadId={lead.id} status={lead.status} />
         <ManualTranscriptUpload
           leadId={lead.id}
-          existingContent={transcriptResult.data?.content ?? null}
+          latestTranscript={latestTranscript}
+          priorTranscripts={priorTranscripts}
         />
       </aside>
     </article>
