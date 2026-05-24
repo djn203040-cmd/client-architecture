@@ -10,10 +10,19 @@ type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
 export function useDraftRealtime(
   coachId: string,
   opts?: { status?: "pending" | "held"; initialDrafts?: DraftRow[] },
-): { drafts: DraftRow[]; loading: boolean } {
+): { drafts: DraftRow[]; loading: boolean; rotateCurrent: () => void } {
   const status = opts?.status ?? "pending";
   const [drafts, setDrafts] = useState<DraftRow[]>(opts?.initialDrafts ?? []);
   const [loading, setLoading] = useState(!opts?.initialDrafts);
+
+  // Move the first draft to the back — used by the Skip button so the coach
+  // can defer a draft without changing its status. Client-only; no DB write.
+  const rotateCurrent = useMemo(
+    () => () => {
+      setDrafts((prev) => (prev.length > 1 ? [...prev.slice(1), prev[0]!] : prev));
+    },
+    [],
+  );
 
   useEffect(() => {
     const supabase = createClient();
@@ -30,8 +39,12 @@ export function useDraftRealtime(
         },
         (payload) => {
           const row = payload.new as DraftRow;
-          if (row.status === status) {
-            setDrafts((prev) => [row, ...prev]);
+          // Pending bucket = sequence-attached drafts only. Standalone drafts
+          // (created via Generate-draft on a lead) live on the lead profile,
+          // not in the queue — see drafts/page.tsx for the matching SSR filter.
+          const inPendingBucket = status === "pending" && row.sequence_id !== null;
+          if (row.status === status && (status === "held" || inPendingBucket)) {
+            setDrafts((prev) => [...prev, row]);
           }
         },
       )
@@ -45,16 +58,24 @@ export function useDraftRealtime(
         },
         (payload) => {
           const updated = payload.new as DraftRow;
+          // Pending bucket only accepts sequence-attached drafts (see above).
+          const inPendingBucket = status === "pending" && updated.sequence_id !== null;
+          const belongsInBucket =
+            updated.status === status && (status === "held" || inPendingBucket);
           setDrafts((prev) => {
             const exists = prev.some((d) => d.id === updated.id);
-            if (updated.status === status) {
+            if (belongsInBucket) {
               if (exists) {
                 return prev.map((d) =>
                   d.id === updated.id ? { ...d, ...updated } : d,
                 );
               }
-              // Draft transitioned into this status bucket (e.g. pending -> held)
-              return [updated, ...prev];
+              // Draft transitioned INTO this status bucket — most commonly:
+              // a regenerated draft coming back from status='generating'.
+              // APPEND it so it doesn't displace the card the coach is
+              // currently working on (the previous behavior prepended and
+              // looked like "the next card left after 3 seconds").
+              return [...prev, updated];
             }
             // Draft transitioned out of this status bucket
             return prev.filter((d) => d.id !== updated.id);
@@ -68,6 +89,9 @@ export function useDraftRealtime(
     };
   }, [coachId, status]);
 
-  const result = useMemo(() => ({ drafts, loading }), [drafts, loading]);
+  const result = useMemo(
+    () => ({ drafts, loading, rotateCurrent }),
+    [drafts, loading, rotateCurrent],
+  );
   return result;
 }

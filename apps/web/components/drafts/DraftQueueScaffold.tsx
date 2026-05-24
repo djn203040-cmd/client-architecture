@@ -31,7 +31,7 @@ export function DraftQueueScaffold({
   const [justEmptied, setJustEmptied] = useState(false);
   const prevLengthRef = useRef(initialDrafts.length);
 
-  const { drafts, loading: draftsLoading } = useDraftRealtime(coachId, {
+  const { drafts, loading: draftsLoading, rotateCurrent } = useDraftRealtime(coachId, {
     status: "pending",
     initialDrafts,
   });
@@ -47,12 +47,12 @@ export function DraftQueueScaffold({
   }
   prevLengthRef.current = drafts.length;
 
-  const advance = useCallback(
-    (_draftId: string) => {
-      // Realtime removes the draft; justEmptied is tracked via length change above
-    },
-    [],
-  );
+  // Called after Approve/Hold — realtime removes the draft from the bucket
+  // automatically, so the queue advances on its own. Skip uses rotateCurrent
+  // (client-side rotation) instead since the draft's status doesn't change.
+  const advance = useCallback(() => {
+    // No-op: realtime drives the queue update.
+  }, []);
 
   const unmatchedCount = initialUnmatched.length;
   const heldCount = heldDrafts.length;
@@ -119,7 +119,7 @@ export function DraftQueueScaffold({
               <DraftCard
                 key={drafts[0]!.id}
                 draft={drafts[0]!}
-                onAdvance={() => advance(drafts[0]!.id)}
+                onAdvance={drafts.length > 1 ? rotateCurrent : advance}
               />
             </AnimatePresence>
           </>

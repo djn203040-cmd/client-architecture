@@ -57,7 +57,17 @@ export function DraftCard({
   async function setStatus(status: "approved" | "held", body?: string) {
     const r = await callPatch({ status, ...(body ? { body } : {}) });
     if (!r.ok) {
-      toast.error("This action didn't go through. Refresh and try again.");
+      const data = await r.json().catch(() => ({}));
+      const reason = (data as { reason?: string }).reason;
+      // Surface the real failure reason instead of a generic message so it's
+      // clear when a standalone (non-sequence) draft isn't approvable yet.
+      const message =
+        reason === "no_sequence"
+          ? "This draft isn't part of an active sequence yet. Sequence-driven drafts go through this queue; standalone drafts can be reviewed on the lead's page."
+          : reason
+            ? `Couldn't ${status === "approved" ? "approve" : "hold"} — ${reason}.`
+            : "This action didn't go through. Refresh and try again.";
+      toast.error(message);
       return;
     }
     toast.success(status === "approved" ? "Approved" : "Held");
@@ -93,7 +103,9 @@ export function DraftCard({
     );
   }
 
-  const sched = new Date(draft.scheduled_send_at ?? Date.now());
+  // Use draft.created_at as the fallback (stable timestamp) rather than
+  // Date.now() (changes every render → hydration mismatch + meaningless value).
+  const sched = new Date(draft.scheduled_send_at ?? draft.created_at);
   const isReview = surface === "review";
   const wrapClass = isReview
     ? "bg-white/10 backdrop-blur-md border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
@@ -117,7 +129,11 @@ export function DraftCard({
           <h2 className="text-xl font-semibold leading-[1.25]">
             {draft.leads?.name ?? "Unknown lead"}
           </h2>
-          <p className="text-xs font-mono text-muted-foreground mt-1">
+          {/* Locale-formatted date differs between server (en-US default) and
+              client (user's browser locale). suppressHydrationWarning silences
+              the expected mismatch — the displayed value matches the user's
+              locale once hydrated, which is the desired behavior. */}
+          <p className="text-xs font-mono text-muted-foreground mt-1" suppressHydrationWarning>
             Message {draft.touchpoint_index} of {draft.total_touchpoints ?? "?"} &middot;{" "}
             {sched.toLocaleString()}
           </p>
