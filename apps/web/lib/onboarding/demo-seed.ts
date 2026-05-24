@@ -105,6 +105,7 @@ export async function seedDemoLeadForCoach(
           transcript: DEMO_TRANSCRIPT,
           conversationHistory: null,
           coachNotes: null,
+    bookingUrl: null,
           touchpointIndex: 1,
           voiceModel: coach.voice_model as never,
         },

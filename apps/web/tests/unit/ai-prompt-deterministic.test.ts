@@ -39,6 +39,7 @@ const baseParams: DraftGenerationParams = {
   conversationHistory: null,
   aiSummary: "Lead inquired about pricing.",
   coachNotes: null,
+  bookingUrl: null,
 };
 
 describe("AI-Prompt-Deterministic: byte-identical output for identical inputs", () => {
@@ -67,5 +68,21 @@ describe("AI-Prompt-Deterministic: byte-identical output for identical inputs", 
     const a = buildDraftUserPrompt({ ...inSeq, touchpointIndex: 1 });
     const b = buildDraftUserPrompt({ ...inSeq, touchpointIndex: 3 });
     expect(a).not.toBe(b);
+  });
+
+  // Regression: coach_notes were silently dropped from the prompt for the
+  // entire §2.4 walk, causing the model to hallucinate replies that weren't
+  // sent and refuse to respond to replies that were quoted in the notes.
+  it("coach_notes content is injected into the prompt when present", () => {
+    const distinctive = "QUOTED_REPLY_FROM_LEAD_THAT_MUST_APPEAR_VERBATIM";
+    const prompt = buildDraftUserPrompt({ ...baseParams, coachNotes: distinctive });
+    expect(prompt).toContain(distinctive);
+    expect(prompt).toContain("<coach_notes>");
+  });
+
+  it("coach_notes block renders an empty-state marker when null", () => {
+    const prompt = buildDraftUserPrompt({ ...baseParams, coachNotes: null });
+    expect(prompt).toContain("<coach_notes>");
+    expect(prompt).toContain("No coach notes on this lead.");
   });
 });

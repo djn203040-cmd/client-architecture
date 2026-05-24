@@ -13,6 +13,10 @@ export interface DraftGenerationParams {
   transcript: string | null;
   conversationHistory: string | null;
   coachNotes: string | null;
+  // Real public booking URL (Calendly / Cal.com / Acuity / etc). When set,
+  // the AI uses it verbatim; when null, the AI is instructed not to invent
+  // or stub a placeholder link.
+  bookingUrl: string | null;
   touchpointIndex: number;
   voiceModel: TVoiceProfile | null;
 }

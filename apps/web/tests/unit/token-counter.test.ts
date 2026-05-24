@@ -43,6 +43,7 @@ function makeParams(overrides: Partial<DraftGenerationParams> = {}): DraftGenera
     transcript: null,
     conversationHistory: null,
     coachNotes: null,
+    bookingUrl: null,
     touchpointIndex: 1,
     voiceModel: makeVoiceModel(),
     ...overrides,

@@ -58,10 +58,10 @@ export async function POST(request: Request) {
     );
   }
 
-  // Load voice model
+  // Load voice model + booking URL for the AI prompt
   const { data: coach, error: coachError } = await supabase
     .from('coaches')
-    .select('voice_model, name, autonomous_mode')
+    .select('voice_model, name, autonomous_mode, public_booking_url')
     .eq('id', user.id)
     .single();
 
@@ -161,6 +161,7 @@ export async function POST(request: Request) {
           transcript,
           conversationHistory,
           coachNotes: lead.coach_notes,
+          bookingUrl: coach.public_booking_url,
           touchpointIndex,
           voiceModel,
         },

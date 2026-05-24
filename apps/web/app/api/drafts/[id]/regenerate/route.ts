@@ -46,7 +46,7 @@ export async function POST(
   // Load voice model
   const { data: coach } = await supabase
     .from('coaches')
-    .select('voice_model, name')
+    .select('voice_model, name, public_booking_url')
     .eq('id', coachId)
     .single();
   if (!coach) return NextResponse.json({ error: 'Coach record not found' }, { status: 500 });
@@ -105,6 +105,7 @@ export async function POST(
           transcript,
           conversationHistory,
           coachNotes: lead.coach_notes,
+          bookingUrl: coach.public_booking_url,
           touchpointIndex: touchpointIndex ?? 1,
           voiceModel,
         },
