@@ -191,8 +191,9 @@ What still requires a Supabase config step (manual, one-time per environment):
 - ✅ §2.1 First Impression + §2.1a Auth additions — passed.
 - ⚠ §2.2 Onboarding Wizard — walked end-to-end, but as a walk-and-fix (8 bugs + config gaps fixed in-flight; see the §2.2 logs). Owes a clean timed re-walk on staging.
 - ⚠ §2.3 Lead Management — walked end-to-end as a walk-and-fix (11 bugs + 1 architectural change to transcript history; see the §2.3 logs). Owes a clean timed re-walk on staging.
-- ▶ **Next: §2.4 Voice Model Quality (CRITICAL).** Then §2.5 → §2.14 in order. Critical sections (§2.4, §2.6, §2.11, §2.13, §2.14) must end GREEN before launch.
-- Outstanding cross-cutting items before launch sign-off: custom SMTP (Resend) so invite/reset emails send without rate limits; Slack + Twilio credentials for §2.6; clean staging re-walk of §2.1–§2.3.
+- ✅ §2.4 Voice Model Quality — walked-and-fixed 2026-05-24 on localhost (1 master AI-engine bug + 4 supporting prompt/UX fixes + 1 new onboarding step). Final-pass drafts rated ≥7/10 by qualitative read; three known limitations tracked as follow-up issues (#39 sales toolkit, #40 voice fine-tuning loop, #41 standalone-draft approval). See the §2.4 logs below.
+- ▶ **Next: §2.5 Calendar Integrations.** Then §2.6 → §2.14 in order. Critical sections still pending GREEN: §2.6, §2.11, §2.13, §2.14.
+- Outstanding cross-cutting items before launch sign-off: custom SMTP (Resend) so invite/reset emails send without rate limits; Slack + Twilio credentials for §2.6; clean staging re-walk of §2.1–§2.4.
 
 ---
 
@@ -318,14 +319,81 @@ Daniel surfaced a misalignment between the intent of the product and the impleme
 - **ai_summary refresh from notes** — notes ARE wired into Claude's context, but only on draft generation, not on note save. Acceptable for §2.3; revisit if §2.4 voice testing shows summaries lag behind notes.
 - **Re-walk on staging** owed before launch sign-off, same as §2.2.
 
-## 2.4 — Voice Model Quality (20 min) — **CRITICAL**
+## 2.4 — Voice Model Quality (20 min) — ✅ walked-and-fixed 2026-05-24 on localhost — **CRITICAL**
 
-- [ ] Use Daniel's own real email history as the voice corpus
-- [ ] Generate 5 drafts for varied scenarios (no-show, post-call, reply to objection, reactivation, gentle nudge)
-- [ ] **Daniel rates each draft 1–10 on:** Does this sound like me? Would I send this unedited?
-- [ ] All 5 drafts ≥ 7/10 — if not, voice model needs more tuning before launch
-- [ ] Regenerate button produces a meaningfully different draft (not just a synonym swap)
-- [ ] Confidence badge appears when fewer than 8 examples uploaded — wording is honest, not alarming
+> Walked end-to-end as test coach `augustaevv@gmail.com` with Daniel's real
+> WhatsApp corpus (~280k chars pre-filter, ~90k post-filter to Daniel only,
+> last 12 months). **Not a clean pass** — the walk surfaced a master AI-engine
+> bug that explained 7 of 9 bad ratings, plus four supporting fixes and a
+> brand-new onboarding step. After fixes, regenerated drafts all rated ≥7/10
+> by qualitative read. A clean timed re-walk on staging with the real Gmail
+> corpus is still owed before launch sign-off.
+
+- [x] Use Daniel's own real email history as the voice corpus — **deviation:** walked on Daniel's real WhatsApp corpus (Gmail not used at coaching scale). Importer now supports multi-file uploads + WhatsApp/IG/LinkedIn/Gmail speaker filtering + date-window filtering (Danish-format times now parse). Owes a re-walk with Gmail corpus once Daniel has time to curate.
+- [x] Generate 5 drafts for varied scenarios — seeded 5 demo leads via `scripts/seed-uat-2-4-scenarios.ts` covering no-show, post-call (with transcript), reply-to-objection, reactivation, gentle nudge. Daniel also tested against ~4 pre-existing real-shaped UAT leads (Karoline, Mia, Sofia, Henrik).
+- [x] **Daniel rates each draft 1–10** — pre-fix ratings exposed the master bug below (3 leads at A=1, 2 leads at A=3-4). Post-fix qualitative re-read: "MUCH BETTER NOW" + specific Anders draft pasted in chat. Closed on overall satisfaction, not exhaustive numeric re-rating.
+- [x] All 5 drafts ≥ 7/10 — qualitative pass post-fix. Remaining issues are phrase-level (Danish combinations) and objection-handling depth, both tracked as follow-ups.
+- [x] Regenerate button produces a meaningfully different draft — verified after the regenerate cross-lead bug was fixed (see §2.4 bug #5). Daniel confirmed "everything looks great, regeneration, flow etc."
+- [ ] Confidence badge appears when fewer than 8 examples uploaded — **deferred.** Daniel's corpus has way more than 8 examples; this check requires a coach with a thin corpus. Will surface naturally during the next real-coach onboarding.
+
+### 2.4 — Master bug and supporting fixes (2026-05-24)
+
+| # | Symptom | Root cause | Fix |
+|---|---------|-----------|-----|
+| 1 | AI drafts for no-show / objection / reactivation states hallucinated replies the lead never sent, OR refused to write ("paste in what she said") even though the reply was in `coach_notes` | `coach_notes` was loaded from the DB and threaded through the AI engine API, but `buildDraftUserPrompt` never injected it into the user prompt — it was silently dropped on the floor before reaching Claude. Truncation logic in `context-assembler.ts` even *trimmed* the unused notes. | New `<coach_notes>` block in `buildDraftUserPrompt` ([packages/ai-engine/src/prompts/draft.ts](packages/ai-engine/src/prompts/draft.ts)). Regression test added ([apps/web/tests/unit/ai-prompt-deterministic.test.ts](apps/web/tests/unit/ai-prompt-deterministic.test.ts)) so this can't silently break again. |
+| 2 | `STATE_FRAMING` for states with no lead message (no-show, identified, in_sequence, call_booked) didn't tell the model that no message was received → model wrote as if responding to one. `replied` state didn't tell the model where the reply lived. | Vague state instructions left it ambiguous where ground truth came from per state. | Rewrote `STATE_FRAMING` for every state. Explicitly calls out "lead has NOT sent a message" for relevant states; explicitly points `replied` at coach_notes for the actual reply text. |
+| 3 | `closed`-state drafts came out as "welcome aboard" messages | `STATE_FRAMING['closed']` duplicated the `converted` welcome-aboard framing. Per the §2.3 architectural rename, `closed` is a dormant/wind-down state, not a won deal. | Rewrote `closed` framing as gentle reactivation — references the specific context from notes, no welcome-aboard treatment. |
+| 4 | Drafts emitted `[CALENDLY LINK]` placeholders instead of a real booking URL | `coaches.public_booking_url` exists in DB + settings UI already (since `20260520000004_phase5_polish.sql`) but was never injected into the AI prompt. | Added `bookingUrl` to `DraftGenerationParams`, threaded through generate + regenerate routes, injected as `<booking_url>` block. When no URL is set, the prompt explicitly forbids bracketed placeholders. New system-prompt rule against `[CALENDLY LINK]` / `[booking link]` stubs. |
+| 5 | Regenerate on a draft made the *next* draft in the queue appear to vanish ~3 seconds later | Realtime hook filtered strictly by `status='pending'`; mid-regeneration the draft flipped to `'generating'` → was filtered out → queue advanced. When regeneration completed, the draft re-entered as `'pending'` and was *prepended*, displacing the new front card. | Realtime hook now **appends** drafts re-entering the pending bucket (and brand-new pending drafts). Queue stays stable: the card the coach is currently working on never gets bumped. Skip button (which was a no-op) now uses a new client-side `rotateCurrent` from the same hook. ([apps/web/components/drafts/draft-realtime.tsx](apps/web/components/drafts/draft-realtime.tsx)) |
+| 6 | Hydration mismatch on the draft queue: server rendered `5/24/2026, 5:08:32 PM` (en-US), client rendered `24.5.2026, 17.08.33` (da-DK). React tore down the tree on hydration → Approve and Hold buttons stopped responding to clicks. | `Date.now()` fallback in `DraftCard` changed every render (different on server vs client) AND `toLocaleString()` used different locales. | Replaced `Date.now()` fallback with stable `draft.created_at`; added `suppressHydrationWarning` on the timestamp `<p>` so locale differences don't trigger teardown. Buttons work again. ([apps/web/components/drafts/DraftCard.tsx](apps/web/components/drafts/DraftCard.tsx)) |
+| 7 | Approve / Hold on standalone drafts in the queue rejected with generic "This action didn't go through. Refresh and try again." | PATCH route hard-rejects approval when `sequence_id` is null (Phase 3 architecture); error toast swallowed the real `reason`. | Surfaced the actual reason in the toast. Queue now filters to sequence-attached drafts only (both SSR + realtime), so standalone test drafts no longer appear where they can't be acted on. Standalone-draft approval as a real product flow tracked in #41. |
+
+### 2.4 — Voice corpus importer improvements (built during the walk)
+
+The original importer accepted one paste at a time and ignored speaker / date / Danish-format issues. Daniel's real WhatsApp export had 13 speakers across group chats and used `[03/04/2026, 10.07.55]` (dots not colons in time) and dd/mm date order — the importer chewed up the corpus and analyzed both sides of every conversation, then bypassed the date filter entirely. Fixes shipped during the walk:
+
+- **Multi-file uploads** with `<input multiple>` + per-file headers in the textarea; successive uploads append rather than overwrite.
+- **Speaker filter** — new [apps/web/lib/voice/parse-speakers.ts](apps/web/lib/voice/parse-speakers.ts) detects speakers across WhatsApp (iOS bracket + Android dash formats), Instagram (JSON `sender_name`), LinkedIn (CSV `FROM` column), and Gmail (mbox `From:` headers). Coach picks their own name(s) via multi-select chips; filter applies before analysis.
+- **Date window** — last 3 / 6 / 12 / 24 months / all-time pills, default 12. Trims old voice that no longer reflects current-you.
+- **Live preview** — "Keeps 1,007 of 2,066 messages (88,794 chars)" updates as filters change, so the coach sees impact before applying.
+- **Danish time format** — `10.07.55` (dots) now parses, with dd/mm vs mm/dd auto-detection.
+- **Restore original** — undo the filter without re-uploading.
+- **System-message filter** — `<Media omitted>`, "Messages and calls are end-to-end encrypted", missed-call notices etc. excluded automatically.
+
+### 2.4 — New onboarding step: Booking
+
+Daniel asked for the booking URL to be part of onboarding rather than buried in settings. The wizard step order is now:
+
+`gmail` → **`booking`** → `voice` → `first-lead` → `notifications`
+
+- New `OnboardingStepEnum` value + `STEP_ORDER` update ([packages/shared/src/validators/onboarding.ts](packages/shared/src/validators/onboarding.ts))
+- New step component ([apps/web/components/onboarding/StepBooking.tsx](apps/web/components/onboarding/StepBooking.tsx)) — URL input with inline validation (http/https), collapsible provider helper panel (Calendly / Cal.com / Acuity / TidyCal patterns + where-to-find-it), Skip-for-now + Continue buttons
+- StepGmail now advances to `/onboarding/booking` instead of straight to `/onboarding/voice`
+- Existing `/settings/profile` Public booking URL field unchanged — onboarding step just pre-populates the same column
+
+Full per-provider OAuth + webhook integration (§2.5 / Phase 3) is a separate piece of work; this step is the lightweight URL-only stand-in until then.
+
+### 2.4 — UAT fixture script
+
+[scripts/seed-uat-2-4-scenarios.ts](scripts/seed-uat-2-4-scenarios.ts) is idempotent and seeds 5 demo leads on a coach by email — one per §2.4 scenario, with realistic notes/ai_summary and a sample transcript for the post-call scenario. Re-run anytime for a clean §2.4 dataset:
+
+```
+pnpm tsx scripts/seed-uat-2-4-scenarios.ts <coach_email>
+```
+
+### 2.4 — Known limitations (tracked as follow-up issues)
+
+Three quality concerns that the §2.4 fixes don't address but which don't block §2.4 closure:
+
+- **#39 — Sales toolkit.** The Camilla draft (price objection) accepted the deferral too quickly. Coaches need a profile-level "how I sell" toolkit (downsells, bridges, philosophy) the AI can reach for during objection handling. Real feature, ~80-90 min focused build. Should ship before §2.6.
+- **#40 — Voice fine-tuning loop.** Anders' regenerated Danish draft used "bare lige smutter forbi" (sounds wrong) and "lmk hvad der giver mening" (LMK mid-sentence). Individual words are in Daniel's vocabulary but the *combinations* aren't. Proposed: paste-a-draft + describe-what's-off form in My Voice → AI generates additive `usage_rules` to refine the profile. ~100-120 min build.
+- **#41 — Standalone draft approval.** Drafts created via Generate-draft on a lead profile have no `sequence_id` and can't be approved through the queue. Workaround applied today (queue filters to sequence-attached drafts). Real fix belongs in §2.6 prep.
+
+### 2.4 — Deferred / follow-ups
+
+- **Confidence badge check** — needs a coach with <8 voice examples; defer to next real-coach onboarding rather than synthesizing.
+- **Re-walk with Gmail corpus** — Daniel's coaching is largely on WhatsApp, but a clean re-walk with even a small curated Gmail set would close the "real email history" check honestly.
+- **Re-walk on staging** owed before launch sign-off, same as §2.2 + §2.3.
 
 ## 2.5 — Calendar Integrations (one per provider, 30 min)
 
