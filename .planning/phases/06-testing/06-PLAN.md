@@ -186,11 +186,12 @@ What still requires a Supabase config step (manual, one-time per environment):
 
 - ⚠ **Add `<env>/reset-password` to Supabase → Authentication → URL Configuration → Redirect URLs** for localhost, staging, and production. Without this, reset-email links lose the `?code=` param and the recovery flow falls through to the "expired" branch.
 
-**Next steps for the formal §2 walk (in order):**
+**§2 walk progress (localhost, 2026-05-22):**
 
-1. Add `http://localhost:3000/reset-password` (and the staging/prod equivalents) to the Supabase redirect-URL allowlist — gates §2.1d below.
-2. Walk §2.1 in a fresh incognito browser as if you'd never seen the product. Record pass/fail + notes inline.
-3. Proceed through §2.2 → §2.14 in order. Critical sections (§2.4, §2.6, §2.11, §2.13, §2.14) must end GREEN before launch.
+- ✅ §2.1 First Impression + §2.1a Auth additions — passed.
+- ⚠ §2.2 Onboarding Wizard — walked end-to-end, but as a walk-and-fix (8 bugs + config gaps fixed in-flight; see the §2.2 logs). Owes a clean timed re-walk on staging.
+- ▶ **Next: §2.3 Lead Management.** Then §2.4 → §2.14 in order. Critical sections (§2.4, §2.6, §2.11, §2.13, §2.14) must end GREEN before launch.
+- Outstanding cross-cutting items before launch sign-off: custom SMTP (Resend) so invite/reset emails send without rate limits; Slack + Twilio credentials for §2.6; clean staging re-walk of §2.1–§2.2.
 
 ---
 
@@ -214,17 +215,58 @@ What still requires a Supabase config step (manual, one-time per environment):
 
 > **Outstanding for non-localhost:** Re-walk §2.1 + §2.1a on staging once the Supabase redirect-URL allowlist there includes `<staging-domain>/reset-password`. Same for production before launch.
 
-## 2.2 — Onboarding Wizard (15 min)
+## 2.2 — Onboarding Wizard (15 min) — ⚠ walked-and-fixed 2026-05-22 on localhost
 
-- [ ] Create a brand-new test coach account from `/admin`
-- [ ] Invite email arrives; copy is warm, not robotic
-- [ ] Click invite → land on onboarding wizard
-- [ ] **Step 1 — Profile:** All fields save, validation is reasonable, name appears in header after save
-- [ ] **Step 2 — Gmail connect:** OAuth flow completes; permission screen lists only the scopes we actually need; "Connected" badge appears
-- [ ] **Step 3 — Voice model:** Upload sample emails / paste examples — confidence indicator updates as examples added
-- [ ] **Step 4 — First lead walkthrough:** Demo lead is convincing; AI draft sounds like the test coach
-- [ ] Total time start-to-finish ≤ 15 min for a non-technical user
-- [ ] Resume banner appears if Daniel closes browser mid-wizard
+> The wizard was walked end-to-end as test coach `augustaevv@gmail.com`. It was
+> **not a clean pass** — the walk surfaced a stack of real bugs and config gaps,
+> all fixed in-flight (see logs below). A clean timed re-walk on staging is still
+> owed before launch sign-off.
+>
+> Implementation note: the live wizard steps are **Gmail → Voice → First lead →
+> Notifications**. There is no separate "Profile" step (§2.2 row below is stale
+> vs. the build).
+
+- [x] Create a brand-new test coach account — **deviation:** done via `scripts/generate-invite-link.ts`, not the `/admin` UI. Supabase's built-in SMTP hit its invite rate limit, so invite emails were bypassed with a generated link. `/admin` invite UI itself not exercised here.
+- [ ] Invite email arrives; copy is warm, not robotic — **not tested** (email bypassed; built-in SMTP rate-limited). Re-test once custom SMTP (Resend) is configured.
+- [x] Click invite → land on onboarding wizard
+- [ ] **Step 1 — Profile** — N/A, no Profile step exists in the built wizard.
+- [x] **Step 2 — Gmail connect:** OAuth completes, scopes correct, "Connected" badge appears.
+- [x] **Step 3 — Voice model:** corpus importer + Anthropic analysis produce a profile; examples render.
+- [x] **Step 4 — First lead walkthrough:** demo lead + AI draft generate and approve.
+- [ ] Total time ≤ 15 min — **not meaningful this run** (interleaved with debugging). Measure on the staging re-walk.
+- [ ] Resume banner appears if browser closed mid-wizard — **not tested.**
+
+### 2.2 — Bugs found and fixed during the walk (2026-05-22)
+
+| # | Symptom | Root cause | Fix |
+|---|---------|-----------|-----|
+| 1 | Gmail OAuth: "Missing required parameter: client_id" | `GOOGLE_CLIENT_ID/SECRET` empty in env | Created GCP OAuth client; populated `.env.local` |
+| 2 | Gmail OAuth: "We couldn't securely store your tokens" | `private` schema not in PostgREST exposed schemas (`PGRST106`) | Added `private` to Supabase exposed schemas + extra search path |
+| 3 | Gmail OAuth: still failing — `42501 permission denied for schema private` | `service_role` had `EXECUTE` on the vault fns but no `USAGE` on the schema | Migration `20260522000001_grant_private_schema_usage.sql` |
+| 4 | Gmail connects but wizard never advances past step 1 | `StepGmail` polls `/api/settings/integrations/status` — route did not exist | Created the route |
+| 5 | Gmail OAuth callback dumps coach on `/settings`, not the wizard | Callback always redirected to settings | Callback now returns mid-onboarding coaches to `/onboarding/gmail` |
+| 6 | "Continue" on Gmail step bounces back to Gmail | `coaches.notification_settings` column never created — coach `SELECT` failed (`42703`), progress read as empty | Migration `20260522000002_coaches_notification_settings.sql` |
+| 7 | Voice step crash: "Cannot read properties of undefined (reading 'length')" | New coach's `voice_model` is `{}`; treated as a complete profile | Step page normalizes `{}` → `null` (mirrors the settings page guard) |
+| 8 | Re-analyze: 500 "Something went wrong analyzing your writing" | Malformed-JSON `SyntaxError` from the model wasn't a `VoiceParseError`, so the retry never fired | `extractVoiceProfile` wraps parse errors as `VoiceParseError` |
+
+### 2.2 — Config gaps closed
+
+- Google OAuth client created + credentials set.
+- Anthropic API key set (`ANTHROPIC_API_KEY`) — the AI draft engine had no key.
+- Supabase: `private` schema exposed; `/reset-password` redirect URLs allowlisted (from §2.1).
+
+### 2.2 — UX / quality changes made during the walk
+
+- Voice corpus importer: per-channel file types (`.csv` LinkedIn, `.json` Instagram); fixed-height textareas with internal scroll + expand/collapse.
+- Writing examples list: per-example show-more/show-less.
+- Analyze button: added a "this can take 2–5 minutes" note while running.
+- Draft engine: hard no-em/en-dash rule (system prompt + `stripDashes` guardrail + corpus example stripping).
+- Draft engine: length guidance — natural 3–10 sentences, no minimum, no multi-paragraph essays.
+- Added dummy voice-corpus fixtures (`apps/web/tests/fixtures/voice-corpus/`).
+
+### 2.2 — Deferred
+
+- **Slack + Twilio (WhatsApp/SMS) channels** — no credentials configured. Notifications step completed via the **Email** channel. Slack/Twilio setup + testing deferred to **§2.6 Approval Channels**.
 
 ## 2.3 — Lead Management (10 min)
 
