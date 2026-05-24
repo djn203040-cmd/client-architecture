@@ -12,12 +12,12 @@ import { buildLeadDescriptionPrompt } from './prompts/lead-description';
 import { VoiceProfileSchema } from '@client/shared/validators';
 import { assembleContext } from './context-assembler';
 import { countTokens } from './token-counter';
-import { isHardBlocked, scanNeverSayList, assertCoachIdScope } from './guardrails';
+import { isHardBlocked, scanNeverSayList, assertCoachIdScope, stripDashes } from './guardrails';
 import { traceGeneration } from './tracing';
 import type { VoiceAnalysisParams, DraftGenerationParams } from './types';
 import type { TVoiceProfile } from '@client/shared/validators';
 
-export { isHardBlocked, scanNeverSayList, assertCoachIdScope } from './guardrails';
+export { isHardBlocked, scanNeverSayList, assertCoachIdScope, stripDashes } from './guardrails';
 export type { DraftGenerationParams, VoiceAnalysisParams, VoiceAnalysisResult } from './types';
 
 export class VoiceParseError extends Error {
@@ -30,7 +30,15 @@ export class VoiceParseError extends Error {
 function extractVoiceProfile(text: string): unknown {
   const match = text.match(/<voice_profile>([\s\S]*?)<\/voice_profile>/);
   if (!match || match[1] === undefined) throw new VoiceParseError('No <voice_profile> block found in response');
-  return JSON.parse(match[1].trim());
+  try {
+    return JSON.parse(match[1].trim());
+  } catch (err) {
+    // Malformed JSON (e.g. an unescaped quote) — surface as a VoiceParseError
+    // so analyzeVoiceCorpus retries with a corrective instruction instead of
+    // failing outright.
+    const reason = err instanceof Error ? err.message : 'unknown parse error';
+    throw new VoiceParseError(`Voice profile JSON did not parse: ${reason}`);
+  }
 }
 
 export async function analyzeVoiceCorpus(params: VoiceAnalysisParams): Promise<TVoiceProfile> {
@@ -53,7 +61,15 @@ export async function analyzeVoiceCorpus(params: VoiceAnalysisParams): Promise<T
     if (!result.success) {
       throw new VoiceParseError(`Voice profile schema validation failed: ${result.error.message}`);
     }
-    return result.data;
+    // The corpus may contain em/en dashes, but the product never uses them.
+    // Strip them from the stored examples + phrases so the few-shot context
+    // doesn't teach the draft model a habit the system prompt forbids.
+    return {
+      ...result.data,
+      selected_examples: result.data.selected_examples.map(stripDashes),
+      opener_phrases: result.data.opener_phrases.map(stripDashes),
+      closer_phrases: result.data.closer_phrases.map(stripDashes),
+    };
   };
 
   try {
@@ -118,6 +134,10 @@ export async function generateDraft(
       qualityFlags.push('never_say_violation');
     }
   }
+
+  // Hard guarantee: no em-dash / en-dash ever reaches a coach, regardless of
+  // what the model produced.
+  body = stripDashes(body);
 
   traceGeneration('generateDraft', {
     leadId: params.leadId,

@@ -90,7 +90,7 @@ export async function seedDemoLeadForCoach(
     .single();
 
   let draftBody =
-    "Thank you for our conversation today, Alex. I appreciated your honesty and self-awareness. I'd love to continue exploring what's possible for you — shall we schedule a follow-up?";
+    "Thank you for our conversation today, Alex. I appreciated your honesty and self-awareness. I'd love to continue exploring what's possible for you. Shall we schedule a follow-up?";
 
   if (coach?.voice_model) {
     try {

@@ -11,6 +11,16 @@ export function scanNeverSayList(draftText: string, neverSayList: string[]): str
   return neverSayList.filter((phrase) => lower.includes(phrase.toLowerCase()));
 }
 
+// Hard guarantee no em-dash ("—") or en-dash ("–") reaches a coach, even if
+// the model ignores the system-prompt rule. Dashes used as punctuation become
+// a comma. Ordinary hyphens ("-", U+002D) in compound words are untouched.
+export function stripDashes(draftText: string): string {
+  return draftText
+    .replace(/\s*[—–]\s*/g, ', ')
+    .replace(/\s+,/g, ',')
+    .replace(/,\s*,/g, ',');
+}
+
 export function assertCoachIdScope(paramCoachId: string, contextCoachId: string): void {
   if (paramCoachId !== contextCoachId) {
     throw new Error(

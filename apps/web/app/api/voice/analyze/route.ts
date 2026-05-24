@@ -32,7 +32,9 @@ export async function POST(request: Request) {
   try {
     const profile = await analyzeVoiceCorpus({ coachId: user.id, corpus });
     return NextResponse.json(profile);
-  } catch {
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("[voice/analyze] analyzeVoiceCorpus failed:", err);
     return NextResponse.json(
       { error: "Something went wrong analyzing your writing. Try again or add more content." },
       { status: 500 }
