@@ -1,0 +1,43 @@
+{
+  "participants": [
+    { "name": "Augusta Vesterlyng" },
+    { "name": "Leah Mortensen" }
+  ],
+  "messages": [
+    {
+      "sender_name": "Augusta Vesterlyng",
+      "timestamp_ms": 1740825600000,
+      "content": "Hi Leah! So glad you reached out. I saw you've been posting about wanting more structure in your days — that's such a good instinct, and honestly the hardest part is just naming it."
+    },
+    {
+      "sender_name": "Augusta Vesterlyng",
+      "timestamp_ms": 1740829200000,
+      "content": "No rush to reply. Whenever you've got a quiet moment, tell me what a good week would actually feel like for you. We can start from there."
+    },
+    {
+      "sender_name": "Augusta Vesterlyng",
+      "timestamp_ms": 1740998400000,
+      "content": "That makes complete sense. Mornings being yours again isn't a luxury — it's the foundation everything else sits on. Let's protect that first."
+    },
+    {
+      "sender_name": "Augusta Vesterlyng",
+      "timestamp_ms": 1741084800000,
+      "content": "You're not behind. You're just at the start of something, and the start always looks messier than the middle. Be kind to yourself this week."
+    },
+    {
+      "sender_name": "Augusta Vesterlyng",
+      "timestamp_ms": 1741257600000,
+      "content": "Loved hearing that the small change stuck! That's how it works — one steady habit, then the next. We don't need a dramatic overhaul, just momentum."
+    },
+    {
+      "sender_name": "Augusta Vesterlyng",
+      "timestamp_ms": 1741344000000,
+      "content": "If it ever feels like too much, tell me. We can always slow the pace. The goal is sustainable, not impressive."
+    },
+    {
+      "sender_name": "Augusta Vesterlyng",
+      "timestamp_ms": 1741516800000,
+      "content": "Proud of you for sticking with it through a hard week. That's the real work — not the easy weeks, the honest ones."
+    }
+  ]
+}
