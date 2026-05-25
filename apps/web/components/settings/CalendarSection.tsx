@@ -130,7 +130,7 @@ export function CalendarSection({ activeProvider, integrations, oauthConfigured 
                   </span>
                 </div>
                 {activeIntegration?.last_checked_at && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground" suppressHydrationWarning>
                     Last checked {new Date(activeIntegration.last_checked_at).toLocaleString()}
                   </p>
                 )}
