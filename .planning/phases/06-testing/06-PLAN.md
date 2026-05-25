@@ -397,12 +397,54 @@ Three quality concerns that the §2.4 fixes don't address but which don't block 
 
 ## 2.5 — Calendar Integrations (one per provider, 30 min)
 
-For each of the 7 providers Daniel will support: Calendly, Cal.com, Acuity, Setmore, Square, MS Bookings, TidyCal
+> Connect/disconnect flow built 2026-05-25 in plan **06-04**
+> ([06-04-calendar-integrations-PLAN.md](06-04-calendar-integrations-PLAN.md)).
+> Onboarding step **Calendar** (between Booking and Voice) and
+> **Settings → Calendar** card both render the 7-provider grid + per-provider
+> connect UI. Soft one-active-calendar rule via `coaches.active_calendar_provider`.
 
-- [ ] Connect provider in Settings → Integrations
-- [ ] Book a fake meeting → no-show → confirm sequence starts
-- [ ] Book a fake meeting → mark complete → confirm post-call sequence starts
-- [ ] Disconnect provider → confirm UI updates immediately
+### 2.5a — Connect / disconnect smoke (5 min per provider)
+
+Per provider — no booking required, just the connect side:
+
+- [ ] OAuth providers (Calendly, Acuity, Square, MS Bookings): Click **Connect**
+  in Settings → Calendar → provider's OAuth screen loads → grant → return to
+  Settings shows the provider card with "Connected" badge and `active_calendar_provider`
+  set in `coaches`.
+- [ ] API-key providers (Cal.com, Setmore, TidyCal): Paste a real key → **Test**
+  succeeds → **Save & connect** → "Connected" badge appears.
+- [ ] **Webhook setup panel** — for manual-mode providers (Setmore, Square,
+  MS Bookings, TidyCal) the panel shows a webhook URL + signing secret. Copy
+  buttons work; mask/reveal works on the secret.
+- [ ] **Disconnect** — Disconnect button on the active card → confirmation Dialog →
+  integration row flips to `status='disconnected'`, vault entry removed,
+  `active_calendar_provider` nulls out.
+- [ ] **Switch provider** — From a connected state, pick another provider from
+  the "Use a different calendar?" dropdown → confirm Dialog → previous one
+  disconnects → connect flow starts for the new one.
+
+### 2.5b — End-to-end booking flow (per provider Daniel actually uses)
+
+- [ ] Book a fake meeting → webhook fires → `calendar_events` row inserted
+  (verify by SQL: `select * from calendar_events where coach_id = ... order by processed_at desc`).
+- [ ] If the booking was a no-show → Inngest `lead.no_show` event fired → no-show sequence starts.
+- [ ] Mark booking complete (where the provider supports this) → post-call sequence starts.
+- [ ] Disconnect provider → UI updates immediately; further webhook payloads are
+  dropped (or warn-logged), no new `calendar_events` rows.
+
+### 2.5 — Testability matrix
+
+| Provider | Auth ready? | Auto webhook? | Manual webhook needed? |
+|---|---|---|---|
+| Calendly | Once `CALENDLY_CLIENT_ID/SECRET` set | ✅ via /webhook_subscriptions | — |
+| Cal.com | Always (per-coach API key) | ✅ via /v1/webhooks | — |
+| Acuity | Once `ACUITY_CLIENT_ID/SECRET` set | ✅ via /api/v1/webhooks (3 events) | — |
+| Setmore | Always (per-coach API key) | — | Coach pastes URL+secret in Setmore dashboard |
+| Square | Once `SQUARE_CLIENT_ID/SECRET` set | — | Coach pastes URL in Square Developer dashboard; sig key goes in `SQUARE_WEBHOOK_SECRET` |
+| MS Bookings | Once `MS_BOOKINGS_CLIENT_ID/SECRET` set | — (Graph polling only) | None; no push API yet |
+| TidyCal | Always (per-coach API key) | — | Coach pastes URL+secret in TidyCal dashboard |
+
+**OAuth app registration** — Daniel must register an app at each OAuth provider's developer portal and drop `client_id`/`client_secret` into `.env.local`. Step-by-step in [docs/CALENDAR-OAUTH-SETUP.md](../../../docs/CALENDAR-OAUTH-SETUP.md).
 
 (For launch, Daniel can verify the 2–3 providers his actual coaches use; flag the others as "tested by Claude, awaiting real-world verification.")
 
