@@ -11,7 +11,7 @@ interface Props {
   integrations: Integration[];
 }
 
-const KEY_PROVIDERS = ["gmail", "slack", "twilio", "calendly"];
+const KEY_PROVIDERS = ["gmail", "slack", "twilio"];
 
 export function IntegrationsSection({ integrations }: Props) {
   const displayed = integrations.filter((i) => KEY_PROVIDERS.includes(i.provider));

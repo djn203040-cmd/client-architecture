@@ -6,9 +6,16 @@ import { NotificationsSection } from "@/components/settings/NotificationsSection
 import { AutonomousSection } from "@/components/settings/AutonomousSection";
 import { VoiceSection } from "@/components/settings/VoiceSection";
 import { IntegrationsSection } from "@/components/settings/IntegrationsSection";
+import { CalendarSection } from "@/components/settings/CalendarSection";
 import { DangerZone } from "@/components/settings/DangerZone";
 import { SignOutSection } from "@/components/settings/SignOutSection";
 import type { TVoiceProfile } from "@client/shared/validators";
+import {
+  CALENDAR_PROVIDER_IDS,
+  CALENDAR_PROVIDERS,
+  isOAuthConfigured,
+  type CalendarProviderId,
+} from "@/lib/calendar/providers";
 
 export const dynamic = "force-dynamic";
 
@@ -28,11 +35,11 @@ export default async function SettingsPage({
     supabase
       .from("coaches")
       .select(
-        "id, name, email, autonomous_mode, voice_model, display_name, role_title, timezone, working_hours, email_signature, public_booking_url, avatar_url",
+        "id, name, email, autonomous_mode, voice_model, display_name, role_title, timezone, working_hours, email_signature, public_booking_url, avatar_url, active_calendar_provider",
       )
       .eq("id", user.id)
       .single(),
-    supabase.from("integrations").select("id, provider, status, error_message").eq("coach_id", user.id),
+    supabase.from("integrations").select("id, provider, status, error_message, last_checked_at").eq("coach_id", user.id),
     supabase
       .from("notification_preferences")
       .select("event_type, channel, enabled")
@@ -82,6 +89,20 @@ export default async function SettingsPage({
 
       <section id="voice" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <VoiceSection voiceModel={initialVoiceModel} />
+      </section>
+
+      <section id="calendar" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+        <CalendarSection
+          activeProvider={(coach.active_calendar_provider as CalendarProviderId | null) ?? null}
+          integrations={integrationsRes.data ?? []}
+          oauthConfigured={CALENDAR_PROVIDER_IDS.reduce(
+            (acc, id) => {
+              acc[id] = isOAuthConfigured(CALENDAR_PROVIDERS[id]);
+              return acc;
+            },
+            {} as Record<CalendarProviderId, boolean>,
+          )}
+        />
       </section>
 
       <section id="integrations" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">

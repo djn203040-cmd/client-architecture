@@ -5,6 +5,7 @@ const SECTIONS = [
   { id: "notifications", label: "Notifications" },
   { id: "autonomous", label: "Autonomous" },
   { id: "voice", label: "Voice" },
+  { id: "calendar", label: "Calendar" },
   { id: "integrations", label: "Integrations" },
   { id: "session", label: "Sign out" },
   { id: "danger", label: "Danger zone" },
