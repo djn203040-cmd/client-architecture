@@ -3,6 +3,7 @@ import { STEP_ORDER, type OnboardingStep } from "@client/shared/validators";
 const STEP_LABELS: Record<OnboardingStep, string> = {
   gmail: "Gmail",
   booking: "Booking",
+  calendar: "Calendar",
   voice: "Voice",
   "first-lead": "First lead",
   notifications: "Notifications",

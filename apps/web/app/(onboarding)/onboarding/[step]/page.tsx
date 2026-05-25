@@ -5,10 +5,17 @@ import { nextIncompleteStep } from "@/lib/onboarding/progress";
 import { WizardShell } from "@/components/onboarding/WizardShell";
 import { StepGmail } from "@/components/onboarding/StepGmail";
 import { StepBooking } from "@/components/onboarding/StepBooking";
+import { StepCalendar } from "@/components/onboarding/StepCalendar";
 import { StepVoice } from "@/components/onboarding/StepVoice";
 import { StepFirstLead } from "@/components/onboarding/StepFirstLead";
 import { StepNotifications } from "@/components/onboarding/StepNotifications";
 import type { TVoiceProfile } from "@client/shared/validators";
+import {
+  CALENDAR_PROVIDER_IDS,
+  CALENDAR_PROVIDERS,
+  isOAuthConfigured,
+  type CalendarProviderId,
+} from "@/lib/calendar/providers";
 
 interface Props {
   params: Promise<{ step: string }>;
@@ -27,7 +34,7 @@ export default async function OnboardingStepPage({ params }: Props) {
 
   const { data: coach } = await supabase
     .from("coaches")
-    .select("voice_model, onboarding_progress, notification_settings, onboarding_completed_at, public_booking_url")
+    .select("voice_model, onboarding_progress, notification_settings, onboarding_completed_at, public_booking_url, active_calendar_provider")
     .eq("id", user.id)
     .single();
 
@@ -54,6 +61,20 @@ export default async function OnboardingStepPage({ params }: Props) {
     stepContent = <StepGmail />;
   } else if (step === "booking") {
     stepContent = <StepBooking initialUrl={coach?.public_booking_url ?? null} />;
+  } else if (step === "calendar") {
+    const oauthConfigured = CALENDAR_PROVIDER_IDS.reduce(
+      (acc, id) => {
+        acc[id] = isOAuthConfigured(CALENDAR_PROVIDERS[id]);
+        return acc;
+      },
+      {} as Record<CalendarProviderId, boolean>,
+    );
+    stepContent = (
+      <StepCalendar
+        activeProvider={(coach?.active_calendar_provider as CalendarProviderId | null) ?? null}
+        oauthConfigured={oauthConfigured}
+      />
+    );
   } else if (step === "voice") {
     // coaches.voice_model defaults to an empty JSONB {}. Treat anything without
     // a real profile shape as "not built yet" (null) so the wizard shows the

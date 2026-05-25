@@ -58,7 +58,7 @@ export function StepBooking({ initialUrl }: Props) {
         return;
       }
       router.refresh();
-      router.push("/onboarding/voice" as never);
+      router.push("/onboarding/calendar" as never);
     } finally {
       setSubmitting(false);
     }

@@ -95,6 +95,7 @@ export type Database = {
       }
       coaches: {
         Row: {
+          active_calendar_provider: string | null
           autonomous_mode: string | null
           avatar_url: string | null
           created_at: string
@@ -115,6 +116,7 @@ export type Database = {
           working_hours: Json
         }
         Insert: {
+          active_calendar_provider?: string | null
           autonomous_mode?: string | null
           avatar_url?: string | null
           created_at?: string
@@ -135,6 +137,7 @@ export type Database = {
           working_hours?: Json
         }
         Update: {
+          active_calendar_provider?: string | null
           autonomous_mode?: string | null
           avatar_url?: string | null
           created_at?: string
