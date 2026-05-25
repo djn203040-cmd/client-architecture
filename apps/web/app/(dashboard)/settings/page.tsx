@@ -111,7 +111,26 @@ function describeError(code: string): string {
       return "We couldn't complete the Google sign-in. Try connecting again.";
     case "oauth_missing_params":
       return "The connection request was malformed. Try again.";
+    case "calendar_unknown_provider":
+      return "That calendar provider isn't supported. Pick one from the list.";
+    case "calendar_wrong_auth_type":
+      return "That provider uses an API key instead of a sign-in flow. Open it from the calendar picker.";
+    case "calendar_oauth_not_configured":
+      return "This calendar provider isn't set up on our end yet. Try a different one for now.";
+    case "calendar_oauth_start_failed":
+      return "We couldn't start the calendar connection. Try again in a moment.";
+    case "calendar_missing_params":
+      return "The calendar provider didn't send back what we needed. Try connecting again.";
+    case "calendar_state_invalid":
+      return "Your connection link expired. Start the calendar connection again.";
+    case "calendar_oauth_exchange_failed":
+      return "We couldn't complete the calendar sign-in. Try again.";
+    case "calendar_vault_failed":
+      return "We couldn't securely store your calendar credentials. Try again in a moment.";
     default:
+      if (code.startsWith("calendar_oauth_")) {
+        return "Calendar connection failed: " + code.replace("calendar_oauth_", "").replace(/_/g, " ");
+      }
       return "Connection failed. Try again.";
   }
 }
