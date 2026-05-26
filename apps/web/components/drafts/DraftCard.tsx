@@ -122,7 +122,7 @@ export function DraftCard({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: -300, opacity: 0 }}
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
-      className={`rounded-2xl p-6 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${wrapClass}`}
+      className={`rounded-2xl p-6 focus:outline-none focus:ring-2 focus:ring-primary-soft focus:ring-offset-2 ${wrapClass}`}
     >
       <header className="flex items-start justify-between gap-4">
         <div>

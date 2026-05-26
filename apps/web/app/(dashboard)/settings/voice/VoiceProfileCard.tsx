@@ -47,7 +47,7 @@ function ChipRow({
         <input
           autoFocus
           aria-label="New phrase"
-          className="rounded-full px-3 py-1 text-sm border border-border bg-background outline-none focus:ring-1 focus:ring-accent w-32"
+          className="rounded-full px-3 py-1 text-sm border border-border bg-background outline-none focus:ring-1 focus:ring-primary-soft w-32"
           placeholder="Add phrase..."
           value={draft}
           onChange={(e) => setDraft(e.target.value)}

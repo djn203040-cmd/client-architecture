@@ -29,12 +29,12 @@ const ICON: Record<TLeadEventType, { Icon: Icon; tone: string }> = {
   unsubscribed: { Icon: ProhibitInset, tone: "text-[oklch(60%_0.18_25)]" },
   bounced: { Icon: Warning, tone: "text-destructive" },
   note_added: { Icon: Note, tone: "text-muted-foreground" },
-  sequence_started: { Icon: PaperPlaneRight, tone: "text-accent" },
+  sequence_started: { Icon: PaperPlaneRight, tone: "text-primary-soft" },
   sequence_paused: { Icon: PauseCircle, tone: "text-muted-foreground" },
-  sequence_resumed: { Icon: ArrowCircleRight, tone: "text-accent" },
+  sequence_resumed: { Icon: ArrowCircleRight, tone: "text-primary-soft" },
   sequence_completed: { Icon: CheckCircle, tone: "text-[oklch(65%_0.15_145)]" },
   sequence_cancelled: { Icon: ProhibitInset, tone: "text-muted-foreground" },
-  manually_enrolled: { Icon: ArrowCircleRight, tone: "text-accent" },
+  manually_enrolled: { Icon: ArrowCircleRight, tone: "text-primary-soft" },
 };
 
 export function LeadEventIcon({ type }: { type: TLeadEventType }) {

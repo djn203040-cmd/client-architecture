@@ -22,7 +22,7 @@ export function ProviderCard({ provider, selected, connected, oauthConfigured = 
   const stateRing = connected
     ? "ring-2 ring-[oklch(60%_0.14_145)] ring-offset-2 ring-offset-background"
     : selected
-      ? "ring-2 ring-[oklch(60%_0.14_60)] ring-offset-2 ring-offset-background"
+      ? "ring-2 ring-primary-soft ring-offset-2 ring-offset-background"
       : "ring-0";
 
   return (
@@ -35,7 +35,7 @@ export function ProviderCard({ provider, selected, connected, oauthConfigured = 
         "backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10",
         "shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]",
         "transition-all duration-150 hover:bg-white/15 dark:hover:bg-white/10",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(60%_0.14_60)] focus-visible:ring-offset-2",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         stateRing,
       ].join(" ")}
     >

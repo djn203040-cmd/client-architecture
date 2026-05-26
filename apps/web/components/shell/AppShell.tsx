@@ -19,7 +19,7 @@ export async function AppShell({
         Skip to content
       </a>
 
-      <aside className="hidden lg:flex flex-col border-r border-border bg-secondary/40">
+      <aside className="hidden lg:flex flex-col border-r border-border bg-background">
         <div className="p-6">
           <Link href="/dashboard" className="font-semibold tracking-tight">
             The Client Architecture

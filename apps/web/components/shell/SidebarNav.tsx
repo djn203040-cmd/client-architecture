@@ -41,7 +41,7 @@ export function SidebarNav() {
             aria-current={active ? "page" : undefined}
             className={`flex items-center gap-3 px-3 min-h-[44px] rounded-xl text-sm transition-colors ${
               active
-                ? "bg-accent text-accent-foreground"
+                ? "bg-primary text-primary-foreground"
                 : "hover:bg-black/5 dark:hover:bg-white/5 text-foreground"
             }`}
           >
@@ -59,7 +59,7 @@ export function SidebarNav() {
         <Link
           key={m.id}
           href={m.href as Route}
-          className="mx-1 mb-2 block rounded-xl border border-border bg-secondary/60 p-3 transition-colors hover:bg-secondary/80 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
+          className="mx-1 mb-2 block rounded-xl border border-border bg-muted p-3 transition-colors hover:bg-muted/70 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
         >
           <div className="flex items-start gap-2">
             <LockSimple weight="regular" className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
@@ -93,7 +93,7 @@ export function MobileBottomNav() {
             href={href}
             aria-current={active ? "page" : undefined}
             className={`flex flex-col items-center justify-center flex-1 gap-1 py-2 min-h-[56px] text-[10px] font-medium transition-colors ${
-              active ? "text-accent" : "text-muted-foreground hover:text-foreground"
+              active ? "text-primary dark:text-primary-soft" : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <Icon weight={active ? "fill" : "regular"} className="size-5" />

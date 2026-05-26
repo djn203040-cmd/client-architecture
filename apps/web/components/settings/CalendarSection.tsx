@@ -277,7 +277,7 @@ function SwitchPicker({
           if (v) onSelect(v);
           e.target.value = "";
         }}
-        className="rounded-lg px-3 py-1.5 text-sm bg-white/10 dark:bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-[oklch(60%_0.14_60)]"
+        className="rounded-lg px-3 py-1.5 text-sm bg-white/10 dark:bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-ring"
       >
         <option value="" disabled>
           Pick one…

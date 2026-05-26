@@ -33,12 +33,12 @@ export default async function DashboardPage() {
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Primary metric — leads pipeline */}
-        <div className="rounded-2xl backdrop-blur-md bg-accent/5 dark:bg-accent/10 border border-accent/20 p-6 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+        <div className="rounded-2xl backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 p-6 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
           <div className="text-sm text-muted-foreground">Leads</div>
-          <div className="text-[32px] font-semibold mt-2 font-mono text-accent">{leadCount ?? 0}</div>
+          <div className="text-[32px] font-semibold mt-2 font-mono text-foreground">{leadCount ?? 0}</div>
           <Link
             href="/leads"
-            className="text-sm text-accent hover:underline mt-4 inline-block"
+            className="text-sm text-primary dark:text-primary-soft hover:underline mt-4 inline-block font-medium"
           >
             View leads
           </Link>
@@ -50,7 +50,7 @@ export default async function DashboardPage() {
           {(draftCount ?? 0) > 0 ? (
             <Link
               href="/drafts"
-              className="text-sm text-accent hover:underline mt-4 inline-block"
+              className="text-sm text-primary dark:text-primary-soft hover:underline mt-4 inline-block font-medium"
             >
               Review drafts
             </Link>

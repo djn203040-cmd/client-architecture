@@ -3,59 +3,101 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Light mode — UI-SPEC §Color */
-  --background: oklch(97% 0.008 60);
-  --foreground: oklch(20% 0.008 60);
-  --card: oklch(94% 0.010 55);
-  --card-foreground: oklch(20% 0.008 60);
-  --popover: oklch(94% 0.010 55);
-  --popover-foreground: oklch(20% 0.008 60);
-  --primary: oklch(62% 0.14 50);
-  --primary-foreground: oklch(97% 0.008 60);
-  --secondary: oklch(94% 0.010 55);
-  --secondary-foreground: oklch(20% 0.008 60);
-  --muted: oklch(94% 0.010 55);
-  --muted-foreground: oklch(48% 0.008 60);
-  --accent: oklch(62% 0.14 50);
-  --accent-foreground: oklch(97% 0.008 60);
+  /* Light mode — brand palette
+     bg cream #F5F0E5 · surface white · forest primary · burnt-orange accent */
+  --background: #F5F0E5;
+  --surface: #FFFFFF;
+  --foreground: #0F0F0F;
+  --muted-strong: #5F5A52;
+
+  --primary: #1E3A2E;
+  --primary-soft: #4A7D5E;
+  --accent: #D97A2D;
+
+  /* shadcn-compatible token surface */
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface);
+  --popover-foreground: var(--foreground);
+  --primary-foreground: #F5F0E5;
+  --secondary: var(--primary-soft);
+  --secondary-foreground: #FFFFFF;
+  --muted: #EDE6D6;
+  --muted-foreground: var(--muted-strong);
+  --subtle: rgba(15, 15, 15, 0.05);
+  --accent-foreground: #FFFFFF;
   --destructive: oklch(55% 0.18 25);
-  --destructive-foreground: oklch(97% 0.008 60);
-  --border: oklch(88% 0.010 55);
-  --input: oklch(88% 0.010 55);
-  --ring: oklch(62% 0.14 50);
+  --destructive-foreground: #F5F0E5;
+  --border: #E5DCC5;
+  --input: #E5DCC5;
+  --ring: var(--primary);
   --health-red: oklch(55% 0.20 25);
-  --health-green: oklch(60% 0.14 145);
+  --health-green: var(--primary-soft);
   --radius: 1rem;
   --bg-image: none;
+
+  /* Lead state badges — light mode, ~15% darker fills for cream-bg separation */
+  --state-identified-bg:      #E5D8B8;  --state-identified-fg:      #4D4338;
+  --state-in-sequence-bg:     #D0DBC0;  --state-in-sequence-fg:     #3D5232;
+  --state-replied-bg:         #BACFA0;  --state-replied-fg:         #2D4828;
+  --state-call-booked-bg:     #A8C58A;  --state-call-booked-fg:     #1E3A1E;
+  --state-call-completed-bg:  #92B870;  --state-call-completed-fg:  #0F2310;
+  --state-converted-bg:       #1E3A2E;  --state-converted-fg:       #E5DCC5;
+  --state-no-show-bg:         #F5D9B0;  --state-no-show-fg:         #8C4A12;
+  --state-bounced-bg:         #E5C898;  --state-bounced-fg:         #6B4515;
+  --state-closed-bg:          #D5CDBE;  --state-closed-fg:          #524C42;
+  --state-unsubscribed-bg:    #E5C5BC;  --state-unsubscribed-fg:    #7A2F22;
+  --state-do-not-contact-bg:  #4A1F18;  --state-do-not-contact-fg:  #F5E0DC;
 }
 
 .dark {
-  /* Dark mode — UI-SPEC §Color */
-  --background: oklch(14% 0.010 50);
-  --foreground: oklch(93% 0.008 60);
-  --card: oklch(19% 0.012 50);
-  --card-foreground: oklch(93% 0.008 60);
-  --popover: oklch(19% 0.012 50);
-  --popover-foreground: oklch(93% 0.008 60);
-  --primary: oklch(70% 0.14 50);
-  --primary-foreground: oklch(14% 0.010 50);
-  --secondary: oklch(19% 0.012 50);
-  --secondary-foreground: oklch(93% 0.008 60);
-  --muted: oklch(19% 0.012 50);
-  --muted-foreground: oklch(60% 0.008 55);
-  --accent: oklch(70% 0.14 50);
-  --accent-foreground: oklch(14% 0.010 50);
+  /* Dark mode — brand palette
+     bg near-black · cream foreground · forest primary · burnt-orange accent */
+  --background: #0A0A0A;
+  --surface: #161616;
+  --foreground: #E5DCC5;
+  --muted-strong: #8A8278;
+
+  --primary: #1E3A2E;
+  --primary-soft: #4A7D5E;
+  --accent: #D97A2D;
+
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface);
+  --popover-foreground: var(--foreground);
+  --primary-foreground: #E5DCC5;
+  --secondary: var(--primary-soft);
+  --secondary-foreground: #E5DCC5;
+  --muted: #1F1E1B;
+  --muted-foreground: var(--muted-strong);
+  --subtle: rgba(229, 220, 197, 0.06);
+  --accent-foreground: #0A0A0A;
   --destructive: oklch(65% 0.18 25);
-  --destructive-foreground: oklch(14% 0.010 50);
-  --border: oklch(28% 0.012 50);
-  --input: oklch(28% 0.012 50);
-  --ring: oklch(70% 0.14 50);
+  --destructive-foreground: #E5DCC5;
+  --border: #2A2824;
+  --input: #2A2824;
+  --ring: var(--primary-soft);
   --health-red: oklch(65% 0.22 25);
-  --health-green: oklch(68% 0.14 145);
+  --health-green: var(--primary-soft);
+
+  /* Lead state badges — dark mode, inverted: tinted dark fills, light tinted text */
+  --state-identified-bg:      #2A2520;  --state-identified-fg:      #C5BDB0;
+  --state-in-sequence-bg:     #28322A;  --state-in-sequence-fg:     #B8C8A8;
+  --state-replied-bg:         #2A3A28;  --state-replied-fg:         #ACBF98;
+  --state-call-booked-bg:     #2D4525;  --state-call-booked-fg:     #A0B585;
+  --state-call-completed-bg:  #2D5028;  --state-call-completed-fg:  #95AC72;
+  --state-converted-bg:       #1E3A2E;  --state-converted-fg:       #E5DCC5;
+  --state-no-show-bg:         #3A2A18;  --state-no-show-fg:         #E5B575;
+  --state-bounced-bg:         #2D2515;  --state-bounced-fg:         #C9A565;
+  --state-closed-bg:          #1F1D18;  --state-closed-fg:          #8A8278;
+  --state-unsubscribed-bg:    #2D1F1A;  --state-unsubscribed-fg:    #C5A09A;
+  --state-do-not-contact-bg:  #4A1F18;  --state-do-not-contact-fg:  #F5E0DC;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -63,12 +105,14 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-subtle: var(--subtle);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);

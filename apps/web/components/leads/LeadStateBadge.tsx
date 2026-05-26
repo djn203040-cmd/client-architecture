@@ -2,17 +2,17 @@ import { Badge } from "@/components/ui/badge";
 import type { TLeadStatus } from "@client/shared/types";
 
 const TONE: Record<TLeadStatus, string> = {
-  identified: "bg-muted text-muted-foreground",
-  call_booked: "bg-[oklch(70%_0.10_240)] text-white",
-  no_show: "bg-[oklch(75%_0.15_70)] text-foreground",
-  call_completed: "bg-[oklch(70%_0.10_200)] text-white",
-  in_sequence: "bg-accent text-accent-foreground",
-  replied: "bg-[oklch(65%_0.15_145)] text-white",
-  converted: "bg-[oklch(60%_0.15_145)] text-white",
-  closed: "bg-[oklch(60%_0.005_60)] text-white",
-  unsubscribed: "bg-[oklch(60%_0.005_60)] text-white",
-  do_not_contact: "bg-[oklch(60%_0.18_25)] text-white",
-  bounced: "bg-destructive text-destructive-foreground",
+  identified:      "bg-[var(--state-identified-bg)] text-[var(--state-identified-fg)]",
+  in_sequence:     "bg-[var(--state-in-sequence-bg)] text-[var(--state-in-sequence-fg)]",
+  replied:         "bg-[var(--state-replied-bg)] text-[var(--state-replied-fg)]",
+  call_booked:     "bg-[var(--state-call-booked-bg)] text-[var(--state-call-booked-fg)]",
+  call_completed:  "bg-[var(--state-call-completed-bg)] text-[var(--state-call-completed-fg)]",
+  converted:       "bg-[var(--state-converted-bg)] text-[var(--state-converted-fg)]",
+  no_show:         "bg-[var(--state-no-show-bg)] text-[var(--state-no-show-fg)]",
+  bounced:         "bg-[var(--state-bounced-bg)] text-[var(--state-bounced-fg)]",
+  closed:          "bg-[var(--state-closed-bg)] text-[var(--state-closed-fg)]",
+  unsubscribed:    "bg-[var(--state-unsubscribed-bg)] text-[var(--state-unsubscribed-fg)]",
+  do_not_contact:  "bg-[var(--state-do-not-contact-bg)] text-[var(--state-do-not-contact-fg)]",
 };
 
 const LABEL: Record<TLeadStatus, string> = {

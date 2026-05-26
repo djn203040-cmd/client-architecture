@@ -50,10 +50,10 @@ export function StepVoice({ initialVoiceModel, initialExampleCount }: Props) {
         </p>
         <span
           className={[
-            "text-xs font-mono px-2 py-1 rounded-md shrink-0 ml-4",
+            "text-xs font-mono px-2 py-1 rounded-md shrink-0 ml-4 font-medium",
             meetsMinimum
-              ? "bg-[oklch(60%_0.14_145)]/10 text-[oklch(60%_0.14_145)]"
-              : "bg-secondary text-muted-foreground",
+              ? "bg-[oklch(38%_0.10_150)] text-[#E5DCC5]"
+              : "bg-primary text-primary-foreground",
           ].join(" ")}
         >
           {exampleCount} / 8 min

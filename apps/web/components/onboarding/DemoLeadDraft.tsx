@@ -37,7 +37,7 @@ export function DemoLeadDraft({ draftId, draftBody, leadName, onApproved }: Prop
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <span className="text-xs px-2 py-0.5 rounded-md bg-secondary text-muted-foreground font-medium">
+        <span className="text-xs px-2 py-0.5 rounded-md bg-primary text-primary-foreground font-medium">
           Onboarding demo
         </span>
         <span className="text-xs text-muted-foreground">To: {leadName}</span>
@@ -45,7 +45,7 @@ export function DemoLeadDraft({ draftId, draftBody, leadName, onApproved }: Prop
 
       <div className="rounded-xl border border-border bg-secondary/30 p-4 space-y-3">
         <div className="flex items-center gap-2 text-xs text-muted-foreground pb-2 border-b border-border">
-          <Sparkle weight="fill" className="w-3.5 h-3.5 text-[oklch(60%_0.14_60)]" />
+          <Sparkle weight="fill" className="w-3.5 h-3.5 text-accent" />
           AI-generated in your voice
         </div>
         <p className="text-sm leading-relaxed whitespace-pre-wrap">{draftBody}</p>

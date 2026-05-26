@@ -177,7 +177,7 @@ function TabButton({
       onClick={onClick}
       className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors min-h-[44px] ${
         active
-          ? "bg-accent text-accent-foreground"
+          ? "bg-primary text-primary-foreground"
           : "text-muted-foreground hover:text-foreground hover:bg-white/5"
       }`}
     >

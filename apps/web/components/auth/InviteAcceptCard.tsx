@@ -101,7 +101,7 @@ export function InviteAcceptCard({
         <Button
           type="submit"
           disabled={pending}
-          className="mt-2 min-h-[44px] bg-[oklch(62%_0.14_50)] hover:bg-[oklch(58%_0.14_50)] dark:bg-[oklch(70%_0.14_50)] dark:hover:bg-[oklch(66%_0.14_50)] text-white font-medium"
+          className="mt-2 min-h-[44px] bg-primary hover:bg-primary-soft text-primary-foreground font-medium"
         >
           {pending ? "Setting password..." : "Continue"}
         </Button>

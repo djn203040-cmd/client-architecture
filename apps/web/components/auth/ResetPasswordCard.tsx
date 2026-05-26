@@ -62,7 +62,7 @@ export function ResetPasswordCard({
           </p>
         )}
         <div className="flex flex-col gap-2">
-          <Button asChild className="min-h-[44px] w-full bg-[oklch(62%_0.14_50)] hover:bg-[oklch(58%_0.14_50)] dark:bg-[oklch(70%_0.14_50)] dark:hover:bg-[oklch(66%_0.14_50)] text-white font-medium">
+          <Button asChild className="min-h-[44px] w-full bg-primary hover:bg-primary-soft text-primary-foreground font-medium">
             <Link href="/forgot-password">Send a new link</Link>
           </Button>
           <Button asChild variant="outline" className="min-h-[44px] w-full">
@@ -115,7 +115,7 @@ export function ResetPasswordCard({
         <Button
           type="submit"
           disabled={pending}
-          className="mt-2 min-h-[44px] bg-[oklch(62%_0.14_50)] hover:bg-[oklch(58%_0.14_50)] dark:bg-[oklch(70%_0.14_50)] dark:hover:bg-[oklch(66%_0.14_50)] text-white font-medium"
+          className="mt-2 min-h-[44px] bg-primary hover:bg-primary-soft text-primary-foreground font-medium"
         >
           {pending ? "Saving..." : "Save and continue"}
         </Button>

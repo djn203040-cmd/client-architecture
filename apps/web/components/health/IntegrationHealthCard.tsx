@@ -32,7 +32,7 @@ export async function IntegrationHealthCard() {
       </p>
       <Link
         href="/api/auth/gmail/authorize"
-        className="inline-flex items-center justify-center px-3 py-2 rounded-md bg-accent text-accent-foreground text-xs"
+        className="inline-flex items-center justify-center px-3 py-2 rounded-md bg-primary text-primary-foreground text-xs font-medium"
       >
         Reconnect Gmail
       </Link>

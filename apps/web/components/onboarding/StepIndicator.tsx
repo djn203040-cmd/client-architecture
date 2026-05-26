@@ -30,9 +30,9 @@ export function StepIndicator({ currentStep, progress }: Props) {
                 className={[
                   "w-2.5 h-2.5 rounded-full transition-all duration-200",
                   isCompleted
-                    ? "bg-[oklch(60%_0.14_60)]"
+                    ? "bg-primary"
                     : isActive
-                      ? "bg-[oklch(60%_0.14_60)] ring-2 ring-[oklch(60%_0.14_60)]/30 ring-offset-2"
+                      ? "bg-primary ring-2 ring-primary/30 ring-offset-2"
                       : "bg-border",
                 ].join(" ")}
                 aria-current={isActive ? "step" : undefined}
@@ -50,7 +50,7 @@ export function StepIndicator({ currentStep, progress }: Props) {
               <div
                 className={[
                   "w-8 h-px mb-4 transition-colors",
-                  isCompleted ? "bg-[oklch(60%_0.14_60)]" : "bg-border",
+                  isCompleted ? "bg-primary" : "bg-border",
                 ].join(" ")}
               />
             )}

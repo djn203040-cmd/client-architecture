@@ -110,7 +110,7 @@ export function AutonomousModeCard({ initialMode }: { initialMode: ApiMode }) {
               key={opt.value}
               htmlFor={`mode-${opt.value}`}
               className={`block rounded-xl border p-4 cursor-pointer hover:bg-muted/30 transition-colors ${
-                mode === opt.value ? "border-accent/40 ring-1 ring-accent/30" : "border-border"
+                mode === opt.value ? "border-primary-soft ring-1 ring-primary-soft/40" : "border-border"
               }`}
             >
               <div className="flex items-start gap-3">

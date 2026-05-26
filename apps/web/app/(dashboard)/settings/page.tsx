@@ -56,7 +56,7 @@ export default async function SettingsPage({
       : null;
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 w-full">
       <h1 className="text-[28px] font-semibold leading-[1.2]">Settings</h1>
 
       {sp.connected === "gmail" && (
