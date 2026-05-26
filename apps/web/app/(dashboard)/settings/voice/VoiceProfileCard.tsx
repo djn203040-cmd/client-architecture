@@ -120,7 +120,7 @@ export function VoiceProfileCard({
         </header>
 
         <div className="space-y-1">
-          <h3 className="text-sm font-medium">How you sound</h3>
+          <h3 className="text-sm font-bold">How you sound</h3>
           <ChipRow
             items={profile.tone_adjectives}
             onRemove={(i) => removeFrom("tone_adjectives", i)}
@@ -144,7 +144,7 @@ export function VoiceProfileCard({
         </div>
 
         <div className="space-y-1">
-          <h3 className="text-sm font-medium">How you start</h3>
+          <h3 className="text-sm font-bold">How you start</h3>
           <ChipRow
             items={profile.opener_phrases}
             onRemove={(i) => removeFrom("opener_phrases", i)}
@@ -153,7 +153,7 @@ export function VoiceProfileCard({
         </div>
 
         <div className="space-y-1">
-          <h3 className="text-sm font-medium">How you finish</h3>
+          <h3 className="text-sm font-bold">How you finish</h3>
           <ChipRow
             items={profile.closer_phrases}
             onRemove={(i) => removeFrom("closer_phrases", i)}
@@ -162,7 +162,7 @@ export function VoiceProfileCard({
         </div>
 
         <div className="bg-destructive/5 dark:bg-destructive/8 border border-destructive/20 rounded-xl p-4 space-y-2">
-          <h3 className="text-sm font-medium text-destructive/70">Words I never use</h3>
+          <h3 className="text-sm font-bold text-destructive/70">Words I never use</h3>
           <ChipRow
             items={profile.never_say_list}
             onRemove={(i) => removeFrom("never_say_list", i)}
