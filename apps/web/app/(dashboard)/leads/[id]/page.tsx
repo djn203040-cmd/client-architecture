@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { LeadProfileHeader } from "./lead-profile-header";
@@ -40,7 +42,15 @@ export default async function LeadProfilePage({
   const priorTranscripts = allTranscripts.slice(1);
 
   return (
-    <article className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
+    <div className="space-y-4">
+      <Link
+        href="/leads"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to leads
+      </Link>
+      <article className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
       <div className="space-y-6">
         <LeadProfileHeader lead={lead} />
         <LeadAISummaryCard lead={lead} />
@@ -79,6 +89,7 @@ export default async function LeadProfilePage({
           priorTranscripts={priorTranscripts}
         />
       </aside>
-    </article>
+      </article>
+    </div>
   );
 }
