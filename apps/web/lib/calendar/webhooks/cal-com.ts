@@ -4,8 +4,8 @@ import { adminClient } from "@/lib/supabase/admin";
 import { buildWebhookReceiverUrl } from "@/lib/calendar/providers";
 import type { RegisterWebhookArgs, RegisteredWebhook } from "./index";
 
-// Cal.com v1 webhooks API: POST /v1/webhooks?apiKey=...
-// https://cal.com/docs/api-reference/v1/webhooks
+// Cal.com v2 webhooks API: POST /v2/webhooks with Bearer auth.
+// https://cal.com/docs/api-reference/v2/webhooks/create-a-webhook
 //
 // Cal.com expects a `secret` field that it uses as the HMAC signing key for
 // X-Cal-Signature-256. That secret must match CAL_COM_WEBHOOK_SECRET that the
@@ -22,12 +22,16 @@ export async function registerCalComWebhook(args: RegisterWebhookArgs): Promise<
   const sharedSecret = process.env.CAL_COM_WEBHOOK_SECRET ?? process.env.CALCOM_WEBHOOK_SECRET ?? randomBytes(32).toString("hex");
   const webhookUrl = buildWebhookReceiverUrl(provider.id, coachId);
 
-  const res = await fetch(`https://api.cal.com/v1/webhooks?apiKey=${encodeURIComponent(apiKey)}`, {
+  const res = await fetch(`https://api.cal.com/v2/webhooks`, {
     method: "POST",
-    headers: { "content-type": "application/json", accept: "application/json" },
+    headers: {
+      "content-type": "application/json",
+      accept: "application/json",
+      authorization: `Bearer ${apiKey}`,
+    },
     body: JSON.stringify({
       subscriberUrl: webhookUrl,
-      eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED", "BOOKING_NO_SHOW_UPDATED"],
+      triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED", "BOOKING_NO_SHOW_UPDATED"],
       active: true,
       secret: sharedSecret,
     }),
@@ -36,8 +40,8 @@ export async function registerCalComWebhook(args: RegisterWebhookArgs): Promise<
     const errText = await res.text().catch(() => "");
     throw new Error(`cal_com_webhook_create_failed:${res.status}:${errText.slice(0, 200)}`);
   }
-  const json = (await res.json()) as { webhook?: { id?: string } };
-  const subscriptionId = json.webhook?.id ?? null;
+  const json = (await res.json()) as { data?: { id?: string } };
+  const subscriptionId = json.data?.id ?? null;
 
   await adminClient
     .from("integrations")

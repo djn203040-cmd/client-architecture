@@ -111,9 +111,9 @@ export const CALENDAR_PROVIDERS: Record<CalendarProviderId, CalendarProviderConf
     authType: "api_key",
     marketingUrl: "https://cal.com",
     apiKey: {
-      helpUrl: "https://cal.com/docs/api-reference/v1/authentication",
+      helpUrl: "https://cal.com/docs/api-reference/v2/api-keys/create-an-api-key",
       fieldLabel: "Cal.com API key",
-      validationEndpoint: "https://api.cal.com/v1/me",
+      validationEndpoint: "https://api.cal.com/v2/me",
       validationAuth: "bearer",
     },
     webhook: {
