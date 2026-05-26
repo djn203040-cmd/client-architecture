@@ -18,12 +18,10 @@ export default async function DraftsPage() {
       .select("*, leads(name)")
       .eq("coach_id", user!.id)
       .eq("status", "pending")
-      // Only sequence-attached drafts are approvable via this queue (Phase 3
-      // automation generates them and the PATCH route requires sequence_id).
-      // Standalone drafts (created via Generate-draft on a lead profile) are
-      // for inspection on the lead's page — surfacing them here just confuses
-      // the approve/hold flow.
-      .not("sequence_id", "is", null)
+      // Standalone drafts (sequence_id=null, generated via the lead profile)
+      // are surfaced here too. The PATCH route still rejects approve/hold for
+      // them with a legible "not part of an active sequence yet" toast; full
+      // standalone approval is tracked in #41.
       .order("scheduled_send_at", { ascending: true }),
     supabase
       .from("transcripts")

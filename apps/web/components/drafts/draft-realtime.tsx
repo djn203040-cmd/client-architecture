@@ -39,11 +39,7 @@ export function useDraftRealtime(
         },
         (payload) => {
           const row = payload.new as DraftRow;
-          // Pending bucket = sequence-attached drafts only. Standalone drafts
-          // (created via Generate-draft on a lead) live on the lead profile,
-          // not in the queue — see drafts/page.tsx for the matching SSR filter.
-          const inPendingBucket = status === "pending" && row.sequence_id !== null;
-          if (row.status === status && (status === "held" || inPendingBucket)) {
+          if (row.status === status) {
             setDrafts((prev) => [...prev, row]);
           }
         },
@@ -58,10 +54,7 @@ export function useDraftRealtime(
         },
         (payload) => {
           const updated = payload.new as DraftRow;
-          // Pending bucket only accepts sequence-attached drafts (see above).
-          const inPendingBucket = status === "pending" && updated.sequence_id !== null;
-          const belongsInBucket =
-            updated.status === status && (status === "held" || inPendingBucket);
+          const belongsInBucket = updated.status === status;
           setDrafts((prev) => {
             const exists = prev.some((d) => d.id === updated.id);
             if (belongsInBucket) {

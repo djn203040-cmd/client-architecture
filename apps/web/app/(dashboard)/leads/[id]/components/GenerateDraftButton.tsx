@@ -21,6 +21,21 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
     if (!draftId) return;
 
     const supabase = createClient();
+    let settled = false;
+
+    const finish = (status: string) => {
+      if (settled) return;
+      settled = true;
+      setGenerating(false);
+      setDraftId(null);
+      if (status === "error") {
+        toast.error("Draft generation failed. Try again.");
+      } else {
+        toast.success("Draft ready — check your queue.");
+      }
+    };
+
+    // Fast path: realtime UPDATE event
     const channel = supabase
       .channel(`draft-ready-${draftId}`)
       .on(
@@ -33,20 +48,36 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
         },
         (payload: { new: Record<string, unknown> }) => {
           const newStatus = payload.new["status"] as string;
-          if (newStatus === "pending") {
-            setGenerating(false);
-            setDraftId(null);
-            toast.success("Draft ready — check your queue.");
-          } else if (newStatus === "error") {
-            setGenerating(false);
-            setDraftId(null);
-            toast.error("Draft generation failed. Try again.");
-          }
+          if (newStatus !== "generating") finish(newStatus);
         },
       )
       .subscribe();
 
+    // Fallback: poll every 2s in case realtime doesn't deliver
+    // (RLS / publication / network can all silently drop UPDATE events).
+    const poll = setInterval(async () => {
+      if (settled) return;
+      const { data } = await supabase
+        .from("drafts")
+        .select("status")
+        .eq("id", draftId)
+        .maybeSingle();
+      const status = data?.status;
+      if (status && status !== "generating") finish(status);
+    }, 2000);
+
+    // Hard timeout — stop showing the spinner after 90s no matter what
+    const timeout = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      setGenerating(false);
+      setDraftId(null);
+      toast.error("Still generating — refresh the queue in a moment.");
+    }, 90_000);
+
     return () => {
+      clearInterval(poll);
+      clearTimeout(timeout);
       void supabase.removeChannel(channel);
     };
   }, [draftId]);

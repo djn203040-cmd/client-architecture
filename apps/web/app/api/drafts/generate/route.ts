@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { isHardBlocked } from '@client/ai-engine';
@@ -116,8 +116,11 @@ export async function POST(request: Request) {
   const coachId = user.id;
   const autonomousMode = coach.autonomous_mode as string | null;
 
-  // Fire-and-forget generation
-  void (async () => {
+  // Background generation — `after()` keeps the lambda alive on Vercel until
+  // this work finishes. Plain fire-and-forget (`void (async () => …)()`) was
+  // killed when the 202 response returned, leaving the draft row stuck at
+  // status='generating' and the client spinner spinning forever.
+  after(async () => {
     let transcript: string | null = null;
     let conversationHistory: string | null = null;
     let generated: Awaited<ReturnType<typeof import('@client/ai-engine').generateDraft>> = null;
@@ -254,7 +257,7 @@ export async function POST(request: Request) {
         });
       }
     }
-  })();
+  });
 
   return NextResponse.json({ draftId, status: 'generating' }, { status: 202 });
 }
