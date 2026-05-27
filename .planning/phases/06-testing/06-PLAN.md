@@ -410,20 +410,40 @@ Per provider — no booking required, just the connect side:
 - [ ] OAuth providers (Calendly, Acuity, Square, MS Bookings): Click **Connect**
   in Settings → Calendar → provider's OAuth screen loads → grant → return to
   Settings shows the provider card with "Connected" badge and `active_calendar_provider`
-  set in `coaches`.
-- [ ] API-key providers (Cal.com, Setmore, TidyCal): Paste a real key → **Test**
-  succeeds → **Save & connect** → "Connected" badge appears.
-- [ ] **Webhook setup panel** — for manual-mode providers (Setmore, Square,
-  MS Bookings, TidyCal) the panel shows a webhook URL + signing secret. Copy
-  buttons work; mask/reveal works on the secret.
-- [ ] **Disconnect** — Disconnect button on the active card → confirmation Dialog →
-  integration row flips to `status='disconnected'`, vault entry removed,
-  `active_calendar_provider` nulls out.
+  set in `coaches`. **Blocked locally until OAuth apps registered** — see
+  [CALENDAR-OAUTH-SETUP.md](../../../docs/CALENDAR-OAUTH-SETUP.md).
+- [x] **Cal.com** (api-key): Paste a real key → **Test** ✅ → **Save & connect** →
+  "Connected" badge appears, `integrations.status='connected'`,
+  `coaches.active_calendar_provider='cal_com'`. Verified locally 2026-05-27.
+  ⚠️ Webhook registration step fails on localhost because Cal.com refuses
+  `http://` subscriber URLs ("Webhook URL is not allowed: Only HTTPS URLs are
+  allowed"). Registration call is correctly wired (see fix commit `bf480ce`);
+  must be re-verified on staging or via tunnel.
+- [ ] **Setmore** (api-key + manual webhook): Paste real key → Test → Save &
+  connect → "Connected" badge appears → webhook setup panel renders with
+  URL + per-coach secret + copy/mask controls.
+- [ ] **TidyCal** (api-key + manual webhook): Same flow as Setmore.
+- [x] **Disconnect** — verified for Cal.com on 2026-05-27: Disconnect button →
+  confirmation Dialog → `integrations.status='disconnected'`,
+  `vault_secret_id=null`, `coaches.active_calendar_provider=null`. Row is
+  soft-kept for audit, intentional.
 - [ ] **Switch provider** — From a connected state, pick another provider from
   the "Use a different calendar?" dropdown → confirm Dialog → previous one
   disconnects → connect flow starts for the new one.
 
+> **Bugs surfaced during the §2.5a walk (both fixed 2026-05-27):**
+> - `dbf48b6` — `webhook-info` was upserting `status='disconnected'` on every
+>   page load because `WebhookSetupPanel` mounts inside a collapsed `<details>`.
+>   Now early-returns for auto-mode providers; non-destructive update for
+>   manual-mode.
+> - `bf480ce` — api-key route (Cal.com/Setmore/TidyCal) never called
+>   `registerCalendarWebhook`; only OAuth callback did. Now mirrors OAuth path.
+
 ### 2.5b — End-to-end booking flow (per provider Daniel actually uses)
+
+> **Cannot be tested locally.** Cal.com, Calendly, Acuity, Setmore, TidyCal all
+> refuse `http://localhost` webhook subscriber URLs for security. Re-run §2.5b
+> on a Vercel preview/staging deploy (HTTPS) once OAuth apps are also registered.
 
 - [ ] Book a fake meeting → webhook fires → `calendar_events` row inserted
   (verify by SQL: `select * from calendar_events where coach_id = ... order by processed_at desc`).
@@ -437,7 +457,7 @@ Per provider — no booking required, just the connect side:
 | Provider | Auth ready? | Auto webhook? | Manual webhook needed? |
 |---|---|---|---|
 | Calendly | Once `CALENDLY_CLIENT_ID/SECRET` set | ✅ via /webhook_subscriptions | — |
-| Cal.com | Always (per-coach API key) | ✅ via /v1/webhooks | — |
+| Cal.com | Always (per-coach API key) | ✅ via /v2/webhooks (HTTPS-only — staging/tunnel for §2.5b) | — |
 | Acuity | Once `ACUITY_CLIENT_ID/SECRET` set | ✅ via /api/v1/webhooks (3 events) | — |
 | Setmore | Always (per-coach API key) | — | Coach pastes URL+secret in Setmore dashboard |
 | Square | Once `SQUARE_CLIENT_ID/SECRET` set | — | Coach pastes URL in Square Developer dashboard; sig key goes in `SQUARE_WEBHOOK_SECRET` |
