@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/supabase/admin";
 import { getCalendarProvider } from "@/lib/calendar/providers";
+import { registerCalendarWebhook } from "@/lib/calendar/webhooks";
 import { CalendarApiKeyPayloadSchema } from "@client/shared/validators";
 
 export const dynamic = "force-dynamic";
@@ -93,9 +94,25 @@ export async function POST(
 
   await adminClient.from("coaches").update({ active_calendar_provider: config.id }).eq("id", user.id);
 
+  // If the provider auto-registers webhooks (cal_com), do it now. Non-fatal:
+  // a webhook registration failure leaves the integration connected; coach can
+  // retry from Settings → Calendar.
+  let webhookRegistered: boolean | null = null;
+  if (config.webhook.mode === "auto") {
+    try {
+      await registerCalendarWebhook({ coachId: user.id, provider: config });
+      webhookRegistered = true;
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(`[calendar-api-key] webhook registration failed for ${config.id}:`, err);
+      webhookRegistered = false;
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     webhookMode: config.webhook.mode,
+    webhookRegistered,
   });
 }
 
