@@ -26,7 +26,20 @@ export async function GET(request: Request) {
 
   const webhookUrl = buildWebhookReceiverUrl(config.id, user.id);
 
-  // Generate or retrieve the per-coach webhook secret in Vault
+  // Auto-mode providers (calendly, cal_com, acuity) verify with env-level secrets
+  // and register their webhook automatically on connect. No per-coach secret needed.
+  if (config.webhook.mode === "auto") {
+    return NextResponse.json({
+      ok: true,
+      provider: config.id,
+      webhookMode: "auto" as const,
+      webhookUrl,
+      secret: null,
+      instructions: null,
+    });
+  }
+
+  // Manual-mode providers: generate or retrieve the per-coach webhook secret in Vault.
   let secret: string | null = null;
   try {
     const { data: existing } = await adminClient.schema("private").rpc("get_calendar_webhook_secret", {
@@ -46,17 +59,27 @@ export async function GET(request: Request) {
         // eslint-disable-next-line no-console
         console.error("[webhook-info] vault store failed:", error);
       } else {
-        await adminClient
+        // Non-destructive: update if the row exists (don't clobber `status`), insert if not.
+        const { data: existingRow } = await adminClient
           .from("integrations")
-          .upsert(
-            {
-              coach_id: user.id,
-              provider: config.id,
-              webhook_secret_vault_id: vaultId as string,
-              status: "disconnected",
-            },
-            { onConflict: "coach_id,provider" },
-          );
+          .select("coach_id")
+          .eq("coach_id", user.id)
+          .eq("provider", config.id)
+          .maybeSingle();
+        if (existingRow) {
+          await adminClient
+            .from("integrations")
+            .update({ webhook_secret_vault_id: vaultId as string })
+            .eq("coach_id", user.id)
+            .eq("provider", config.id);
+        } else {
+          await adminClient.from("integrations").insert({
+            coach_id: user.id,
+            provider: config.id,
+            webhook_secret_vault_id: vaultId as string,
+            status: "disconnected",
+          });
+        }
         secret = generated;
       }
     }
