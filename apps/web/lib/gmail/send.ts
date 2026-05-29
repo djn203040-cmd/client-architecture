@@ -3,7 +3,6 @@ import { adminClient } from "@/lib/supabase/admin";
 import { getGmailClientForCoach } from "./client";
 import { extractHeader } from "./thread";
 import { injectTrackingPixel } from "@/lib/email/template";
-import { buildUnsubscribeUrl } from "@/lib/unsubscribe-token";
 
 // Draft statuses from which a send may proceed. A draft reaches the send path
 // only after approve_draft_atomic flips it to 'approved' (or 'edited').
@@ -59,7 +58,6 @@ export interface BuildRawEmailParams {
   subject: string;
   textBody: string;
   htmlBody: string;
-  listUnsubscribeUrl: string;
   inReplyTo?: string | null;
   /** Fixed boundary for deterministic tests; defaults to a random token. */
   boundary?: string;
@@ -72,15 +70,7 @@ export interface BuildRawEmailParams {
  * and assigns the canonical Message-ID (which we read back after send).
  */
 export function buildRawEmail(params: BuildRawEmailParams): string {
-  const {
-    toEmail,
-    toName,
-    subject,
-    textBody,
-    htmlBody,
-    listUnsubscribeUrl,
-    inReplyTo,
-  } = params;
+  const { toEmail, toName, subject, textBody, htmlBody, inReplyTo } = params;
   const boundary =
     params.boundary ?? `=_caw_${Math.random().toString(36).slice(2)}`;
 
@@ -88,12 +78,13 @@ export function buildRawEmail(params: BuildRawEmailParams): string {
     ? `${encodeHeaderWord(toName)} <${toEmail}>`
     : toEmail;
 
+  // No List-Unsubscribe header: these are 1:1 relationship emails sent as the
+  // coach, not bulk mail. The header is a strong Gmail "bulk sender" signal that
+  // pushes delivery to the Promotions tab, which breaks the "feels personal"
+  // premise. Opt-out is handled via reply / dashboard DNC instead. (#41 / §2.6)
   const headers = [
     `To: ${toHeader}`,
     `Subject: ${encodeHeaderWord(subject)}`,
-    // One-click list unsubscribe (RFC 8058) + the visible footer link.
-    `List-Unsubscribe: <${listUnsubscribeUrl}>`,
-    `List-Unsubscribe-Post: List-Unsubscribe=One-Click`,
   ];
   if (inReplyTo) {
     const ref = inReplyTo.startsWith("<") ? inReplyTo : `<${inReplyTo}>`;
@@ -213,14 +204,12 @@ export async function loadSendContext(
     subject = draft.subject || "Following up";
   }
 
-  const listUnsubscribeUrl = buildUnsubscribeUrl(draft.lead_id, coachId);
-  const footerText = `\n\n---\nPrefer not to receive these? Unsubscribe: ${listUnsubscribeUrl}`;
-  const footerHtml = `<hr style="border:none;border-top:1px solid #eee;margin:24px 0 8px"><p style="font-size:12px;color:#888;margin:0">Prefer not to receive these? <a href="${listUnsubscribeUrl}">Unsubscribe</a>.</p>`;
-
-  const textBody = draft.body + footerText;
+  // No unsubscribe footer (see buildRawEmail) — keep the email indistinguishable
+  // from a personal one. Open-tracking pixel is retained.
+  const textBody = draft.body;
   const rawHtml = `<!DOCTYPE html><html><body><div style="font-family:-apple-system,Segoe UI,sans-serif;font-size:15px;line-height:1.5;color:#1a1a1a">${textToHtml(
     draft.body,
-  )}</div>${footerHtml}</body></html>`;
+  )}</div></body></html>`;
   const htmlBody = injectTrackingPixel(rawHtml, draft.id);
 
   return {
@@ -260,7 +249,6 @@ export async function deliverDraft(ctx: SendContext): Promise<Delivery> {
     subject: ctx.subject,
     textBody: ctx.textBody,
     htmlBody: ctx.htmlBody,
-    listUnsubscribeUrl: buildUnsubscribeUrl(ctx.leadId, ctx.coachId),
     inReplyTo: ctx.inReplyTo,
   });
 

@@ -38,7 +38,6 @@ describe("buildRawEmail", () => {
     subject: "Following up",
     textBody: "Hi Jane,\n\nGreat talking today.",
     htmlBody: "<!DOCTYPE html><html><body>Hi Jane</body></html>",
-    listUnsubscribeUrl: "https://app.example.com/api/unsubscribe?token=abc",
     boundary: "TESTBOUNDARY",
   };
 
@@ -47,16 +46,17 @@ describe("buildRawEmail", () => {
     expect(mime).toContain("To: Jane Doe <jane@example.com>");
     expect(mime).toContain("Subject: Following up");
     expect(mime).toContain(
-      "List-Unsubscribe: <https://app.example.com/api/unsubscribe?token=abc>",
-    );
-    expect(mime).toContain("List-Unsubscribe-Post: List-Unsubscribe=One-Click");
-    expect(mime).toContain(
       'Content-Type: multipart/alternative; boundary="TESTBOUNDARY"',
     );
     expect(mime).toContain("--TESTBOUNDARY--");
     // Both parts present
     expect(mime).toContain('Content-Type: text/plain; charset="UTF-8"');
     expect(mime).toContain('Content-Type: text/html; charset="UTF-8"');
+  });
+
+  it("omits the List-Unsubscribe header (1:1 personal email, not bulk)", () => {
+    const mime = decode(buildRawEmail(base));
+    expect(mime).not.toContain("List-Unsubscribe");
   });
 
   it("base64-encodes the body parts (decodable round-trip)", () => {
