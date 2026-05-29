@@ -86,9 +86,26 @@ export async function analyzeVoiceCorpus(params: VoiceAnalysisParams): Promise<T
 
 export interface GenerateDraftResult {
   body: string;
+  // Subject line the model produced for this draft. null when the model
+  // omitted the <subject> tag — the send path falls back (Re:<thread> when
+  // threading, otherwise a neutral default).
+  subject: string | null;
   confidenceLevel: 'high' | 'low';
   truncationLog: string[];
   qualityFlags: string[];
+}
+
+/**
+ * Splits a raw model response into its <subject> line and the email body.
+ * The model is instructed to emit `<subject>...</subject>` followed by the
+ * body; if the tag is missing we keep the whole response as the body and
+ * return a null subject.
+ */
+export function parseSubjectAndBody(raw: string): { subject: string | null; body: string } {
+  const match = raw.match(/<subject>([\s\S]*?)<\/subject>/i);
+  const subject = match && match[1] !== undefined ? match[1].trim() : '';
+  const body = raw.replace(/<subject>[\s\S]*?<\/subject>/i, '').trim();
+  return { subject: subject.length > 0 ? subject : null, body };
 }
 
 export async function generateDraft(
@@ -122,22 +139,24 @@ export async function generateDraft(
     return block.text.trim();
   };
 
-  let body = await attemptGeneration();
+  let parsed = parseSubjectAndBody(await attemptGeneration());
   const qualityFlags: string[] = [];
 
-  // AI-003: Never-say scan with one auto-regen attempt
-  const violations = scanNeverSayList(body, params.voiceModel.never_say_list);
+  // AI-003: Never-say scan with one auto-regen attempt. The scan only looks at
+  // the body — the subject is short and shares the same voice constraints.
+  const violations = scanNeverSayList(parsed.body, params.voiceModel.never_say_list);
   if (violations.length > 0) {
-    body = await attemptGeneration();
-    const secondViolations = scanNeverSayList(body, params.voiceModel.never_say_list);
+    parsed = parseSubjectAndBody(await attemptGeneration());
+    const secondViolations = scanNeverSayList(parsed.body, params.voiceModel.never_say_list);
     if (secondViolations.length > 0) {
       qualityFlags.push('never_say_violation');
     }
   }
 
   // Hard guarantee: no em-dash / en-dash ever reaches a coach, regardless of
-  // what the model produced.
-  body = stripDashes(body);
+  // what the model produced. Applies to both subject and body.
+  const body = stripDashes(parsed.body);
+  const subject = parsed.subject ? stripDashes(parsed.subject) : null;
 
   traceGeneration('generateDraft', {
     leadId: params.leadId,
@@ -149,6 +168,7 @@ export async function generateDraft(
 
   return {
     body,
+    subject,
     confidenceLevel: ctx.confidenceLevel,
     truncationLog: ctx.truncationLog,
     qualityFlags,

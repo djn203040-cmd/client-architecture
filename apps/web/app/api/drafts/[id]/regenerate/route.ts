@@ -121,6 +121,7 @@ export async function POST(
         .from('drafts')
         .update({
           body: result.body,
+          subject: result.subject,
           status: 'pending',
           confidence_level: result.confidenceLevel,
           generation_context: {

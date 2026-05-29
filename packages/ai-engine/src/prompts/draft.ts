@@ -84,6 +84,6 @@ ${bookingBlock}
 <instruction>
 ${stateInstruction}
 
-Write the email body now. No subject line. No preamble. Just the message.
+Write the subject line in <subject></subject> tags first, then the email body. No preamble. Just the message.
 </instruction>`;
 }

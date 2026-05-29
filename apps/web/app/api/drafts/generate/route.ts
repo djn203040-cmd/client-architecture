@@ -196,6 +196,7 @@ export async function POST(request: Request) {
       .from('drafts')
       .update({
         body: generated.body,
+        subject: generated.subject,
         status: outcome.status,
         confidence_level: generated.confidenceLevel,
         generation_context: {
