@@ -3,8 +3,7 @@ import { adminClient } from "@/lib/supabase/admin";
 import { LEAD_REPLIED } from "@client/shared/constants/events";
 
 export const replyHandler = inngest.createFunction(
-  { id: "reply-handler" },
-  { event: LEAD_REPLIED },
+  { id: "reply-handler", triggers: [{ event: LEAD_REPLIED }] },
   async ({ event, step }) => {
     const { coachId, leadId, messageId, inReplyToMessageId } = event.data as {
       coachId: string;

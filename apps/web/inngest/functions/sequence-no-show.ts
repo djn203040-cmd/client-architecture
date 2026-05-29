@@ -29,8 +29,8 @@ export const sequenceNoShow = inngest.createFunction(
         if: "async.data.leadId == event.data.leadId",
       },
     ],
+    triggers: [{ event: LEAD_NO_SHOW }],
   },
-  { event: LEAD_NO_SHOW },
   async ({ event, step, runId }) => {
     const { coachId, leadId } = event.data as { coachId: string; leadId: string };
 

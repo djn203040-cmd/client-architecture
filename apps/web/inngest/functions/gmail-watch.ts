@@ -5,8 +5,7 @@ import { GMAIL_WATCH_RENEW } from "@client/shared/constants/events";
 import { isInvalidGrantError, handleInvalidGrant } from "@/lib/gmail/error-handler";
 
 export const gmailWatch = inngest.createFunction(
-  { id: "gmail-watch" },
-  { event: GMAIL_WATCH_RENEW },
+  { id: "gmail-watch", triggers: [{ event: GMAIL_WATCH_RENEW }] },
   async ({ step }) => {
     const coaches = await step.run("fetch-coaches-with-gmail", async () => {
       const { data } = await adminClient

@@ -3,7 +3,36 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "NEXT_PUBLIC_*",
+        "SUPABASE_*",
+        "DATABASE_URL",
+        "GOOGLE_*",
+        "GMAIL_*",
+        "ANTHROPIC_API_KEY",
+        "UPSTASH_*",
+        "KV_*",
+        "INNGEST_*",
+        "RESEND_*",
+        "TWILIO_*",
+        "SLACK_*",
+        "CAL_COM_*",
+        "CALCOM_*",
+        "CALENDLY_*",
+        "ACUITY_*",
+        "SQUARE_*",
+        "MS_BOOKINGS_*",
+        "CALENDAR_OAUTH_STATE_SECRET",
+        "FIREFLIES_*",
+        "ZOOM_*",
+        "CRON_SECRET",
+        "JWT_REVIEW_SECRET",
+        "UNSUBSCRIBE_*",
+        "INSTAGRAM_*",
+        "SENTRY_*",
+        "LANGFUSE_*"
+      ]
     },
     "dev": {
       "cache": false,

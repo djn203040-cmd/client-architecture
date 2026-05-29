@@ -24,8 +24,8 @@ export const sequenceCallCompleted = inngest.createFunction(
         if: "async.data.leadId == event.data.leadId",
       },
     ],
+    triggers: [{ event: LEAD_CALL_COMPLETED }],
   },
-  { event: LEAD_CALL_COMPLETED },
   async ({ event, step, runId }) => {
     const { coachId, leadId, eventEndAt, externalEventId, leadName } = event.data as {
       coachId: string;

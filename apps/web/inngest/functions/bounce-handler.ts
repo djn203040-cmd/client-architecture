@@ -6,8 +6,7 @@ import { extractBouncedEmail } from "@/lib/gmail/bounce-detector";
 import { extractHeader } from "@/lib/gmail/thread";
 
 export const bounceHandler = inngest.createFunction(
-  { id: "bounce-handler" },
-  { event: LEAD_BOUNCED },
+  { id: "bounce-handler", triggers: [{ event: LEAD_BOUNCED }] },
   async ({ event, step }) => {
     const { coachId, messageId, subject: subjectFromEvent } = event.data as {
       coachId: string;

@@ -5,8 +5,7 @@ import { isInvalidGrantError, handleInvalidGrant } from "@/lib/gmail/error-handl
 
 // Polling fallback: fires on "gmail/poll" cron event (Plan 03-02 wired the cron route)
 export const gmailMonitor = inngest.createFunction(
-  { id: "gmail-monitor" },
-  { event: "gmail/poll" },
+  { id: "gmail-monitor", triggers: [{ event: "gmail/poll" }] },
   async ({ step }) => {
     const coaches = await step.run("fetch-active-coaches", async () => {
       const { data } = await adminClient
@@ -45,8 +44,7 @@ export const gmailMonitor = inngest.createFunction(
 
 // Real-time path: fires when Pub/Sub push receiver routes a notification
 export const gmailNotificationReceived = inngest.createFunction(
-  { id: "gmail-notification-received" },
-  { event: "gmail/notification_received" },
+  { id: "gmail-notification-received", triggers: [{ event: "gmail/notification_received" }] },
   async ({ event, step }) => {
     const { coachId, historyId } = event.data as { coachId: string; historyId: string };
 
