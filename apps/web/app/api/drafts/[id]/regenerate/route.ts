@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isHardBlocked } from '@client/ai-engine';
 import { VoiceProfileSchema } from '@client/shared/validators';
@@ -65,8 +65,11 @@ export async function POST(
   // D-23: Mark generating in place (no new row)
   await supabase.from('drafts').update({ status: 'generating' }).eq('id', id);
 
-  // Fire-and-forget regeneration
-  void (async () => {
+  // Background regeneration. MUST use after() — a plain fire-and-forget IIFE is
+  // killed when the 202 response returns on Vercel (same fix as drafts/generate),
+  // which left repeat regenerations completing unreliably / out of order so the
+  // draft appeared not to change after the first regen.
+  after(async () => {
     try {
       const { generateDraft } = await import('@client/ai-engine');
 
@@ -135,7 +138,7 @@ export async function POST(
     } catch {
       await supabase.from('drafts').update({ status: 'error' }).eq('id', id);
     }
-  })();
+  });
 
   return NextResponse.json({ draftId: id, status: 'generating' }, { status: 202 });
 }
