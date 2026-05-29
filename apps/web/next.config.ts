@@ -22,6 +22,12 @@ const config: NextConfig = {
   outputFileTracingRoot: path.join(process.cwd(), "../../"),
   experimental: { typedRoutes: true },
   poweredByHeader: false,
+  // The repo's flat ESLint config currently throws a circular-structure error
+  // at the tooling level (eslint-config-next x eslint 9 flat-config compat),
+  // which would fail `next build`. Quality is gated separately by `tsc
+  // --noEmit` and the vitest suites, so skip lint during builds until the
+  // ESLint config is repaired (tracked as a follow-up).
+  eslint: { ignoreDuringBuilds: true },
   async headers() {
     return [
       { source: "/:path*", headers: STATIC_FALLBACK_HEADERS },
