@@ -9,6 +9,7 @@ import { SequenceStatusPanel } from "./sequence-status-panel";
 import { ManualTranscriptUpload } from "./components/ManualTranscriptUpload";
 import { LeadAISummaryCard } from "./components/LeadAISummaryCard";
 import { GenerateDraftButton } from "./components/GenerateDraftButton";
+import { LeadDraftsPanel } from "./components/LeadDraftsPanel";
 import { EmailThreadView } from "./components/EmailThreadView";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { TLeadStatus } from "@client/shared/types";
@@ -21,10 +22,14 @@ export default async function LeadProfilePage({
   const { id } = await params;
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { data: lead } = await supabase.from("leads").select("*").eq("id", id).maybeSingle();
   if (!lead) notFound();
 
-  const [eventsResult, transcriptsResult] = await Promise.all([
+  const [eventsResult, transcriptsResult, draftsResult] = await Promise.all([
     supabase
       .from("lead_events")
       .select("*")
@@ -35,11 +40,23 @@ export default async function LeadProfilePage({
       .select("id, content, created_at")
       .eq("lead_id", id)
       .order("created_at", { ascending: false }),
+    // Reviewable drafts for this lead — surfaces ad-hoc standalone drafts that
+    // never enter the dashboard queue's sequence flow (#41).
+    supabase
+      .from("drafts")
+      .select("*, leads(name)")
+      .eq("lead_id", id)
+      .in("status", ["pending", "held"])
+      .order("created_at", { ascending: false }),
   ]);
 
   const allTranscripts = transcriptsResult.data ?? [];
   const latestTranscript = allTranscripts[0] ?? null;
   const priorTranscripts = allTranscripts.slice(1);
+
+  const allDrafts = draftsResult.data ?? [];
+  const pendingDrafts = allDrafts.filter((d) => d.status === "pending");
+  const heldDrafts = allDrafts.filter((d) => d.status === "held");
 
   return (
     <div className="space-y-4">
@@ -57,6 +74,15 @@ export default async function LeadProfilePage({
         <div className="flex justify-end">
           <GenerateDraftButton leadId={lead.id} leadStatus={lead.status as TLeadStatus} />
         </div>
+        {user && (
+          <LeadDraftsPanel
+            coachId={user.id}
+            leadId={lead.id}
+            leadName={lead.name}
+            initialPending={pendingDrafts}
+            initialHeld={heldDrafts}
+          />
+        )}
         <Tabs defaultValue="thread">
           <TabsList>
             <TabsTrigger value="thread">Thread</TabsTrigger>

@@ -74,16 +74,18 @@ export async function PATCH(
 
   // Status transitions
   if (status === "approved") {
-    if (!draft.sequence_id) {
-      return NextResponse.json(
-        { ok: false, reason: "no_sequence" },
-        { status: 409 },
-      );
+    // Sequence-driven drafts run the pre-send safety check (terminal lead / DNC /
+    // inactive sequence). Standalone drafts (sequence_id=null, generated ad-hoc
+    // from the lead profile — #41) have no sequence to gate against; the lead's
+    // own hard-block states are already enforced upstream at generation time.
+    if (draft.sequence_id) {
+      const blocked = await runPreSendSafetyCheck(draft.lead_id, draft.sequence_id);
+      if (blocked) {
+        return NextResponse.json({ ok: false, reason: blocked }, { status: 409 });
+      }
     }
-    const blocked = await runPreSendSafetyCheck(draft.lead_id, draft.sequence_id);
-    if (blocked) {
-      return NextResponse.json({ ok: false, reason: blocked }, { status: 409 });
-    }
+    // CAS pending -> approved. approve_draft_atomic only updates the drafts row,
+    // so it tolerates a null sequence_id with no migration change.
     const result = await approveDraftAtomic(id, "dashboard");
     if (!result.ok) {
       return NextResponse.json(
@@ -91,11 +93,15 @@ export async function PATCH(
         { status: 409 },
       );
     }
-    // B-1: cancel sleeping Inngest timers (Mode B / follow-up / hold cascade)
-    await inngest.send({
-      name: "draft/approved_manually",
-      data: { draftId: id, coachId: draft.coach_id },
-    });
+    // B-1: cancel sleeping Inngest timers (Mode B / follow-up / hold cascade).
+    // Only sequence-driven drafts arm those timers — skip the signal for
+    // standalone drafts so we don't emit no-op cancellations.
+    if (draft.sequence_id) {
+      await inngest.send({
+        name: "draft/approved_manually",
+        data: { draftId: id, coachId: draft.coach_id },
+      });
+    }
     await inngest.send({
       name: "draft/send_via_gmail",
       data: { draftId: id, coachId: draft.coach_id, source: "dashboard" },

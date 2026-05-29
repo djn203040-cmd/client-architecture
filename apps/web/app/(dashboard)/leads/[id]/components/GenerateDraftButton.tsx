@@ -31,7 +31,7 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
       if (status === "error") {
         toast.error("Draft generation failed. Try again.");
       } else {
-        toast.success("Draft ready — check your queue.");
+        toast.success("Draft ready — review it below.");
       }
     };
 

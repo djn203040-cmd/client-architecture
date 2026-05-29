@@ -19,6 +19,12 @@ interface DraftCardProps {
   surface?: "app" | "review";
   reviewToken?: string;
   onAdvance?: () => void;
+  /**
+   * Skip is a queue-only concept (defer to the next card without changing
+   * status). On the lead profile page there is no "next" — pass false to hide
+   * it and disable the `s` shortcut. #41.
+   */
+  showSkip?: boolean;
 }
 
 export function DraftCard({
@@ -27,6 +33,7 @@ export function DraftCard({
   surface = "app",
   reviewToken,
   onAdvance,
+  showSkip = true,
 }: DraftCardProps) {
   const [editing, setEditing] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
@@ -59,14 +66,10 @@ export function DraftCard({
     if (!r.ok) {
       const data = await r.json().catch(() => ({}));
       const reason = (data as { reason?: string }).reason;
-      // Surface the real failure reason instead of a generic message so it's
-      // clear when a standalone (non-sequence) draft isn't approvable yet.
-      const message =
-        reason === "no_sequence"
-          ? "This draft isn't part of an active sequence yet. Sequence-driven drafts go through this queue; standalone drafts can be reviewed on the lead's page."
-          : reason
-            ? `Couldn't ${status === "approved" ? "approve" : "hold"} — ${reason}.`
-            : "This action didn't go through. Refresh and try again.";
+      // Surface the real failure reason instead of a generic message.
+      const message = reason
+        ? `Couldn't ${status === "approved" ? "approve" : "hold"} — ${reason}.`
+        : "This action didn't go through. Refresh and try again.";
       toast.error(message);
       return;
     }
@@ -88,7 +91,7 @@ export function DraftCard({
   function onKeyDown(e: React.KeyboardEvent) {
     if (editing || variant === "held") return;
     if (e.key === "a" || e.key === "A") { e.preventDefault(); void setStatus("approved"); }
-    if (e.key === "s" || e.key === "S") { e.preventDefault(); onAdvance?.(); }
+    if (showSkip && (e.key === "s" || e.key === "S")) { e.preventDefault(); onAdvance?.(); }
     if (e.key === "h" || e.key === "H") { e.preventDefault(); void setStatus("held"); }
     if (e.key === "Escape") { (e.target as HTMLElement).blur(); }
   }
@@ -196,10 +199,12 @@ export function DraftCard({
             <CheckCircle weight="regular" className="size-4 mr-2" />
             Approve <KeyBadge k="A" />
           </Button>
-          <Button className="min-h-[44px]" variant="outline" onClick={onAdvance}>
-            <SkipForward weight="regular" className="size-4 mr-2" />
-            Skip <KeyBadge k="S" />
-          </Button>
+          {showSkip && (
+            <Button className="min-h-[44px]" variant="outline" onClick={onAdvance}>
+              <SkipForward weight="regular" className="size-4 mr-2" />
+              Skip <KeyBadge k="S" />
+            </Button>
+          )}
           <Button className="min-h-[44px]" variant="outline" onClick={() => setStatus("held")}>
             <PauseCircle weight="regular" className="size-4 mr-2" />
             Hold <KeyBadge k="H" />

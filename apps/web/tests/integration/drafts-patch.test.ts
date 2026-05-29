@@ -72,7 +72,9 @@ function mockAuth(userId: string | null) {
   } as never);
 }
 
-function mockDraftQuery(draft: typeof fakeDraft | null) {
+function mockDraftQuery(
+  draft: (Omit<typeof fakeDraft, "sequence_id"> & { sequence_id: string | null }) | null,
+) {
   mockAdminClient.from.mockReturnValue({
     select: vi.fn().mockReturnValue({
       eq: vi.fn().mockReturnValue({
@@ -147,6 +149,30 @@ describe("PATCH /api/drafts/[id]", () => {
     expect(mockInngest).toHaveBeenCalledWith(
       expect.objectContaining({ name: "draft/approved_manually" }),
     );
+    expect(mockInngest).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "draft/send_via_gmail" }),
+    );
+  });
+
+  it("approves a standalone (no-sequence) draft: skips safety check + approved_manually, still sends (#41)", async () => {
+    mockAuth(COACH_ID);
+    mockDraftQuery({ ...fakeDraft, sequence_id: null });
+    mockApprove.mockResolvedValue({ ok: true, reason: "approved_by:dashboard", new_status: "approved" });
+    const { PATCH } = await import("@/app/api/drafts/[id]/route");
+    const res = await PATCH(makeRequest({ status: "approved" }), {
+      params: Promise.resolve({ id: DRAFT_ID }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.new_status).toBe("approved");
+    // No sequence → no pre-send safety check
+    expect(mockSafetyCheck).not.toHaveBeenCalled();
+    // No sequence → no timer-cancel signal (nothing to cancel)
+    expect(mockInngest).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: "draft/approved_manually" }),
+    );
+    // Still hands off to Gmail send like any other approval path
     expect(mockInngest).toHaveBeenCalledWith(
       expect.objectContaining({ name: "draft/send_via_gmail" }),
     );

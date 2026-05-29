@@ -9,9 +9,16 @@ type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
 
 export function useDraftRealtime(
   coachId: string,
-  opts?: { status?: "pending" | "held"; initialDrafts?: DraftRow[] },
+  opts?: {
+    status?: "pending" | "held";
+    initialDrafts?: DraftRow[];
+    // Scope the subscription to a single lead (lead profile panel — #41).
+    // When set, INSERT/UPDATE events for other leads are ignored.
+    leadId?: string;
+  },
 ): { drafts: DraftRow[]; loading: boolean; rotateCurrent: () => void } {
   const status = opts?.status ?? "pending";
+  const leadId = opts?.leadId;
   const [drafts, setDrafts] = useState<DraftRow[]>(opts?.initialDrafts ?? []);
   const [loading, setLoading] = useState(!opts?.initialDrafts);
 
@@ -28,7 +35,7 @@ export function useDraftRealtime(
     const supabase = createClient();
 
     const channel = supabase
-      .channel(`coach-drafts-${status}-${coachId}`)
+      .channel(`coach-drafts-${status}-${coachId}${leadId ? `-${leadId}` : ""}`)
       .on(
         "postgres_changes",
         {
@@ -39,6 +46,7 @@ export function useDraftRealtime(
         },
         (payload) => {
           const row = payload.new as DraftRow;
+          if (leadId && row.lead_id !== leadId) return;
           if (row.status === status) {
             setDrafts((prev) => [...prev, row]);
           }
@@ -54,6 +62,7 @@ export function useDraftRealtime(
         },
         (payload) => {
           const updated = payload.new as DraftRow;
+          if (leadId && updated.lead_id !== leadId) return;
           const belongsInBucket = updated.status === status;
           setDrafts((prev) => {
             const exists = prev.some((d) => d.id === updated.id);
@@ -80,7 +89,7 @@ export function useDraftRealtime(
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [coachId, status]);
+  }, [coachId, status, leadId]);
 
   const result = useMemo(
     () => ({ drafts, loading, rotateCurrent }),
