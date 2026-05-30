@@ -73,6 +73,27 @@ function formatDate(d: Date): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function formatTime(d: Date): string {
+  return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+/**
+ * Friendly send time relative to `now`: "today at 12:15", "tomorrow at 12:15",
+ * or "May 31 at 12:15". Used so the coach sees exactly when an approved draft
+ * will actually go out (the send is decoupled from approval).
+ */
+function formatSendWhen(d: Date, now: Date): string {
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const dayDiff = Math.round(
+    (startOfDay.getTime() - startOfToday.getTime()) / (24 * 60 * 60 * 1000)
+  );
+  const time = formatTime(d);
+  if (dayDiff === 0) return `today at ${time}`;
+  if (dayDiff === 1) return `tomorrow at ${time}`;
+  return `${formatDate(d)} at ${time}`;
+}
+
 /**
  * Builds a follow-along view of a lead's sequence: each touchpoint with its
  * scheduled date and whether it's done, up next, or upcoming.
@@ -150,7 +171,9 @@ export function buildSequenceView(
   let nextSendLabel: string | null = null;
 
   const steps: TSequenceStep[] = raw.map((s, i) => {
-    const dateLabel = formatDate(new Date(s.scheduledAt));
+    const scheduledDate = new Date(s.scheduledAt);
+    const dateLabel = formatDate(scheduledDate);
+    const sendWhen = formatSendWhen(scheduledDate, now);
     const draftStatus = statusByTouchpoint.get(s.index) ?? null;
     const isSent = sentByTouchpoint.has(s.index);
 
@@ -171,16 +194,18 @@ export function buildSequenceView(
     } else if (i === firstPendingIdx) {
       state = "next";
       nextSendAt = s.scheduledAt;
-      nextSendLabel = dateLabel;
+      nextSendLabel = sendWhen;
       switch (draftStatus) {
         case "approved":
         case "edited":
           tone = "approved";
-          detail = `Approved · sends ${dateLabel}`;
+          // Approval is decoupled from send: make it explicit that the message
+          // is locked in and will go out at its fixed cadence time.
+          detail = `Approved · sends ${sendWhen}`;
           break;
         case "pending":
           tone = "awaiting";
-          detail = "Awaiting your approval";
+          detail = `Awaiting your approval · sends ${sendWhen}`;
           break;
         case "generating":
           tone = "preparing";
@@ -196,7 +221,7 @@ export function buildSequenceView(
           break;
         default:
           tone = "scheduled";
-          detail = `Sends ${dateLabel}`;
+          detail = `Sends ${sendWhen}`;
       }
     } else {
       state = "upcoming";

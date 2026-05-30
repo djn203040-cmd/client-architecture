@@ -115,7 +115,9 @@ describe("buildSequenceView (real draft data)", () => {
     });
     expect(awaiting.steps[0]!.state).toBe("next");
     expect(awaiting.steps[0]!.tone).toBe("awaiting");
-    expect(awaiting.steps[0]!.detail).toBe("Awaiting your approval");
+    // Label tells the coach it's waiting on them AND when it will send.
+    // (Time is locale/TZ-dependent, so assert on the structure, not exact time.)
+    expect(awaiting.steps[0]!.detail).toMatch(/^Awaiting your approval · sends .+ at \d{2}:\d{2}$/);
 
     const approved = buildSequenceView(base, cfg, {
       now: new Date(START),
@@ -124,7 +126,21 @@ describe("buildSequenceView (real draft data)", () => {
       ],
     });
     expect(approved.steps[0]!.tone).toBe("approved");
-    expect(approved.steps[0]!.detail).toBe("Approved · sends May 31");
+    expect(approved.steps[0]!.detail).toMatch(/^Approved · sends .+ at \d{2}:\d{2}$/);
+  });
+
+  it('formats the current-step send time as today/tomorrow/date relative to now', () => {
+    const base = { track: "no_show", status: "active", created_at: START } as const;
+    const cfg = { no_show_delays: [1], call_completed_delays: [1] };
+    // Sequence start May 1, touchpoint 1 sends May 2 -> "tomorrow" when now is May 1.
+    const view = buildSequenceView(base, cfg, {
+      now: new Date("2026-05-01T08:00:00.000Z"),
+      drafts: [
+        { touchpoint_index: 1, status: "approved", sent_at: null, scheduled_send_at: "2026-05-02T10:15:00.000Z" },
+      ],
+    });
+    expect(view.steps[0]!.detail).toMatch(/^Approved · sends tomorrow at \d{2}:\d{2}$/);
+    expect(view.nextSendLabel).toMatch(/^tomorrow at \d{2}:\d{2}$/);
   });
 
   it("marks a sent step's detail as Sent and held/error tones correctly", () => {
