@@ -51,11 +51,11 @@ export function ProfileForm({ coach }: Props) {
   useAutosave(roleTitle, (v) => patchProfile({ role_title: v || null }));
   useAutosave(timezone, (v) => patchProfile({ timezone: v }));
 
-  // First-load capture: send times render in the coach's timezone, but the
-  // picker's pre-filled browser zone is never persisted by the autosave hook
-  // (it skips the initial render). If the coach has no timezone yet, save the
-  // browser-resolved one once — their real zone instead of the launch-default
-  // fallback. Onboarding will capture this earlier once built.
+  // First-load backstop: onboarding (WizardShell → TimezoneCapture) already
+  // captures the browser zone on the coach's first step. This covers the edge
+  // case of a coach whose zone is still null by the time they reach Settings —
+  // the autosave hook skips the picker's pre-filled value on initial render, so
+  // persist it once here rather than leaving them on the launch-default zone.
   useEffect(() => {
     if (!coach.timezone) {
       patchProfile({

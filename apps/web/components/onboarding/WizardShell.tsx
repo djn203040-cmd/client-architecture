@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { OnboardingStep } from "@client/shared/validators";
 import { StepIndicator } from "./StepIndicator";
+import { TimezoneCapture } from "./TimezoneCapture";
 
 const STEP_HEADINGS: Record<OnboardingStep, string> = {
   gmail: "Connect your Gmail",
@@ -14,12 +15,15 @@ const STEP_HEADINGS: Record<OnboardingStep, string> = {
 interface Props {
   currentStep: OnboardingStep;
   progress: Record<string, string | null | undefined>;
+  /** When null, the coach has no saved zone yet — capture it client-side. */
+  coachTimezone: string | null;
   children: ReactNode;
 }
 
-export function WizardShell({ currentStep, progress, children }: Props) {
+export function WizardShell({ currentStep, progress, coachTimezone, children }: Props) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-start pt-8 pb-16 px-4">
+      {!coachTimezone && <TimezoneCapture />}
       <div className="w-full max-w-xl space-y-8">
         {/* Header */}
         <div className="flex flex-col items-center gap-6">

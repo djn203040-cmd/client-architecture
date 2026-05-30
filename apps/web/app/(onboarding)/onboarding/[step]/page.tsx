@@ -34,7 +34,7 @@ export default async function OnboardingStepPage({ params }: Props) {
 
   const { data: coach } = await supabase
     .from("coaches")
-    .select("voice_model, onboarding_progress, notification_settings, onboarding_completed_at, public_booking_url, active_calendar_provider")
+    .select("voice_model, onboarding_progress, notification_settings, onboarding_completed_at, public_booking_url, active_calendar_provider, timezone")
     .eq("id", user.id)
     .single();
 
@@ -111,7 +111,11 @@ export default async function OnboardingStepPage({ params }: Props) {
   }
 
   return (
-    <WizardShell currentStep={step} progress={progress}>
+    <WizardShell
+      currentStep={step}
+      progress={progress}
+      coachTimezone={(coach?.timezone as string | null) ?? null}
+    >
       {stepContent}
     </WizardShell>
   );
