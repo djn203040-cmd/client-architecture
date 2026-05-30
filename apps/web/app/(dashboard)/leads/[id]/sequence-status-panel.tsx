@@ -2,16 +2,20 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TLeadStatus } from "@client/shared/types";
 import { isTerminalState } from "@client/shared";
+import type { TSequenceView } from "@/lib/sequences/progress";
 
 export function SequenceStatusPanel({
   leadId,
   status,
+  sequence,
 }: {
   leadId: string;
   status: TLeadStatus;
+  sequence?: TSequenceView | null;
 }) {
   const router = useRouter();
   const canStart = !isTerminalState(status) && status !== "in_sequence";
@@ -38,9 +42,26 @@ export function SequenceStatusPanel({
     }
   }
 
+  const finished = sequence?.status === "completed";
+  const nextSendDisplay = sequence
+    ? finished
+      ? "Complete"
+      : (sequence.nextSendLabel ?? "—")
+    : "—";
+
   return (
     <section className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-4">
-      <h2 className="text-xl font-semibold">Sequence</h2>
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-xl font-semibold">Sequence</h2>
+        {sequence && (
+          <span className="text-xs text-muted-foreground">
+            {finished
+              ? `${sequence.totalSteps} of ${sequence.totalSteps} steps`
+              : `Step ${sequence.currentStep} of ${sequence.totalSteps}`}
+          </span>
+        )}
+      </div>
+
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
           <span className="text-muted-foreground">Status</span>
@@ -48,18 +69,75 @@ export function SequenceStatusPanel({
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Next send</span>
-          <span className="font-mono text-muted-foreground">—</span>
+          <span className="font-mono text-muted-foreground">{nextSendDisplay}</span>
         </div>
       </div>
-      <Button
-        variant="outline"
-        className="w-full"
-        disabled={!canStart || loading}
-        onClick={startSequence}
-        aria-label="Start Intake Sequence"
-      >
-        {loading ? "Starting…" : "Start Intake Sequence"}
-      </Button>
+
+      {sequence && sequence.steps.length > 0 && (
+        <div className="space-y-1 pt-1">
+          <p className="text-xs font-medium text-muted-foreground">{sequence.trackLabel}</p>
+          <ol className="pt-1">
+            {sequence.steps.map((step, i) => {
+              const isLast = i === sequence.steps.length - 1;
+              const done = step.state === "done";
+              const next = step.state === "next";
+              return (
+                <li key={step.index} className="flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <span
+                      className={[
+                        "flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-medium transition-colors",
+                        done
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : next
+                            ? "border-primary bg-background text-primary ring-2 ring-primary/25"
+                            : "border-border bg-transparent text-muted-foreground",
+                      ].join(" ")}
+                      aria-hidden
+                    >
+                      {done ? <Check className="h-3 w-3" /> : step.index}
+                    </span>
+                    {!isLast && (
+                      <span
+                        className={[
+                          "my-1 w-px flex-1",
+                          done ? "bg-primary/50" : "bg-border",
+                        ].join(" ")}
+                      />
+                    )}
+                  </div>
+                  <div className={isLast ? "pb-0.5" : "pb-4"}>
+                    <p
+                      className={[
+                        "text-sm leading-5",
+                        next ? "font-semibold text-foreground" : "font-medium",
+                        !done && !next ? "text-muted-foreground" : "",
+                      ].join(" ")}
+                    >
+                      Step {step.index}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {done ? step.dateLabel : next ? `Next up · ${step.dateLabel}` : step.dateLabel}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      )}
+
+      {canStart && (
+        <Button
+          variant="outline"
+          className="w-full"
+          disabled={loading}
+          onClick={startSequence}
+          aria-label="Start Intake Sequence"
+        >
+          {loading ? "Starting…" : "Start Intake Sequence"}
+        </Button>
+      )}
     </section>
   );
 }

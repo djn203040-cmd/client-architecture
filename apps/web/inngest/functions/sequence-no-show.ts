@@ -5,8 +5,19 @@ import {
   LEAD_REPLIED,
   LEAD_CALL_BOOKED,
   LEAD_UNSUBSCRIBED,
+  DRAFT_SCHEDULED_SEND,
 } from "@client/shared/constants/events";
-import { runPreSendSafetyCheck, buildDraftGeneratePayload } from "./sequence-step";
+import { runPreSendSafetyCheck } from "./sequence-step";
+import { generateTouchpointDraft } from "@/lib/sequences/generate-touchpoint";
+
+// A touchpoint's draft is generated this far ahead of its fixed send time, giving
+// the coach a review window. The send still fires at the cadence time regardless
+// of when (or whether) they approve.
+const GENERATE_LEAD_MS = 24 * 60 * 60 * 1000;
+
+// Grace period after the final send time before auto-closing the lead, so the
+// last touchpoint's scheduled-send timer settles before we terminal-ize the lead.
+const SEND_SETTLE_MS = 15 * 60 * 1000;
 
 export const sequenceNoShow = inngest.createFunction(
   {
@@ -79,19 +90,24 @@ export const sequenceNoShow = inngest.createFunction(
     });
 
     const sequenceStart = new Date();
+    const totalTouchpoints = delays.length;
 
-    for (const dayOffset of delays) {
+    for (let i = 0; i < delays.length; i++) {
+      const dayOffset = delays[i]!;
       const sendAt = new Date(sequenceStart);
       sendAt.setDate(sendAt.getDate() + dayOffset);
+      const scheduledSendAt = sendAt.toISOString();
+      // Wake up ~24h before the send time to generate the draft for review.
+      const generateAt = new Date(sendAt.getTime() - GENERATE_LEAD_MS);
 
-      await step.sleepUntil(`sleep-day-${dayOffset}`, sendAt);
+      await step.sleepUntil(`generate-wait-${i}`, generateAt);
 
-      const blocked = await step.run(`safety-check-${dayOffset}`, () =>
+      const blocked = await step.run(`safety-check-${i}`, () =>
         runPreSendSafetyCheck(leadId, sequenceId)
       );
 
       if (blocked) {
-        await step.run(`cancel-on-block-${dayOffset}`, async () => {
+        await step.run(`cancel-on-block-${i}`, async () => {
           await adminClient
             .from("sequences")
             .update({ status: "cancelled" })
@@ -100,15 +116,55 @@ export const sequenceNoShow = inngest.createFunction(
         return { cancelled: true, reason: blocked };
       }
 
-      await step.sendEvent(
-        `send-touchpoint-${dayOffset}`,
-        buildDraftGeneratePayload({
+      const generated = await step.run(`generate-touchpoint-${i}`, () =>
+        generateTouchpointDraft({
           coachId,
           leadId,
           sequenceId,
-          touchpointIndex: delays.indexOf(dayOffset) + 1,
+          touchpointIndex: i + 1,
+          totalTouchpoints,
           track: "no_show",
+          scheduledSendAt,
         })
+      );
+
+      if (generated.ok) {
+        // Hand the draft to its own scheduled-send timer, which owns the actual
+        // send at the cadence time (decoupled from approval timing).
+        await step.sendEvent(`schedule-send-${i}`, {
+          name: DRAFT_SCHEDULED_SEND,
+          data: { draftId: generated.draftId, coachId, leadId, sequenceId, scheduledSendAt },
+        });
+
+        // Notify the coach there's a draft to review — skipped in Send-without-
+        // review mode (mode_a), where the draft is already approved.
+        if (generated.status === "pending") {
+          await step.sendEvent(`notify-${i}`, {
+            name: "notification/draft_ready",
+            data: {
+              coachId,
+              eventType: "draft_ready",
+              payload: {
+                draftId: generated.draftId,
+                leadName: generated.leadName,
+                confidenceLevel: generated.confidenceLevel,
+              },
+            },
+          });
+        }
+      }
+    }
+
+    // The final touchpoint sends ~24h after it was generated, via its own
+    // scheduled-send timer. Wait until that send has settled before closing the
+    // lead — otherwise we'd mark it terminal while the last message is pending,
+    // and the safety check would block that send.
+    if (delays.length > 0) {
+      const lastSendAt = new Date(sequenceStart);
+      lastSendAt.setDate(lastSendAt.getDate() + delays[delays.length - 1]!);
+      await step.sleepUntil(
+        "settle-final-send",
+        new Date(lastSendAt.getTime() + SEND_SETTLE_MS)
       );
     }
 

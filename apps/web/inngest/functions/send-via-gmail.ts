@@ -46,6 +46,18 @@ export async function sendViaGmailHandler({
   }
   const ctx: SendContext = loaded.ctx;
 
+  // Decouple approval from send for sequence touchpoints: an approved draft must
+  // still wait for its fixed cadence time. Only the scheduled-send timer (which
+  // fires AT that time) may send early-approved sequence drafts. Manual/reply
+  // drafts have no scheduled_send_at and pass straight through.
+  if (
+    source !== "sequence_scheduled" &&
+    ctx.scheduledSendAt &&
+    new Date(ctx.scheduledSendAt).getTime() > Date.now()
+  ) {
+    return { sent: false, skipped: "awaiting_scheduled_time", draftId };
+  }
+
   const delivery: Delivery = await step.run("deliver", () => deliverDraft(ctx));
 
   await step.run("record", () => recordDelivery(ctx, delivery, source));

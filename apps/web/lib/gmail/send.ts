@@ -138,6 +138,8 @@ export interface SendContext {
   threadId: string | null;
   inReplyTo: string | null;
   touchpointIndex: number | null;
+  /** Fixed cadence send time for sequence touchpoints; null for ad-hoc drafts. */
+  scheduledSendAt: string | null;
 }
 
 export interface LoadResult {
@@ -156,7 +158,7 @@ export async function loadSendContext(
 ): Promise<LoadResult> {
   const { data: draft } = await adminClient
     .from("drafts")
-    .select("id, coach_id, lead_id, status, body, subject, touchpoint_index")
+    .select("id, coach_id, lead_id, status, body, subject, touchpoint_index, scheduled_send_at")
     .eq("id", draftId)
     .eq("coach_id", coachId)
     .maybeSingle();
@@ -225,6 +227,7 @@ export async function loadSendContext(
       threadId,
       inReplyTo,
       touchpointIndex: draft.touchpoint_index ?? null,
+      scheduledSendAt: draft.scheduled_send_at ?? null,
     },
   };
 }

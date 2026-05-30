@@ -10,6 +10,7 @@ import { autonomousModeBTimer } from "@/inngest/functions/autonomous-mode-b-time
 import { notificationDispatcher } from "@/inngest/functions/notification-dispatcher";
 import { draftFollowupCta } from "@/inngest/functions/draft-followup-cta";
 import { sendViaGmail } from "@/inngest/functions/send-via-gmail";
+import { sequenceScheduledSend } from "@/inngest/functions/sequence-scheduled-send";
 
 // REQUIRED: Vercel default 10s timeout breaks Inngest long-polling (RESEARCH.md Pitfall 4)
 export const maxDuration = 300;
@@ -28,5 +29,6 @@ export const { GET, POST, PUT } = serve({
     notificationDispatcher,
     draftFollowupCta,
     sendViaGmail,
+    sequenceScheduledSend,
   ],
 });

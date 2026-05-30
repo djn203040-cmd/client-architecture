@@ -89,6 +89,41 @@ describe("sendViaGmail handler", () => {
     expect(result).toMatchObject({ sent: false, skipped: "no_lead_email" });
   });
 
+  it("defers a manually-approved sequence draft whose scheduled time is still in the future", async () => {
+    const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    mockLoad.mockResolvedValue({ ctx: { ...CTX, scheduledSendAt: future } });
+
+    const result = await runInngestStep(handler, makeEvent("dashboard"));
+
+    expect(mockDeliver).not.toHaveBeenCalled();
+    expect(mockRecord).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ sent: false, skipped: "awaiting_scheduled_time" });
+  });
+
+  it("sends a future-scheduled draft when the scheduled-send timer fires it", async () => {
+    const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    mockLoad.mockResolvedValue({ ctx: { ...CTX, scheduledSendAt: future } });
+    mockDeliver.mockResolvedValue({ gmailMessageId: "x", gmailThreadId: "y" });
+    mockRecord.mockResolvedValue(undefined);
+
+    const result = await runInngestStep(handler, makeEvent("sequence_scheduled"));
+
+    expect(mockDeliver).toHaveBeenCalled();
+    expect(result).toMatchObject({ sent: true });
+  });
+
+  it("sends a sequence draft whose scheduled time has already passed (late manual approval)", async () => {
+    const past = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    mockLoad.mockResolvedValue({ ctx: { ...CTX, scheduledSendAt: past } });
+    mockDeliver.mockResolvedValue({ gmailMessageId: "x", gmailThreadId: "y" });
+    mockRecord.mockResolvedValue(undefined);
+
+    const result = await runInngestStep(handler, makeEvent("dashboard"));
+
+    expect(mockDeliver).toHaveBeenCalled();
+    expect(result).toMatchObject({ sent: true });
+  });
+
   it("defaults source to 'unknown' when omitted", async () => {
     mockLoad.mockResolvedValue({ ctx: CTX });
     mockDeliver.mockResolvedValue({ gmailMessageId: "x", gmailThreadId: "y" });

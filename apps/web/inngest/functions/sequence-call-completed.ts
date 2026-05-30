@@ -4,8 +4,17 @@ import {
   LEAD_CALL_COMPLETED,
   LEAD_REPLIED,
   LEAD_UNSUBSCRIBED,
+  DRAFT_SCHEDULED_SEND,
 } from "@client/shared/constants/events";
-import { runPreSendSafetyCheck, buildDraftGeneratePayload } from "./sequence-step";
+import { runPreSendSafetyCheck } from "./sequence-step";
+import { generateTouchpointDraft } from "@/lib/sequences/generate-touchpoint";
+
+// Generate each touchpoint's draft this far ahead of its fixed send time.
+const GENERATE_LEAD_MS = 24 * 60 * 60 * 1000;
+
+// Grace period after the final send before auto-closing the lead, so the last
+// touchpoint's scheduled-send timer settles before we terminal-ize the lead.
+const SEND_SETTLE_MS = 15 * 60 * 1000;
 
 export const sequenceCallCompleted = inngest.createFunction(
   {
@@ -108,19 +117,23 @@ export const sequenceCallCompleted = inngest.createFunction(
     });
 
     const sequenceStart = new Date();
+    const totalTouchpoints = delays.length;
 
-    for (const dayOffset of delays) {
+    for (let i = 0; i < delays.length; i++) {
+      const dayOffset = delays[i]!;
       const sendAt = new Date(sequenceStart);
       sendAt.setDate(sendAt.getDate() + dayOffset);
+      const scheduledSendAt = sendAt.toISOString();
+      const generateAt = new Date(sendAt.getTime() - GENERATE_LEAD_MS);
 
-      await step.sleepUntil(`sleep-day-${dayOffset}`, sendAt);
+      await step.sleepUntil(`generate-wait-${i}`, generateAt);
 
-      const blocked = await step.run(`safety-check-${dayOffset}`, () =>
+      const blocked = await step.run(`safety-check-${i}`, () =>
         runPreSendSafetyCheck(leadId, sequenceId)
       );
 
       if (blocked) {
-        await step.run(`cancel-on-block-${dayOffset}`, async () => {
+        await step.run(`cancel-on-block-${i}`, async () => {
           await adminClient
             .from("sequences")
             .update({ status: "cancelled" })
@@ -129,15 +142,49 @@ export const sequenceCallCompleted = inngest.createFunction(
         return { cancelled: true, reason: blocked };
       }
 
-      await step.sendEvent(
-        `send-touchpoint-${dayOffset}`,
-        buildDraftGeneratePayload({
+      const generated = await step.run(`generate-touchpoint-${i}`, () =>
+        generateTouchpointDraft({
           coachId,
           leadId,
           sequenceId,
-          touchpointIndex: delays.indexOf(dayOffset) + 1,
+          touchpointIndex: i + 1,
+          totalTouchpoints,
           track: "call_completed",
+          scheduledSendAt,
         })
+      );
+
+      if (generated.ok) {
+        await step.sendEvent(`schedule-send-${i}`, {
+          name: DRAFT_SCHEDULED_SEND,
+          data: { draftId: generated.draftId, coachId, leadId, sequenceId, scheduledSendAt },
+        });
+
+        if (generated.status === "pending") {
+          await step.sendEvent(`notify-${i}`, {
+            name: "notification/draft_ready",
+            data: {
+              coachId,
+              eventType: "draft_ready",
+              payload: {
+                draftId: generated.draftId,
+                leadName: generated.leadName,
+                confidenceLevel: generated.confidenceLevel,
+              },
+            },
+          });
+        }
+      }
+    }
+
+    // Wait until the final touchpoint's scheduled send has settled before
+    // closing the lead (see sequence-no-show for the full rationale).
+    if (delays.length > 0) {
+      const lastSendAt = new Date(sequenceStart);
+      lastSendAt.setDate(lastSendAt.getDate() + delays[delays.length - 1]!);
+      await step.sleepUntil(
+        "settle-final-send",
+        new Date(lastSendAt.getTime() + SEND_SETTLE_MS)
       );
     }
 
