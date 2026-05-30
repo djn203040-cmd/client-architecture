@@ -14,6 +14,7 @@ import { assembleContext } from './context-assembler';
 import { countTokens } from './token-counter';
 import { isHardBlocked, scanNeverSayList, assertCoachIdScope, stripDashes } from './guardrails';
 import { traceGeneration } from './tracing';
+import { buildReviewPrompt } from './prompts/review';
 import type { VoiceAnalysisParams, DraftGenerationParams } from './types';
 import type { TVoiceProfile } from '@client/shared/validators';
 
@@ -106,6 +107,39 @@ export function parseSubjectAndBody(raw: string): { subject: string | null; body
   const subject = match && match[1] !== undefined ? match[1].trim() : '';
   const body = raw.replace(/<subject>[\s\S]*?<\/subject>/i, '').trim();
   return { subject: subject.length > 0 ? subject : null, body };
+}
+
+/**
+ * Language + voice review pass ("double-check"). A second model call proofreads
+ * the generated draft against the coach's real examples to guarantee native
+ * fluency in the examples' language (no stray foreign words, no calques, no
+ * grammar errors) while preserving voice, meaning, and the URL. Returns the
+ * corrected {subject, body}, or null when it can't run or yields nothing
+ * usable (the caller then keeps the original draft).
+ */
+async function reviewDraft(
+  voiceModel: DraftGenerationParams['voiceModel'],
+  coachName: string,
+  subject: string | null,
+  body: string,
+): Promise<{ subject: string | null; body: string } | null> {
+  if (!voiceModel) return null;
+  try {
+    const { system, user } = buildReviewPrompt(voiceModel, coachName, subject, body);
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 800,
+      system,
+      messages: [{ role: 'user', content: user }],
+    });
+    const block = message.content[0];
+    if (!block || block.type !== 'text') return null;
+    const out = parseSubjectAndBody(block.text.trim());
+    if (!out.body.trim()) return null; // guard against a degenerate empty rewrite
+    return { subject: out.subject || subject, body: out.body };
+  } catch {
+    return null;
+  }
 }
 
 export async function generateDraft(
