@@ -27,7 +27,7 @@ ${examplesBlock}
 Review the draft against every one of these, in order:
 1. LANGUAGE PURITY: The draft must be written entirely in the same language as the examples. If even a single word slipped in from another language (for example an English word like "guessing", "lmk", or "btw" inside an otherwise Danish message), replace it with the natural native equivalent. The ONLY exception is the URL, which stays exactly as written.
 2. GRAMMAR & SPELLING: Fix every grammatical error, wrong inflection, misspelling, and punctuation mistake so it reads as written by an educated native speaker.
-3. NATURALNESS: Remove calques and literal translations. A phrase that is grammatically valid but that a native speaker would never actually say must be rewritten the way a native says it.
+3. NATURALNESS: Remove calques, anglicisms, and literal word-for-word translations. A phrase that is grammatically valid but that a native speaker would never actually say must be rewritten the way a native genuinely says it. Be especially strict with verbs borrowed from English and conjugated as if native: e.g. in Danish "missede dig" / "missede hinanden" is wrong (it copies English "missed"); a Dane writes "savnede dig", "vi fik ikke snakket", "du nåede ikke at dukke op", or "du kom aldrig". Apply the same scrutiny to every other borrowed-and-bent word in whatever the target language is.
 4. VOICE: It must still match ${coachName}'s tone, warmth, formality, sentence length, emoji habits, and phrasing as shown in the examples. Do NOT make it more formal, more generic, or more corporate than the examples.
 5. MEANING: Preserve the message's intent, facts, structure, call-to-action, and any URL EXACTLY. Do not add new ideas and do not delete the ask.
 
