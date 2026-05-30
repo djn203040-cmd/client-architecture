@@ -8,26 +8,16 @@ export async function getSlackClientForCoach(coachId: string): Promise<WebClient
   const cached = cache.get(coachId);
   if (cached) return cached;
 
-  const { data: integration } = await adminClient
-    .from("integrations")
-    .select("vault_secret_id")
-    .eq("coach_id", coachId)
-    .eq("provider", "slack")
-    .eq("status", "connected")
-    .maybeSingle();
-  if (!integration?.vault_secret_id) {
-    throw new Error("slack_not_connected");
-  }
+  // Read the bot token via the SECURITY DEFINER RPC. A direct
+  // schema("vault").from("decrypted_secrets") query fails with PGRST106 — the
+  // vault schema is not exposed to PostgREST (only public, graphql_public,
+  // private are). Mirrors the gmail token-read pattern (private.get_gmail_tokens).
+  const { data: token, error } = await adminClient
+    .schema("private")
+    .rpc("get_slack_token", { p_coach_id: coachId });
+  if (error || !token) throw new Error("slack_token_missing");
 
-  const { data: secret } = await adminClient
-    .schema("vault")
-    .from("decrypted_secrets")
-    .select("decrypted_secret")
-    .eq("id", integration.vault_secret_id)
-    .single();
-  if (!secret?.decrypted_secret) throw new Error("slack_token_missing");
-
-  const client = new WebClient(secret.decrypted_secret as string);
+  const client = new WebClient(token as string);
   cache.set(coachId, client);
   return client;
 }
