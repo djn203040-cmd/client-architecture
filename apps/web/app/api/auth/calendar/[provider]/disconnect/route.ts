@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/supabase/admin";
 import { getCalendarProvider } from "@/lib/calendar/providers";
+import { unregisterCalendarWebhook } from "@/lib/calendar/webhooks";
 import { revokeAccessToken } from "@/lib/oauth/shared";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +45,12 @@ export async function POST(
       console.error("[calendar-disconnect] revoke best-effort failed:", err);
     }
   }
+
+  // 1.5 Tear down any auto-registered webhook at the provider. Must run BEFORE
+  // the vault tokens are deleted (needs the API key). Otherwise the env-level
+  // signing secret means the webhook keeps passing signature verification and
+  // inserting calendar_events even after "disconnect".
+  await unregisterCalendarWebhook(config, user.id);
 
   // 2. Delete vault entries (tokens + webhook secret)
   try {

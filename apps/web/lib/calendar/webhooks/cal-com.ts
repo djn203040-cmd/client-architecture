@@ -41,7 +41,13 @@ export async function registerCalComWebhook(args: RegisterWebhookArgs): Promise<
     throw new Error(`cal_com_webhook_create_failed:${res.status}:${errText.slice(0, 200)}`);
   }
   const json = (await res.json()) as { data?: { id?: string } };
-  const subscriptionId = json.data?.id ?? null;
+  // Cal.com's create response shape has shifted across API versions; don't rely
+  // on it. Fall back to listing webhooks and matching our subscriberUrl so the
+  // subscription id is always captured (needed for clean disconnect).
+  let subscriptionId = json.data?.id ?? null;
+  if (!subscriptionId) {
+    subscriptionId = await findCalComWebhookId(apiKey, webhookUrl);
+  }
 
   await adminClient
     .from("integrations")
@@ -52,6 +58,57 @@ export async function registerCalComWebhook(args: RegisterWebhookArgs): Promise<
     .eq("provider", provider.id);
 
   return { subscriptionId, webhookUrl };
+}
+
+// Best-effort delete of the coach's Cal.com webhook on disconnect. Without this,
+// the env-level signing secret means a "disconnected" coach's webhook would keep
+// passing signature verification and inserting calendar_events. Called BEFORE the
+// vault tokens are wiped (needs the API key). Never throws.
+export async function unregisterCalComWebhook(coachId: string): Promise<void> {
+  try {
+    const apiKey = await getCalComApiKey(coachId);
+    if (!apiKey) return;
+
+    // Prefer the stored subscription id; fall back to matching by subscriberUrl.
+    const { data: integ } = await adminClient
+      .from("integrations")
+      .select("metadata")
+      .eq("coach_id", coachId)
+      .eq("provider", "cal_com")
+      .maybeSingle();
+    let subscriptionId =
+      (integ?.metadata as { webhook_subscription_id?: string } | null)?.webhook_subscription_id ?? null;
+    if (!subscriptionId) {
+      const webhookUrl = buildWebhookReceiverUrl("cal_com", coachId);
+      subscriptionId = await findCalComWebhookId(apiKey, webhookUrl);
+    }
+    if (!subscriptionId) return;
+
+    await fetch(`https://api.cal.com/v2/webhooks/${subscriptionId}`, {
+      method: "DELETE",
+      headers: { accept: "application/json", authorization: `Bearer ${apiKey}` },
+    });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("[cal-com] unregister webhook best-effort failed:", err);
+  }
+}
+
+// Lists the coach's Cal.com webhooks and returns the id whose subscriberUrl
+// matches ours. Returns null on any error or no match.
+async function findCalComWebhookId(apiKey: string, webhookUrl: string): Promise<string | null> {
+  try {
+    const res = await fetch(`https://api.cal.com/v2/webhooks`, {
+      method: "GET",
+      headers: { accept: "application/json", authorization: `Bearer ${apiKey}` },
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { data?: Array<{ id?: string; subscriberUrl?: string }> };
+    const match = (json.data ?? []).find((w) => w.subscriberUrl === webhookUrl);
+    return match?.id ?? null;
+  } catch {
+    return null;
+  }
 }
 
 async function getCalComApiKey(coachId: string): Promise<string | null> {

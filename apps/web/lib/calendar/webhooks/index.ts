@@ -33,3 +33,20 @@ export async function registerCalendarWebhook(
       return null;
   }
 }
+
+// Best-effort teardown of an auto-registered webhook on disconnect. Must be
+// called while the provider's tokens are still in Vault. Never throws.
+export async function unregisterCalendarWebhook(
+  provider: CalendarProviderConfig,
+  coachId: string,
+): Promise<void> {
+  if (provider.webhook.mode !== "auto") return;
+
+  switch (provider.id) {
+    case "cal_com":
+      return (await import("./cal-com")).unregisterCalComWebhook(coachId);
+    // calendly/acuity teardown not yet implemented — best-effort no-op for now.
+    default:
+      return;
+  }
+}
