@@ -153,6 +153,24 @@ export async function generateDraft(
     }
   }
 
+  // AI-015: Language + voice review pass ("double-check"). A second model call
+  // proofreads the draft against the coach's real examples to guarantee native
+  // fluency in the examples' language (no stray foreign words, no calques, no
+  // grammar errors) while preserving the voice, meaning, and URL. Best-effort:
+  // if it fails or returns nothing usable, keep the original draft.
+  const reviewed = await reviewDraft(params.voiceModel, coachName, parsed.subject, parsed.body);
+  if (reviewed) {
+    parsed = reviewed;
+    // Re-scan after the rewrite so a reintroduced banned phrase is still flagged.
+    if (scanNeverSayList(parsed.body, params.voiceModel.never_say_list).length > 0) {
+      if (!qualityFlags.includes('never_say_violation')) {
+        qualityFlags.push('never_say_violation');
+      }
+    }
+  } else {
+    qualityFlags.push('review_skipped');
+  }
+
   // Hard guarantee: no em-dash / en-dash ever reaches a coach, regardless of
   // what the model produced. Applies to both subject and body.
   const body = stripDashes(parsed.body);
