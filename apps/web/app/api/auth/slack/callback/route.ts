@@ -33,8 +33,10 @@ export async function GET(req: Request) {
     return NextResponse.redirect(new URL("/settings?error=oauth_slack_exchange", APP_URL));
   }
 
-  // 2) Upsert integrations row in intermediate disconnected state
-  await adminClient.from("integrations").upsert(
+  // 2) Upsert integrations row in intermediate disconnected state.
+  // Check the error: a swallowed failure here (e.g. schema drift) previously let
+  // the flow continue to the success redirect while writing no row at all.
+  const { error: upsertErr } = await adminClient.from("integrations").upsert(
     {
       coach_id: coachId,
       provider: "slack",
@@ -44,6 +46,10 @@ export async function GET(req: Request) {
     },
     { onConflict: "coach_id,provider" },
   );
+  if (upsertErr) {
+    console.warn("slack integration upsert failed", { coachId, reason: upsertErr.message });
+    return NextResponse.redirect(new URL("/settings?error=oauth_slack_persist", APP_URL));
+  }
 
   // 3) Vault write via public SECURITY DEFINER RPC (04-01 public wrapper)
   let vaultId: string | null = null;
