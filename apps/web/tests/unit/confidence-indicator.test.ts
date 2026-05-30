@@ -123,7 +123,7 @@ describe('AI-003: never-say scan with auto-regen', () => {
 
     const result = await generateDraft(makeParams({ voiceModel }), 'Coach');
     expect(result).not.toBeNull();
-    expect(mockCreate).toHaveBeenCalledTimes(2);
+    expect(mockCreate).toHaveBeenCalledTimes(3);
     expect(result!.qualityFlags).not.toContain('never_say_violation');
   });
 
@@ -138,6 +138,6 @@ describe('AI-003: never-say scan with auto-regen', () => {
     const result = await generateDraft(makeParams({ voiceModel }), 'Coach');
     expect(result).not.toBeNull();
     expect(result!.qualityFlags).toContain('never_say_violation');
-    expect(mockCreate).toHaveBeenCalledTimes(2);
+    expect(mockCreate).toHaveBeenCalledTimes(3);
   });
 });
