@@ -12,7 +12,7 @@ export default async function DraftsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [draftsResult, unmatchedResult, leadsResult] = await Promise.all([
+  const [draftsResult, unmatchedResult, leadsResult, coachResult] = await Promise.all([
     supabase
       .from("drafts")
       .select("*, leads(name)")
@@ -34,6 +34,7 @@ export default async function DraftsPage() {
       .select("id, name, email")
       .eq("coach_id", user!.id)
       .order("name", { ascending: true }),
+    supabase.from("coaches").select("timezone").eq("id", user!.id).maybeSingle(),
   ]);
 
   return (
@@ -44,6 +45,7 @@ export default async function DraftsPage() {
         initialDrafts={(draftsResult.data ?? []) as DraftRow[]}
         initialUnmatched={unmatchedResult.data ?? []}
         leads={leadsResult.data ?? []}
+        timeZone={coachResult.data?.timezone}
       />
     </section>
   );

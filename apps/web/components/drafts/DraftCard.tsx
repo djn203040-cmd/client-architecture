@@ -8,6 +8,7 @@ import { InlineDraftEditor } from "./InlineDraftEditor";
 import { HeldDraftActions } from "./HeldDraftActions";
 import { toast } from "sonner";
 import type { Database } from "@client/database";
+import { formatDateTimeInTZ } from "@/lib/format/datetime";
 
 type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
   leads: { name: string } | null;
@@ -25,6 +26,8 @@ interface DraftCardProps {
    * it and disable the `s` shortcut. #41.
    */
   showSkip?: boolean;
+  /** Coach's IANA timezone — renders the scheduled send time in their clock. */
+  timeZone?: string | null;
 }
 
 export function DraftCard({
@@ -34,6 +37,7 @@ export function DraftCard({
   reviewToken,
   onAdvance,
   showSkip = true,
+  timeZone,
 }: DraftCardProps) {
   const [editing, setEditing] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
@@ -132,13 +136,11 @@ export function DraftCard({
           <h2 className="text-xl font-semibold leading-[1.25]">
             {draft.leads?.name ?? "Unknown lead"}
           </h2>
-          {/* Locale-formatted date differs between server (en-US default) and
-              client (user's browser locale). suppressHydrationWarning silences
-              the expected mismatch — the displayed value matches the user's
-              locale once hydrated, which is the desired behavior. */}
-          <p className="text-xs font-mono text-muted-foreground mt-1" suppressHydrationWarning>
+          {/* Send time renders in the coach's timezone (fixed, not the
+              browser's) so server and client agree — no hydration mismatch. */}
+          <p className="text-xs font-mono text-muted-foreground mt-1">
             Message {draft.touchpoint_index} of {draft.total_touchpoints ?? "?"} &middot;{" "}
-            {sched.toLocaleString()}
+            {formatDateTimeInTZ(sched, timeZone)}
           </p>
           {draft.confidence_level === "low" && (
             <span className="inline-flex items-center gap-1 mt-2 text-xs px-2 py-1 rounded-md bg-[oklch(72%_0.12_70)] text-[oklch(40%_0.10_65)] dark:bg-[oklch(25%_0.08_65)] dark:text-[oklch(85%_0.08_65)]">

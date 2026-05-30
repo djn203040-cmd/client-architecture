@@ -162,6 +162,31 @@ describe("buildSequenceView (real draft data)", () => {
     expect(view.steps[1]!.detail).toBe("On hold");
   });
 
+  it("renders send times in the coach's timezone, not UTC", () => {
+    const base = { track: "no_show", status: "active", created_at: START } as const;
+    const cfg = { no_show_delays: [1], call_completed_delays: [1] };
+    // 23:30 UTC sits in different calendar days / clock times per zone.
+    const drafts: TSequenceDraft[] = [
+      { touchpoint_index: 1, status: "approved", sent_at: null, scheduled_send_at: "2026-05-31T23:30:00.000Z" },
+    ];
+    const now = new Date("2026-05-31T12:00:00.000Z");
+
+    const cph = buildSequenceView(base, cfg, { now, drafts, timeZone: "Europe/Copenhagen" });
+    // 23:30 UTC = 01:30 the next day in CEST (+2) → tomorrow for the coach.
+    expect(cph.steps[0]!.detail).toBe("Approved · sends tomorrow at 01:30");
+
+    const tokyo = buildSequenceView(base, cfg, { now, drafts, timeZone: "Asia/Tokyo" });
+    // 23:30 UTC = 08:30 the next day in JST (+9).
+    expect(tokyo.steps[0]!.detail).toBe("Approved · sends tomorrow at 08:30");
+
+    const utc = buildSequenceView(base, cfg, { now, drafts, timeZone: "UTC" });
+    expect(utc.steps[0]!.detail).toBe("Approved · sends today at 23:30");
+
+    // No timeZone falls back to the launch default (Europe/Copenhagen).
+    const fallback = buildSequenceView(base, cfg, { now, drafts });
+    expect(fallback.steps[0]!.detail).toBe(cph.steps[0]!.detail);
+  });
+
   it("with an empty drafts array, nothing is done yet (first step is next)", () => {
     const view = buildSequenceView(
       { track: "no_show", status: "active", created_at: START },

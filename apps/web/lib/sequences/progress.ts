@@ -1,4 +1,8 @@
 import type { TSequence, TSequenceStatus } from "@client/shared/types";
+import {
+  formatDateInTZ,
+  formatSendWhenInTZ,
+} from "@/lib/format/datetime";
 
 // Cadence defaults mirror the Inngest sequence functions
 // (sequence-no-show.ts / sequence-call-completed.ts). Each number is a
@@ -67,32 +71,13 @@ export type TBuildSequenceOptions = {
   now?: Date;
   /** Sequence-linked drafts; when present, a step is "done" only once actually sent. */
   drafts?: TSequenceDraft[];
+  /**
+   * Coach's IANA timezone (e.g. "Europe/Copenhagen"). All send times in the
+   * view render in this zone so the coach reads their own wall clock, not UTC.
+   * Falls back to the launch default when absent.
+   */
+  timeZone?: string | null;
 };
-
-function formatDate(d: Date): string {
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function formatTime(d: Date): string {
-  return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
-}
-
-/**
- * Friendly send time relative to `now`: "today at 12:15", "tomorrow at 12:15",
- * or "May 31 at 12:15". Used so the coach sees exactly when an approved draft
- * will actually go out (the send is decoupled from approval).
- */
-function formatSendWhen(d: Date, now: Date): string {
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const dayDiff = Math.round(
-    (startOfDay.getTime() - startOfToday.getTime()) / (24 * 60 * 60 * 1000)
-  );
-  const time = formatTime(d);
-  if (dayDiff === 0) return `today at ${time}`;
-  if (dayDiff === 1) return `tomorrow at ${time}`;
-  return `${formatDate(d)} at ${time}`;
-}
 
 /**
  * Builds a follow-along view of a lead's sequence: each touchpoint with its
@@ -110,6 +95,7 @@ export function buildSequenceView(
 ): TSequenceView {
   const now = options.now ?? new Date();
   const drafts = options.drafts;
+  const tz = options.timeZone;
   const hasDraftData = Array.isArray(drafts);
 
   const track = sequence.track;
@@ -172,8 +158,8 @@ export function buildSequenceView(
 
   const steps: TSequenceStep[] = raw.map((s, i) => {
     const scheduledDate = new Date(s.scheduledAt);
-    const dateLabel = formatDate(scheduledDate);
-    const sendWhen = formatSendWhen(scheduledDate, now);
+    const dateLabel = formatDateInTZ(scheduledDate, tz);
+    const sendWhen = formatSendWhenInTZ(scheduledDate, now, tz);
     const draftStatus = statusByTouchpoint.get(s.index) ?? null;
     const isSent = sentByTouchpoint.has(s.index);
 

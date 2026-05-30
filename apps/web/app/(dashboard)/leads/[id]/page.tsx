@@ -64,10 +64,11 @@ export default async function LeadProfilePage({
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      // Coach cadence config — defines how many touchpoints and their timing.
+      // Coach cadence config + timezone — cadence defines how many touchpoints
+      // and their timing; timezone renders send times in the coach's local clock.
       supabase
         .from("coaches")
-        .select("sequence_config")
+        .select("sequence_config, timezone")
         .eq("id", lead.coach_id)
         .maybeSingle(),
       // Sequence-linked drafts — let the stepper reflect real send progress.
@@ -97,7 +98,7 @@ export default async function LeadProfilePage({
       ? buildSequenceView(
           sequenceRow,
           (coachResult.data?.sequence_config as TSequenceConfig) ?? null,
-          { drafts: sequenceDrafts }
+          { drafts: sequenceDrafts, timeZone: coachResult.data?.timezone }
         )
       : null;
 
@@ -124,6 +125,7 @@ export default async function LeadProfilePage({
             leadName={lead.name}
             initialPending={pendingDrafts}
             initialHeld={heldDrafts}
+            timeZone={coachResult.data?.timezone}
           />
         )}
         <Tabs defaultValue="thread">

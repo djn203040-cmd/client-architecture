@@ -16,7 +16,7 @@ type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
 };
 
 type State =
-  | { kind: "actionable"; draft: DraftRow; coachName: string; token: string }
+  | { kind: "actionable"; draft: DraftRow; coachName: string; coachTimezone: string | null; token: string }
   | { kind: "already_actioned" }
   | { kind: "expired" }
   | { kind: "invalid" };
@@ -54,7 +54,7 @@ async function resolveState(token: string): Promise<State> {
 
   const { data: coach } = await adminClient
     .from("coaches")
-    .select("name")
+    .select("name, timezone")
     .eq("id", payload.coachId)
     .single();
 
@@ -67,6 +67,7 @@ async function resolveState(token: string): Promise<State> {
     kind: "actionable",
     draft: draftWithLead,
     coachName: coach?.name ?? "your coach",
+    coachTimezone: coach?.timezone ?? null,
     token,
   };
 }
@@ -207,6 +208,7 @@ export default async function ReviewPage({
         draft={state.draft}
         surface="review"
         reviewToken={state.token}
+        timeZone={state.coachTimezone}
       />
       <p className="text-xs text-muted-foreground text-center mt-8">
         This link expires after 7 days or once you take action.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { useAutosave } from "@/lib/settings/autosave";
 import { Input } from "@/components/ui/input";
@@ -50,6 +50,19 @@ export function ProfileForm({ coach }: Props) {
   useAutosave(displayName, (v) => patchProfile({ display_name: v }));
   useAutosave(roleTitle, (v) => patchProfile({ role_title: v || null }));
   useAutosave(timezone, (v) => patchProfile({ timezone: v }));
+
+  // First-load capture: send times render in the coach's timezone, but the
+  // picker's pre-filled browser zone is never persisted by the autosave hook
+  // (it skips the initial render). If the coach has no timezone yet, save the
+  // browser-resolved one once — their real zone instead of the launch-default
+  // fallback. Onboarding will capture this earlier once built.
+  useEffect(() => {
+    if (!coach.timezone) {
+      patchProfile({
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      }).catch(() => {});
+    }
+  }, [coach.timezone]);
   useAutosave(signature, (v) => patchProfile({ email_signature: v || null }));
   useAutosave(bookingUrl, (v) =>
     v && !v.startsWith("http")

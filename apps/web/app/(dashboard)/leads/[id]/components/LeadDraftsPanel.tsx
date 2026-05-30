@@ -14,6 +14,8 @@ interface Props {
   leadName: string;
   initialPending: DraftRow[];
   initialHeld: DraftRow[];
+  /** Coach's IANA timezone — renders draft send times in their local clock. */
+  timeZone?: string | null;
 }
 
 /**
@@ -32,6 +34,7 @@ export function LeadDraftsPanel({
   leadName,
   initialPending,
   initialHeld,
+  timeZone,
 }: Props) {
   const { drafts: pendingRaw } = useDraftRealtime(coachId, {
     status: "pending",
@@ -66,10 +69,11 @@ export function LeadDraftsPanel({
               draft={draft}
               variant="pending"
               showSkip={false}
+              timeZone={timeZone}
             />
           ))}
           {held.map((draft) => (
-            <DraftCard key={draft.id} draft={draft} variant="held" />
+            <DraftCard key={draft.id} draft={draft} variant="held" timeZone={timeZone} />
           ))}
         </AnimatePresence>
       </div>

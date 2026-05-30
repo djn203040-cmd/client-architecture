@@ -21,11 +21,14 @@ export function DraftQueueScaffold({
   initialDrafts,
   initialUnmatched = [],
   leads = [],
+  timeZone,
 }: {
   coachId: string;
   initialDrafts: DraftRow[];
   initialUnmatched?: TranscriptRow[];
   leads?: LeadRow[];
+  /** Coach's IANA timezone — renders draft send times in their local clock. */
+  timeZone?: string | null;
 }) {
   const [activeTab, setActiveTab] = useState<Tab>("drafts");
   const [justEmptied, setJustEmptied] = useState(false);
@@ -120,6 +123,7 @@ export function DraftQueueScaffold({
                 key={drafts[0]!.id}
                 draft={drafts[0]!}
                 onAdvance={drafts.length > 1 ? rotateCurrent : advance}
+                timeZone={timeZone}
               />
             </AnimatePresence>
           </>
@@ -133,7 +137,7 @@ export function DraftQueueScaffold({
         tabIndex={0}
         hidden={activeTab !== "held"}
       >
-        {activeTab === "held" && <HeldTab coachId={coachId} />}
+        {activeTab === "held" && <HeldTab coachId={coachId} timeZone={timeZone} />}
       </div>
 
       <div

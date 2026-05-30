@@ -4,7 +4,14 @@ import { AnimatePresence } from "framer-motion";
 import { useDraftRealtime } from "./draft-realtime";
 import { DraftCard } from "./DraftCard";
 
-export function HeldTab({ coachId }: { coachId: string }) {
+export function HeldTab({
+  coachId,
+  timeZone,
+}: {
+  coachId: string;
+  /** Coach's IANA timezone — renders draft send times in their local clock. */
+  timeZone?: string | null;
+}) {
   const { drafts, loading } = useDraftRealtime(coachId, { status: "held" });
 
   const sorted = useMemo(
@@ -34,7 +41,7 @@ export function HeldTab({ coachId }: { coachId: string }) {
     <div className="space-y-3">
       <AnimatePresence mode="popLayout">
         {sorted.map((d) => (
-          <DraftCard key={d.id} draft={d} variant="held" />
+          <DraftCard key={d.id} draft={d} variant="held" timeZone={timeZone} />
         ))}
       </AnimatePresence>
     </div>
