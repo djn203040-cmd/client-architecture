@@ -26,12 +26,15 @@ export async function POST(request: Request) {
   const event = normalizeCalComPayload(JSON.parse(rawBody), coachId);
   if (!event) return new Response("OK", { status: 200 });
 
-  // Deduplicate — UNIQUE(provider, external_event_id) (SEQ-014, CAL-005)
+  // Deduplicate — UNIQUE(provider, external_event_id, event_type) (SEQ-014, CAL-005).
+  // event_type is part of the key: one booking uid produces both 'booking_created'
+  // and (later) 'no_show', and both must be recorded.
   const { data: existing } = await adminClient
     .from("calendar_events")
     .select("id")
     .eq("provider", event.provider)
     .eq("external_event_id", event.externalEventId)
+    .eq("event_type", event.eventType)
     .maybeSingle();
   if (existing) return new Response("OK", { status: 200 });
 
@@ -62,7 +65,7 @@ export async function POST(request: Request) {
 
   if (inngestEventName && leadId) {
     await inngest.send({
-      id: `${event.provider}-${event.externalEventId}`,
+      id: `${event.provider}-${event.externalEventId}-${event.eventType}`,
       name: inngestEventName,
       data: {
         coachId,
