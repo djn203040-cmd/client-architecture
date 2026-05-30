@@ -75,6 +75,23 @@ async function main(): Promise<void> {
     console.log(`  ${e.processed_at}  ${e.event_type.padEnd(16)} lead=${e.lead_id ?? "—"}  ext=${e.external_event_id}`);
   }
   if (!events?.length) console.log("  (none yet)");
+
+  // Downstream effect: for any matched lead, show its status + recent sequences.
+  const leadIds = [...new Set((events ?? []).map((e) => e.lead_id).filter(Boolean))] as string[];
+  for (const lid of leadIds) {
+    const { data: lead } = await admin.from("leads").select("email, status").eq("id", lid).maybeSingle();
+    const { data: seqs } = await admin
+      .from("sequences")
+      .select("track, status, module, created_at")
+      .eq("lead_id", lid)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    console.log(`\n== lead ${lead?.email ?? lid} -> status=${lead?.status} ==`);
+    for (const s of seqs ?? []) {
+      console.log(`  seq  track=${(s.track ?? "").padEnd(14)} status=${(s.status ?? "").padEnd(10)} created=${s.created_at}`);
+    }
+    if (!seqs?.length) console.log("  (no sequences)");
+  }
 }
 
 main().catch((e) => {
