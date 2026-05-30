@@ -1,6 +1,5 @@
 "use client";
 import { useState, useCallback } from "react";
-import Link from "next/link";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -44,13 +43,14 @@ const CHANNEL_COLS: {
   key: Channel;
   label: string;
   Icon: PhosphorIcon;
-  connectHash?: string;
+  connectHref?: string;
 }[] = [
   { key: "dashboard", label: "Dashboard", Icon: SquaresFour },
   { key: "email",     label: "Email",     Icon: Envelope },
-  { key: "slack",     label: "Slack",     Icon: ChatCircle,    connectHash: "slack" },
-  { key: "whatsapp",  label: "WhatsApp",  Icon: WhatsappLogo,  connectHash: "twilio" },
-  { key: "sms",       label: "SMS",       Icon: DeviceMobile,  connectHash: "twilio" },
+  { key: "slack",     label: "Slack",     Icon: ChatCircle,    connectHref: "/api/auth/slack/install" },
+  // WhatsApp/SMS connect via Twilio, which has no per-coach OAuth flow yet — no Connect link until that ships.
+  { key: "whatsapp",  label: "WhatsApp",  Icon: WhatsappLogo },
+  { key: "sms",       label: "SMS",       Icon: DeviceMobile },
 ];
 
 export function getLockedOn(eventType: EventType, channel: Channel): string | null {
@@ -124,7 +124,7 @@ export function NotificationMatrix({
             <thead>
               <tr>
                 <th className="text-left pb-3 pr-4 w-36"></th>
-                {CHANNEL_COLS.map(({ key, label, Icon, connectHash }) => {
+                {CHANNEL_COLS.map(({ key, label, Icon, connectHref }) => {
                   const connected = isConnected(key, integrations);
                   return (
                     <th
@@ -144,13 +144,13 @@ export function NotificationMatrix({
                             <TooltipContent>Dashboard notifications can&apos;t be turned off.</TooltipContent>
                           </Tooltip>
                         )}
-                        {!connected && connectHash && (
-                          <Link
-                            href={`/settings/integrations#${connectHash}` as never}
+                        {!connected && connectHref && (
+                          <a
+                            href={connectHref}
                             className="text-[10px] text-accent hover:underline"
                           >
                             Connect
-                          </Link>
+                          </a>
                         )}
                       </div>
                     </th>
