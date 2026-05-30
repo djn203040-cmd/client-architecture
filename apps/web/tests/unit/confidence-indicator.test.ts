@@ -103,7 +103,8 @@ describe('D-16: hard-block gate', () => {
   it('generates a draft for a no_show lead', async () => {
     const result = await generateDraft(makeParams({ leadStatus: 'no_show' }), 'Coach');
     expect(result).not.toBeNull();
-    expect(mockCreate).toHaveBeenCalledOnce();
+    // One generation call + one language/voice review pass (AI-015).
+    expect(mockCreate).toHaveBeenCalledTimes(2);
   });
 });
 
