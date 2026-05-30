@@ -93,6 +93,13 @@ export async function generateTouchpointDraft(
   const conversationHistory =
     sentDrafts && sentDrafts.length > 0 ? sentDrafts.map((d) => d.body).join("\n\n") : null;
 
+  // Touchpoint 1 uses the track's framing so it opens by acknowledging WHY the
+  // sequence started (e.g. the missed call for no_show). Later touchpoints use
+  // the generic in-sequence nudge framing so they don't keep re-announcing the
+  // no-show on every message.
+  const leadStatusForPrompt: TLeadStatus =
+    touchpointIndex === 1 ? (track as TLeadStatus) : "in_sequence";
+
   const { generateDraft } = await import("@client/ai-engine");
   let generated: Awaited<ReturnType<typeof generateDraft>>;
   try {
@@ -100,9 +107,7 @@ export async function generateTouchpointDraft(
       {
         coachId,
         leadId,
-        // The track maps directly to a lead_status the AI engine frames against
-        // ('no_show' / 'call_completed'); the lead's stored status is 'in_sequence'.
-        leadStatus: track as TLeadStatus,
+        leadStatus: leadStatusForPrompt,
         leadName: lead.name,
         aiSummary: lead.ai_summary,
         transcript,
