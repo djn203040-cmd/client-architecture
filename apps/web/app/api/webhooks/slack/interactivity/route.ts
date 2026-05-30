@@ -131,7 +131,7 @@ export async function POST(req: Request) {
 
       const blocked = await runPreSendSafetyCheck(
         draft.lead_id as string,
-        draft.sequence_id as string,
+        draft.sequence_id as string | null,
       );
       if (blocked) {
         await respondViaResponseUrl(payload.response_url, {
@@ -253,7 +253,7 @@ export async function POST(req: Request) {
 
     const blocked = await runPreSendSafetyCheck(
       prev.lead_id as string,
-      prev.sequence_id as string,
+      prev.sequence_id as string | null,
     );
     if (blocked) {
       return NextResponse.json({
