@@ -20,12 +20,26 @@ export type TSequenceConfig = {
 
 export type TSequenceStepState = "done" | "next" | "upcoming";
 
+// Drives the per-step label + accent colour in the stepper.
+export type TSequenceStepTone =
+  | "sent" // delivered
+  | "done" // past (time-based, no draft data)
+  | "approved" // coach approved; waiting for the scheduled send
+  | "awaiting" // draft ready, waiting for the coach to approve
+  | "preparing" // draft is generating
+  | "hold" // coach put it on hold
+  | "error" // generation failed
+  | "scheduled"; // not generated yet / future
+
 export type TSequenceStep = {
   index: number; // 1-based touchpoint number
   dayOffset: number; // days from sequence start
   scheduledAt: string; // ISO timestamp
   dateLabel: string; // e.g. "May 31"
   state: TSequenceStepState;
+  draftStatus: string | null; // the matched draft's status, if any
+  tone: TSequenceStepTone;
+  detail: string; // human label, e.g. "Approved · sends May 31"
 };
 
 export type TSequenceView = {
@@ -89,13 +103,29 @@ export function buildSequenceView(
   const start = new Date(sequence.created_at);
   const finished = sequence.status === "completed";
 
-  // Index real drafts by touchpoint for accurate "sent" + scheduled-time signals.
+  // Index real drafts by touchpoint. When a touchpoint has more than one draft
+  // (e.g. regenerated), keep the most-advanced by status rank.
+  const STATUS_RANK: Record<string, number> = {
+    sent: 6,
+    approved: 5,
+    edited: 5,
+    pending: 4,
+    generating: 3,
+    held: 2,
+    error: 1,
+    cancelled: 0,
+  };
   const sentByTouchpoint = new Set<number>();
   const scheduledByTouchpoint = new Map<number, string>();
+  const statusByTouchpoint = new Map<number, string>();
   for (const d of drafts ?? []) {
     if (d.touchpoint_index == null) continue;
     if (d.status === "sent" || d.sent_at) sentByTouchpoint.add(d.touchpoint_index);
     if (d.scheduled_send_at) scheduledByTouchpoint.set(d.touchpoint_index, d.scheduled_send_at);
+    const prev = statusByTouchpoint.get(d.touchpoint_index);
+    if (!prev || (STATUS_RANK[d.status] ?? -1) > (STATUS_RANK[prev] ?? -1)) {
+      statusByTouchpoint.set(d.touchpoint_index, d.status);
+    }
   }
 
   // First pass: scheduled time + done/not-done per step.
@@ -120,23 +150,69 @@ export function buildSequenceView(
   let nextSendLabel: string | null = null;
 
   const steps: TSequenceStep[] = raw.map((s, i) => {
+    const dateLabel = formatDate(new Date(s.scheduledAt));
+    const draftStatus = statusByTouchpoint.get(s.index) ?? null;
+    const isSent = sentByTouchpoint.has(s.index);
+
     let state: TSequenceStepState;
+    let tone: TSequenceStepTone;
+    let detail: string;
+
     if (s.done) {
       state = "done";
       completedSteps += 1;
+      if (isSent) {
+        tone = "sent";
+        detail = `Sent ${dateLabel}`;
+      } else {
+        tone = "done";
+        detail = dateLabel;
+      }
     } else if (i === firstPendingIdx) {
       state = "next";
       nextSendAt = s.scheduledAt;
-      nextSendLabel = formatDate(new Date(s.scheduledAt));
+      nextSendLabel = dateLabel;
+      switch (draftStatus) {
+        case "approved":
+        case "edited":
+          tone = "approved";
+          detail = `Approved · sends ${dateLabel}`;
+          break;
+        case "pending":
+          tone = "awaiting";
+          detail = "Awaiting your approval";
+          break;
+        case "generating":
+          tone = "preparing";
+          detail = "Preparing draft…";
+          break;
+        case "held":
+          tone = "hold";
+          detail = "On hold";
+          break;
+        case "error":
+          tone = "error";
+          detail = "Couldn't generate — needs a retry";
+          break;
+        default:
+          tone = "scheduled";
+          detail = `Sends ${dateLabel}`;
+      }
     } else {
       state = "upcoming";
+      tone = "scheduled";
+      detail = `Sends ${dateLabel}`;
     }
+
     return {
       index: s.index,
       dayOffset: s.dayOffset,
       scheduledAt: s.scheduledAt,
-      dateLabel: formatDate(new Date(s.scheduledAt)),
+      dateLabel,
       state,
+      draftStatus,
+      tone,
+      detail,
     };
   });
 

@@ -6,7 +6,19 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TLeadStatus } from "@client/shared/types";
 import { isTerminalState } from "@client/shared";
-import type { TSequenceView } from "@/lib/sequences/progress";
+import type { TSequenceView, TSequenceStepTone } from "@/lib/sequences/progress";
+
+// Accent colour for the current step's status line, by tone.
+const TONE_CLASS: Record<TSequenceStepTone, string> = {
+  approved: "text-emerald-600 dark:text-emerald-400 font-medium",
+  awaiting: "text-amber-600 dark:text-amber-400 font-medium",
+  preparing: "text-muted-foreground",
+  hold: "text-orange-600 dark:text-orange-400 font-medium",
+  error: "text-red-600 dark:text-red-400 font-medium",
+  sent: "text-muted-foreground",
+  done: "text-muted-foreground",
+  scheduled: "text-muted-foreground",
+};
 
 export function SequenceStatusPanel({
   leadId,
@@ -116,9 +128,7 @@ export function SequenceStatusPanel({
                     >
                       Step {step.index}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {done ? step.dateLabel : next ? `Next up · ${step.dateLabel}` : step.dateLabel}
-                    </p>
+                    <p className={["text-xs", TONE_CLASS[step.tone]].join(" ")}>{step.detail}</p>
                   </div>
                 </li>
               );

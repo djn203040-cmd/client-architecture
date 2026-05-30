@@ -103,6 +103,49 @@ describe("buildSequenceView (real draft data)", () => {
     expect(view.steps[0]!.state).toBe("next");
   });
 
+  it("labels the current step by its draft status (awaiting vs approved)", () => {
+    const base = { track: "no_show", status: "active", created_at: START } as const;
+    const cfg = { no_show_delays: [1, 3], call_completed_delays: [1] };
+
+    const awaiting = buildSequenceView(base, cfg, {
+      now: new Date(START),
+      drafts: [
+        { touchpoint_index: 1, status: "pending", sent_at: null, scheduled_send_at: "2026-05-31T12:00:00.000Z" },
+      ],
+    });
+    expect(awaiting.steps[0]!.state).toBe("next");
+    expect(awaiting.steps[0]!.tone).toBe("awaiting");
+    expect(awaiting.steps[0]!.detail).toBe("Awaiting your approval");
+
+    const approved = buildSequenceView(base, cfg, {
+      now: new Date(START),
+      drafts: [
+        { touchpoint_index: 1, status: "approved", sent_at: null, scheduled_send_at: "2026-05-31T12:00:00.000Z" },
+      ],
+    });
+    expect(approved.steps[0]!.tone).toBe("approved");
+    expect(approved.steps[0]!.detail).toBe("Approved · sends May 31");
+  });
+
+  it("marks a sent step's detail as Sent and held/error tones correctly", () => {
+    const view = buildSequenceView(
+      { track: "no_show", status: "active", created_at: START },
+      { no_show_delays: [1, 3], call_completed_delays: [1] },
+      {
+        now: new Date("2026-06-02T12:00:00.000Z"),
+        drafts: [
+          { touchpoint_index: 1, status: "sent", sent_at: "2026-05-31T12:00:00.000Z", scheduled_send_at: "2026-05-31T12:00:00.000Z" },
+          { touchpoint_index: 2, status: "held", sent_at: null, scheduled_send_at: "2026-06-02T12:00:00.000Z" },
+        ],
+      }
+    );
+    expect(view.steps[0]!.tone).toBe("sent");
+    expect(view.steps[0]!.detail).toMatch(/^Sent /);
+    expect(view.steps[1]!.state).toBe("next");
+    expect(view.steps[1]!.tone).toBe("hold");
+    expect(view.steps[1]!.detail).toBe("On hold");
+  });
+
   it("with an empty drafts array, nothing is done yet (first step is next)", () => {
     const view = buildSequenceView(
       { track: "no_show", status: "active", created_at: START },

@@ -77,11 +77,17 @@ export async function generateTouchpointDraft(
     .maybeSingle();
   const transcript = latestTranscript?.content ?? null;
 
+  // Conversation history must be scoped to THIS sequence's already-sent
+  // touchpoints — not every draft ever sent to the lead. Otherwise touchpoint 1
+  // (which should read as a fresh outreach) picks up unrelated prior messages
+  // and the model writes a mid-conversation reply instead. For touchpoint 1 this
+  // is empty by definition, so the "FIRST outreach" framing holds.
   const { data: sentDrafts } = await adminClient
     .from("drafts")
     .select("body")
     .eq("lead_id", leadId)
     .eq("coach_id", coachId)
+    .eq("sequence_id", sequenceId)
     .eq("status", "sent")
     .order("sent_at", { ascending: true });
   const conversationHistory =
