@@ -11,6 +11,7 @@ import { notificationDispatcher } from "@/inngest/functions/notification-dispatc
 import { draftFollowupCta } from "@/inngest/functions/draft-followup-cta";
 import { sendViaGmail } from "@/inngest/functions/send-via-gmail";
 import { sequenceScheduledSend } from "@/inngest/functions/sequence-scheduled-send";
+import { sequenceReengage } from "@/inngest/functions/sequence-reengage";
 
 // REQUIRED: Vercel default 10s timeout breaks Inngest long-polling (RESEARCH.md Pitfall 4)
 export const maxDuration = 300;
@@ -30,5 +31,6 @@ export const { GET, POST, PUT } = serve({
     draftFollowupCta,
     sendViaGmail,
     sequenceScheduledSend,
+    sequenceReengage,
   ],
 });
