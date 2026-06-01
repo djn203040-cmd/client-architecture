@@ -85,11 +85,25 @@ export async function replyHandlerFn({
     generateReplyDraft({ coachId, leadId }),
   );
 
-  // D-16 step 5: Notify the coach a reply landed and a draft is waiting.
-  // notification-dispatcher fans out to the coach's enabled channels for the
-  // lead_replied event (reads the per-coach notification matrix). Skip when the
-  // draft auto-approved (mode_a) — there is nothing to review.
-  if (generated.ok && generated.status === "pending") {
+  // D-16 step 5: Route the draft per the coach's autonomous mode. A reply draft
+  // is standalone (no scheduled-send timer of its own), so the routing that the
+  // sequence path gets from sequence-scheduled-send has to happen here instead:
+  //   mode_a  → auto-approved at generation; actually SEND it now. (Previously
+  //             this fired nothing, so an auto-approved reply silently never sent.)
+  //   mode_b  → pending; arm the 24h auto-send timer so it doesn't sit forever.
+  //   off     → pending; notify the coach a reply landed and a draft is waiting.
+  // The lead_replied notification fans out on the coach's enabled channels
+  // (notification-dispatcher reads the per-coach matrix). It's skipped for mode_a
+  // because there is nothing to review.
+  let sent = false;
+  let notified = false;
+  if (generated.ok && generated.status === "approved") {
+    await step.sendEvent("send-reply-mode-a", {
+      name: "draft/send_via_gmail",
+      data: { draftId: generated.draftId, coachId, source: "mode_a" },
+    });
+    sent = true;
+  } else if (generated.ok) {
     await step.sendEvent("notify-lead-replied", {
       name: "notification/lead_replied",
       data: {
@@ -102,6 +116,17 @@ export async function replyHandlerFn({
         },
       },
     });
+    notified = true;
+
+    if (generated.autonomousMode === "mode_b") {
+      const scheduledSendAt = await step.run("compute-mode-b-send-at", () =>
+        new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      );
+      await step.sendEvent("arm-reply-mode-b", {
+        name: "draft/created_mode_b",
+        data: { draftId: generated.draftId, coachId, scheduledSendAt },
+      });
+    }
   }
 
   return {
@@ -110,12 +135,21 @@ export async function replyHandlerFn({
     sequencePaused: true,
     draftGenerated: generated.ok,
     draftId: generated.ok ? generated.draftId : null,
-    notified: generated.ok && generated.status === "pending",
+    sent,
+    notified,
   };
 }
 
 export const replyHandler = inngest.createFunction(
-  { id: "reply-handler", triggers: [{ event: LEAD_REPLIED }] },
+  {
+    id: "reply-handler",
+    // Coalesce a burst of replies (lead fires several emails before we answer)
+    // into a single run per lead. The run then pulls the whole Gmail thread, so
+    // the one draft it produces answers every outstanding message — instead of
+    // generating (and cancelling) a fresh draft per inbound email.
+    debounce: { key: "event.data.leadId", period: "2m" },
+    triggers: [{ event: LEAD_REPLIED }],
+  },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- reason: Inngest event payload is structurally typed at runtime; no static schema
   replyHandlerFn as any,
 );

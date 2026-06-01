@@ -19,7 +19,7 @@ const STATE_FRAMING: Record<TLeadStatus, string> = {
   in_sequence:
     'This is touchpoint #{touchpointIndex} in an active follow-up sequence. The lead has not replied yet (if they had, the status would be "replied" — do not write as if responding to a reply). Use the coach notes to understand where this lead is in their decision-making and what tone fits this specific touchpoint. Earlier touchpoints should be warmer and more exploratory; later ones more direct and outcome-focused.',
   replied:
-    'The lead has replied. THE LEAD\'S ACTUAL REPLY IS IN THE COACH NOTES — read the notes, find the quoted reply or the coach\'s description of what the lead said, and respond directly to that content. Address their specific words, concerns, or questions. Do NOT ask the coach to paste in the reply (you already have it). Do NOT write a generic response. If the notes describe the coach\'s intent for the response (e.g. "I want to hold the price but offer a bridge"), honor that intent.',
+    'The lead has replied. THE LEAD\'S ACTUAL REPLY IS IN THE <lead_reply> BLOCK — read it and respond directly to what they said. Address their specific words, concerns, or questions. If there are several messages in that block, the lead sent them before you could answer; respond to all of them together in one coherent reply, not just the last one. Do NOT ask the coach to paste in the reply (you already have it). Do NOT write a generic response. The coach notes may describe the coach\'s intent for the response (e.g. "I want to hold the price but offer a bridge") — if so, honor that intent while still answering what the lead actually wrote.',
   converted:
     'The lead has become a client. Write a warm, personal, forward-looking welcome-aboard message. Celebrate their decision without being over-the-top. Set a positive tone for the journey ahead. Reference their goals if available from the transcript or coach notes.',
   closed:
@@ -32,10 +32,12 @@ const STATE_FRAMING: Record<TLeadStatus, string> = {
 };
 
 export function buildDraftUserPrompt(params: DraftGenerationParams): string {
-  const stateInstruction = STATE_FRAMING[params.leadStatus].replace(
-    '{touchpointIndex}',
-    String(params.touchpointIndex),
-  );
+  // A framingOverride lets flows that reuse this engine (e.g. re-engagement)
+  // supply bespoke intent without minting a new lead_status. Falls back to the
+  // state-derived framing.
+  const stateInstruction = (
+    params.framingOverride ?? STATE_FRAMING[params.leadStatus]
+  ).replace('{touchpointIndex}', String(params.touchpointIndex));
 
   const transcriptBlock = params.transcript
     ? `<transcript>\n${params.transcript}\n</transcript>`
@@ -58,6 +60,14 @@ export function buildDraftUserPrompt(params: DraftGenerationParams): string {
     ? `<conversation_history>\n${params.conversationHistory}\n</conversation_history>`
     : '<conversation_history>\nNo prior conversation on record.\n</conversation_history>';
 
+  // The lead's actual inbound message(s), verbatim. This is the ground truth for
+  // the "replied" state — the draft must answer what is here, not a paraphrase.
+  // Omitted entirely when there is nothing to answer, so proactive states aren't
+  // tempted to write as if replying to a message.
+  const replyBlock = params.inboundMessages
+    ? `<lead_reply>\n${params.inboundMessages}\n</lead_reply>\n\n`
+    : '';
+
   // The coach's real public booking URL. When present, the model uses it
   // verbatim. When absent, the model is told not to fabricate or stub a
   // placeholder link — fixes the "[CALENDLY LINK]" placeholder problem.
@@ -73,7 +83,7 @@ Touchpoint: ${params.touchpointIndex}
 
 ${summaryBlock}
 
-${notesBlock}
+${replyBlock}${notesBlock}
 
 ${transcriptBlock}
 

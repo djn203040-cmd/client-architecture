@@ -1,6 +1,8 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
 import { VoiceProfileSchema } from "@client/shared/validators";
+import { fetchLeadThread } from "@/lib/gmail/thread";
+import { extractUnansweredInbound } from "@/lib/drafts/thread-context";
 
 const AI_MODEL = "claude-sonnet-4-6";
 
@@ -16,6 +18,10 @@ export type GenerateReplyResult =
       leadName: string;
       status: "pending" | "approved";
       confidenceLevel: "high" | "low";
+      // The coach's autonomous mode at generation time. The caller needs it to
+      // route the draft: mode_a sends now, mode_b arms the 24h auto-send timer,
+      // off/manual waits for review.
+      autonomousMode: string;
     }
   | { ok: false; reason: string };
 
@@ -37,7 +43,7 @@ export async function generateReplyDraft(
 
   const { data: lead } = await adminClient
     .from("leads")
-    .select("id, name, coach_id, ai_summary, ai_summary_protected, coach_notes")
+    .select("id, name, email, coach_id, ai_summary, ai_summary_protected, coach_notes")
     .eq("id", leadId)
     .maybeSingle();
   if (!lead || lead.coach_id !== coachId) return { ok: false, reason: "lead_not_found" };
@@ -76,6 +82,33 @@ export async function generateReplyDraft(
   const conversationHistory =
     sentDrafts && sentDrafts.length > 0 ? sentDrafts.map((d) => d.body).join("\n\n") : null;
 
+  // The lead's ACTUAL inbound message(s) — the ground truth the reply must
+  // answer. The prompt's "replied" framing reads from <lead_reply>; without this
+  // the draft is written blind to what the lead said. Pull the Gmail thread and
+  // take every message from the lead since our last outbound, so a burst of
+  // replies is answered together. Best-effort: a Gmail hiccup degrades to no
+  // inbound block rather than failing the whole draft.
+  let inboundMessages: string | null = null;
+  try {
+    const { data: threadEvent } = await adminClient
+      .from("email_events")
+      .select("gmail_thread_id")
+      .eq("lead_id", leadId)
+      .eq("coach_id", coachId)
+      .not("gmail_thread_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (threadEvent?.gmail_thread_id) {
+      const thread = await fetchLeadThread(coachId, threadEvent.gmail_thread_id);
+      inboundMessages = extractUnansweredInbound(thread, lead.email);
+    }
+  } catch {
+    console.error("[generateReplyDraft] inbound fetch failed; proceeding without", {
+      leadId,
+    });
+  }
+
   // touchpointIndex is a required prompt hint. The 'replied' leadStatus drives the
   // mid-conversation framing (D-14); we pass the lead's running draft count so the
   // reply is never mistaken for a first outreach.
@@ -99,6 +132,7 @@ export async function generateReplyDraft(
         transcript,
         conversationHistory,
         coachNotes: lead.coach_notes,
+        inboundMessages,
         bookingUrl: coach.public_booking_url,
         touchpointIndex,
         voiceModel: voiceModelParsed.data,
@@ -149,5 +183,6 @@ export async function generateReplyDraft(
     leadName: lead.name,
     status,
     confidenceLevel: generated.confidenceLevel,
+    autonomousMode: coach.autonomous_mode ?? "off",
   };
 }
