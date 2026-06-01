@@ -16,6 +16,7 @@ const TONE_CLASS: Record<TSequenceStepTone, string> = {
   hold: "text-orange-600 dark:text-orange-400 font-medium",
   error: "text-red-600 dark:text-red-400 font-medium",
   overdue: "text-red-600 dark:text-red-400 font-medium",
+  paused: "text-sky-600 dark:text-sky-400 font-medium",
   sent: "text-muted-foreground",
   done: "text-muted-foreground",
   scheduled: "text-muted-foreground",
@@ -59,7 +60,13 @@ export function SequenceStatusPanel({
   const nextSendDisplay = sequence
     ? finished
       ? "Complete"
-      : (sequence.nextSendLabel ?? "—")
+      : sequence.status === "paused"
+        ? "Paused"
+        : sequence.status === "cancelled"
+          ? "Stopped"
+          : sequence.status === "held"
+            ? "On hold"
+            : (sequence.nextSendLabel ?? "—")
     : "—";
 
   return (

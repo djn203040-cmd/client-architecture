@@ -232,3 +232,42 @@ describe("buildSequenceView (real draft data)", () => {
     expect(view.steps.slice(1).every((s) => s.state === "upcoming")).toBe(true);
   });
 });
+
+describe("buildSequenceView (halted sequences)", () => {
+  // The lead replied at step 2: step 1 sent, sequence paused. The stepper must
+  // NOT project "Sends tomorrow" — it has to show the paused state.
+  it("a paused sequence advertises no next send and marks remaining steps paused", () => {
+    const view = buildSequenceView(
+      { track: "no_show", status: "paused", created_at: START },
+      null,
+      {
+        now: new Date("2026-05-02T12:00:00.000Z"), // day 1 sent, day 3 would be next
+        drafts: [
+          { touchpoint_index: 1, status: "sent", sent_at: "2026-05-02T12:00:00.000Z", scheduled_send_at: "2026-05-02T12:00:00.000Z" },
+        ],
+      }
+    );
+    expect(view.nextSendAt).toBeNull();
+    expect(view.nextSendLabel).toBeNull();
+    const next = view.steps.find((s) => s.state === "next")!;
+    expect(next.tone).toBe("paused");
+    expect(next.detail).toBe("Paused — lead replied");
+    // Downstream steps don't claim a future send date.
+    const upcoming = view.steps.filter((s) => s.state === "upcoming");
+    expect(upcoming.length).toBeGreaterThan(0);
+    expect(upcoming.every((s) => s.tone === "paused" && !/Sends/.test(s.detail))).toBe(true);
+    // The already-sent step is untouched.
+    expect(view.steps[0]!.detail).toMatch(/^Sent /);
+  });
+
+  it("a cancelled sequence reads as stopped", () => {
+    const view = buildSequenceView(
+      { track: "no_show", status: "cancelled", created_at: START },
+      null,
+      { now: new Date("2026-05-02T12:00:00.000Z"), drafts: [] }
+    );
+    expect(view.nextSendAt).toBeNull();
+    const next = view.steps.find((s) => s.state === "next")!;
+    expect(next.detail).toBe("Sequence stopped");
+  });
+});
