@@ -60,7 +60,7 @@ export function EmailThreadView({ leadId }: { leadId: string }) {
         <EmailRow
           key={msg.id}
           email={msg}
-          defaultOpen={idx === messages.length - 1}
+          defaultOpen={idx === 0}
         />
       ))}
     </div>
