@@ -33,6 +33,7 @@ export type TSequenceStepTone =
   | "preparing" // draft is generating
   | "hold" // coach put it on hold
   | "error" // generation failed
+  | "overdue" // send time passed but it never went out
   | "scheduled"; // not generated yet / future
 
 export type TSequenceStep = {
@@ -181,17 +182,31 @@ export function buildSequenceView(
       state = "next";
       nextSendAt = s.scheduledAt;
       nextSendLabel = sendWhen;
+      // The send time has come and gone but nothing was delivered. With draft
+      // data this means the scheduled send never fired (e.g. a dropped timer) —
+      // surface it instead of pretending it's still "sends <past time>".
+      const overdue = hasDraftData && new Date(s.scheduledAt).getTime() < now.getTime();
       switch (draftStatus) {
         case "approved":
         case "edited":
-          tone = "approved";
-          // Approval is decoupled from send: make it explicit that the message
-          // is locked in and will go out at its fixed cadence time.
-          detail = `Approved · sends ${sendWhen}`;
+          if (overdue) {
+            tone = "overdue";
+            detail = `Overdue · should have sent ${dateLabel}`;
+          } else {
+            tone = "approved";
+            // Approval is decoupled from send: make it explicit that the message
+            // is locked in and will go out at its fixed cadence time.
+            detail = `Approved · sends ${sendWhen}`;
+          }
           break;
         case "pending":
-          tone = "awaiting";
-          detail = `Awaiting your approval · sends ${sendWhen}`;
+          if (overdue) {
+            tone = "overdue";
+            detail = `Send window passed ${dateLabel} · wasn't approved in time`;
+          } else {
+            tone = "awaiting";
+            detail = `Awaiting your approval · sends ${sendWhen}`;
+          }
           break;
         case "generating":
           tone = "preparing";
@@ -206,8 +221,13 @@ export function buildSequenceView(
           detail = "Couldn't generate — needs a retry";
           break;
         default:
-          tone = "scheduled";
-          detail = `Sends ${sendWhen}`;
+          if (overdue) {
+            tone = "overdue";
+            detail = `Overdue · was due ${dateLabel}`;
+          } else {
+            tone = "scheduled";
+            detail = `Sends ${sendWhen}`;
+          }
       }
     } else {
       state = "upcoming";

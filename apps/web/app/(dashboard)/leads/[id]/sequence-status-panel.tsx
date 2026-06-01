@@ -15,6 +15,7 @@ const TONE_CLASS: Record<TSequenceStepTone, string> = {
   preparing: "text-muted-foreground",
   hold: "text-orange-600 dark:text-orange-400 font-medium",
   error: "text-red-600 dark:text-red-400 font-medium",
+  overdue: "text-red-600 dark:text-red-400 font-medium",
   sent: "text-muted-foreground",
   done: "text-muted-foreground",
   scheduled: "text-muted-foreground",

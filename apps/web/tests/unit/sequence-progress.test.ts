@@ -187,6 +187,39 @@ describe("buildSequenceView (real draft data)", () => {
     expect(fallback.steps[0]!.detail).toBe(cph.steps[0]!.detail);
   });
 
+  it("flags an approved step whose send time passed without delivering as overdue", () => {
+    // Approved, scheduled May 31, but it's June 1 and sent_at is still null —
+    // the scheduled send never fired. Don't keep claiming "sends <past time>".
+    const view = buildSequenceView(
+      { track: "no_show", status: "active", created_at: START },
+      { no_show_delays: [1, 3], call_completed_delays: [1] },
+      {
+        now: new Date("2026-06-01T12:00:00.000Z"),
+        drafts: [
+          { touchpoint_index: 1, status: "approved", sent_at: null, scheduled_send_at: "2026-05-31T12:40:00.000Z" },
+        ],
+      }
+    );
+    expect(view.steps[0]!.state).toBe("next");
+    expect(view.steps[0]!.tone).toBe("overdue");
+    expect(view.steps[0]!.detail).toMatch(/^Overdue · should have sent /);
+  });
+
+  it("flags a pending step past its send window as overdue (wasn't approved in time)", () => {
+    const view = buildSequenceView(
+      { track: "no_show", status: "active", created_at: START },
+      { no_show_delays: [1, 3], call_completed_delays: [1] },
+      {
+        now: new Date("2026-06-01T12:00:00.000Z"),
+        drafts: [
+          { touchpoint_index: 1, status: "pending", sent_at: null, scheduled_send_at: "2026-05-31T12:40:00.000Z" },
+        ],
+      }
+    );
+    expect(view.steps[0]!.tone).toBe("overdue");
+    expect(view.steps[0]!.detail).toMatch(/wasn't approved in time$/);
+  });
+
   it("with an empty drafts array, nothing is done yet (first step is next)", () => {
     const view = buildSequenceView(
       { track: "no_show", status: "active", created_at: START },
