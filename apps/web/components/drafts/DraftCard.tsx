@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { ApproveButton } from "@/components/ui/approve-button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PencilSimple, CheckCircle, SkipForward, PauseCircle, ArrowsClockwise, WarningCircle } from "@phosphor-icons/react";
 import { InlineDraftEditor } from "./InlineDraftEditor";
@@ -197,10 +198,10 @@ export function DraftCard({
 
       {variant === "pending" && (
         <footer className="flex items-center gap-3 mt-6">
-          <Button className="min-h-[44px]" onClick={() => setStatus("approved")}>
+          <ApproveButton className="min-h-[44px]" onClick={() => setStatus("approved")}>
             <CheckCircle weight="regular" className="size-4 mr-2" />
             Approve <KeyBadge k="A" />
-          </Button>
+          </ApproveButton>
           {showSkip && (
             <Button className="min-h-[44px]" variant="outline" onClick={onAdvance}>
               <SkipForward weight="regular" className="size-4 mr-2" />

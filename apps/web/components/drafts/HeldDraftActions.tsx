@@ -1,6 +1,7 @@
 "use client";
 import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { ApproveButton } from "@/components/ui/approve-button";
 import { PaperPlaneTilt, PencilSimple } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { InlineDraftEditor } from "./InlineDraftEditor";
@@ -128,13 +129,13 @@ export function HeldDraftActions({ draft, onAdvance }: Props) {
 
   return (
     <div className="flex items-center justify-between gap-3 pt-4 border-t border-border">
-      <Button onClick={reapprove} disabled={busy} className="min-h-[44px]">
+      <ApproveButton onClick={reapprove} disabled={busy} className="min-h-[44px]">
         <PaperPlaneTilt className="size-4 mr-2" weight="regular" />
         Re-approve
         <span className="ml-2 text-xs font-mono text-muted-foreground/60 hidden md:inline">
           R
         </span>
-      </Button>
+      </ApproveButton>
       <div className="flex gap-2">
         <Button
           variant="ghost"

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { ApproveButton } from "@/components/ui/approve-button";
 import { CheckCircle, Sparkle } from "@phosphor-icons/react";
 import { toast } from "sonner";
 
@@ -51,9 +51,9 @@ export function DemoLeadDraft({ draftId, draftBody, leadName, onApproved }: Prop
         <p className="text-sm leading-relaxed whitespace-pre-wrap">{draftBody}</p>
       </div>
 
-      <Button onClick={handleApprove} disabled={approving} className="w-full">
+      <ApproveButton onClick={handleApprove} disabled={approving} className="w-full">
         {approving ? "Approving…" : "Approve this draft"}
-      </Button>
+      </ApproveButton>
     </div>
   );
 }

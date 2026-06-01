@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { ApproveButton } from "@/components/ui/approve-button";
 import type { Database } from "@client/database";
 
 type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
@@ -36,7 +37,7 @@ export function InlineDraftEditor({
         aria-label="Draft body"
       />
       <footer className="flex items-center gap-3 mt-4">
-        <Button className="min-h-[44px]" onClick={() => onSaveAndApprove(body)}>Save and approve</Button>
+        <ApproveButton className="min-h-[44px]" onClick={() => onSaveAndApprove(body)}>Save and approve</ApproveButton>
         <Button className="min-h-[44px]" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
