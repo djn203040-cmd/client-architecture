@@ -14,6 +14,7 @@ type ReplyEvent = {
     coachId: string;
     leadId: string;
     messageId: string;
+    threadId?: string;
     inReplyToMessageId?: string;
   };
 };
@@ -25,7 +26,7 @@ export async function replyHandlerFn({
   event: ReplyEvent;
   step: StepTools;
 }) {
-  const { coachId, leadId, messageId } = event.data;
+  const { coachId, leadId, messageId, threadId } = event.data;
 
   // D-16 step 1: Update lead state to replied + log event
   await step.run("update-lead-status", async () => {
@@ -82,7 +83,7 @@ export async function replyHandlerFn({
   // draft instead of firing a dead event. The AI engine applies the 'replied'
   // state framing (D-14). step.run is memoized/idempotent on retry.
   const generated = await step.run("generate-reply-draft", () =>
-    generateReplyDraft({ coachId, leadId }),
+    generateReplyDraft({ coachId, leadId, messageId, threadId }),
   );
 
   // D-16 step 5: Route the draft per the coach's autonomous mode. A reply draft

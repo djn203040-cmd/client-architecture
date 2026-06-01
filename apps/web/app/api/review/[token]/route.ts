@@ -11,6 +11,7 @@ import { adminClient } from "@/lib/supabase/admin";
 import { inngest } from "@/inngest/client";
 import { runPreSendSafetyCheck } from "@/inngest/functions/sequence-step";
 import { reviewTokenLimiter, enforce, ipFromRequest } from "@/lib/security/ratelimit";
+import { syncSlackDraftMessage } from "@/lib/slack/sync-draft-message";
 
 const BodySchema = z.object({
   status: z.enum(["approved", "held"]),
@@ -133,6 +134,11 @@ export async function PATCH(
         source: "review_link",
       },
     });
+    await syncSlackDraftMessage({
+      draftId: payload.draftId,
+      coachId: payload.coachId,
+      state: "approved",
+    });
 
     return NextResponse.json({ ok: true, new_status: result.new_status });
   }
@@ -144,6 +150,11 @@ export async function PATCH(
     await inngest.send({
       name: "draft/held_manually",
       data: { draftId: payload.draftId, coachId: payload.coachId },
+    });
+    await syncSlackDraftMessage({
+      draftId: payload.draftId,
+      coachId: payload.coachId,
+      state: "held",
     });
   }
 

@@ -7,6 +7,7 @@ import {
   type Delivery,
   type SendContext,
 } from "@/lib/gmail/send";
+import { syncSlackDraftMessage } from "@/lib/slack/sync-draft-message";
 
 type SendEvent = {
   name: string;
@@ -61,6 +62,14 @@ export async function sendViaGmailHandler({
   const delivery: Delivery = await step.run("deliver", () => deliverDraft(ctx));
 
   await step.run("record", () => recordDelivery(ctx, delivery, source));
+
+  // Retire any Slack buttons for this draft now that it's actually sent. Covers
+  // the autonomous Mode-B timer path that never passes through an approval route,
+  // and upgrades a "sending shortly" message to "sent". Best-effort.
+  await step.run("sync-slack-sent", async () => {
+    await syncSlackDraftMessage({ draftId, coachId, state: "sent" });
+    return { ok: true };
+  });
 
   return {
     sent: true,

@@ -35,6 +35,39 @@ export function extractHeader(
   return headers.find((h) => h.name?.toLowerCase() === lower)?.value ?? "";
 }
 
+/**
+ * Fetch a single Gmail message by its internal id (the id Gmail history hands us
+ * for an inbound reply). Used as the authoritative ground truth for a reply
+ * draft — we answer THIS message, not a guess scraped from the send-thread.
+ * Returns null on any failure so callers can degrade gracefully.
+ */
+export async function fetchMessageById(
+  coachId: string,
+  messageId: string
+): Promise<TThreadEmail | null> {
+  try {
+    const gmail = await getGmailClientForCoach(coachId);
+    const { data: msg } = await gmail.users.messages.get({
+      userId: "me",
+      id: messageId,
+      format: "full",
+    });
+    const headers = msg.payload?.headers ?? [];
+    return {
+      id: msg.id ?? messageId,
+      from: extractHeader(headers, "from"),
+      subject: extractHeader(headers, "subject"),
+      date: msg.internalDate
+        ? new Date(Number(msg.internalDate)).toISOString()
+        : "",
+      snippet: msg.snippet ?? "",
+      body: msg.payload ? extractBody(msg.payload) : "",
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchLeadThread(
   coachId: string,
   threadId: string

@@ -1,14 +1,22 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
 import { VoiceProfileSchema } from "@client/shared/validators";
-import { fetchLeadThread } from "@/lib/gmail/thread";
-import { extractUnansweredInbound } from "@/lib/drafts/thread-context";
+import { fetchLeadThread, fetchMessageById } from "@/lib/gmail/thread";
+import {
+  extractUnansweredInbound,
+  formatInboundMessages,
+} from "@/lib/drafts/thread-context";
 
 const AI_MODEL = "claude-sonnet-4-6";
 
 export type GenerateReplyParams = {
   coachId: string;
   leadId: string;
+  // The Gmail id + thread of the inbound that triggered this reply. Optional so
+  // existing callers (and re-runs of legacy events) still work; when present they
+  // let us answer the EXACT message instead of guessing from the send-thread.
+  messageId?: string;
+  threadId?: string;
 };
 
 export type GenerateReplyResult =
@@ -39,7 +47,7 @@ export type GenerateReplyResult =
 export async function generateReplyDraft(
   params: GenerateReplyParams,
 ): Promise<GenerateReplyResult> {
-  const { coachId, leadId } = params;
+  const { coachId, leadId, messageId, threadId } = params;
 
   const { data: lead } = await adminClient
     .from("leads")
@@ -84,29 +92,84 @@ export async function generateReplyDraft(
 
   // The lead's ACTUAL inbound message(s) — the ground truth the reply must
   // answer. The prompt's "replied" framing reads from <lead_reply>; without this
-  // the draft is written blind to what the lead said. Pull the Gmail thread and
-  // take every message from the lead since our last outbound, so a burst of
-  // replies is answered together. Best-effort: a Gmail hiccup degrades to no
-  // inbound block rather than failing the whole draft.
+  // the draft is written blind. Resolved in layers, most-authoritative first, so
+  // a flaky Gmail call or a stale thread can't make us answer the wrong message:
+  //   1. The `received` rows monitor.ts already persisted for this lead since our
+  //      last outbound — durable, body-captured, burst-coalesced, no live call.
+  //   2. The exact triggering message fetched by id (covers replies recorded
+  //      before this row existed, or a layer-1 storage hiccup).
+  //   3. A scan of the Gmail thread (legacy best-effort).
+  // If all layers are empty the draft is written blind, but the prompt's
+  // no-inbound framing keeps it sane and we never auto-send it (status forced
+  // to pending below) — so a missed inbound is reviewable, never a phantom send.
   let inboundMessages: string | null = null;
+
+  // Layer 1 — stored inbound after our most recent outbound.
   try {
-    const { data: threadEvent } = await adminClient
+    const { data: lastSent } = await adminClient
       .from("email_events")
-      .select("gmail_thread_id")
+      .select("created_at")
       .eq("lead_id", leadId)
       .eq("coach_id", coachId)
-      .not("gmail_thread_id", "is", null)
+      .eq("event_type", "sent")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (threadEvent?.gmail_thread_id) {
-      const thread = await fetchLeadThread(coachId, threadEvent.gmail_thread_id);
-      inboundMessages = extractUnansweredInbound(thread, lead.email);
+
+    let receivedQuery = adminClient
+      .from("email_events")
+      .select("raw_payload, created_at")
+      .eq("lead_id", leadId)
+      .eq("coach_id", coachId)
+      .eq("event_type", "received")
+      .order("created_at", { ascending: true });
+    if (lastSent?.created_at) {
+      receivedQuery = receivedQuery.gt("created_at", lastSent.created_at);
+    }
+
+    const { data: received } = await receivedQuery;
+    if (received && received.length > 0) {
+      const bodies = received.map((r) => {
+        const p = (r.raw_payload ?? {}) as { body?: string; snippet?: string };
+        return p.body || p.snippet || "";
+      });
+      inboundMessages = formatInboundMessages(bodies);
     }
   } catch {
-    console.error("[generateReplyDraft] inbound fetch failed; proceeding without", {
-      leadId,
-    });
+    console.error("[generateReplyDraft] stored-inbound read failed", { leadId });
+  }
+
+  // Layer 2 — the exact message that triggered this reply, by id.
+  if (!inboundMessages && messageId) {
+    const msg = await fetchMessageById(coachId, messageId);
+    if (msg) inboundMessages = formatInboundMessages([msg.body || msg.snippet]);
+  }
+
+  // Layer 3 — legacy thread scan.
+  if (!inboundMessages) {
+    try {
+      let scanThreadId = threadId ?? null;
+      if (!scanThreadId) {
+        const { data: threadEvent } = await adminClient
+          .from("email_events")
+          .select("gmail_thread_id")
+          .eq("lead_id", leadId)
+          .eq("coach_id", coachId)
+          .not("gmail_thread_id", "is", null)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        scanThreadId = (threadEvent?.gmail_thread_id as string | null) ?? null;
+      }
+      if (scanThreadId) {
+        const thread = await fetchLeadThread(coachId, scanThreadId);
+        inboundMessages = extractUnansweredInbound(thread, lead.email);
+      }
+    } catch {
+      console.error("[generateReplyDraft] thread-scan inbound fetch failed", {
+        leadId,
+      });
+    }
   }
 
   // touchpointIndex is a required prompt hint. The 'replied' leadStatus drives the
@@ -146,8 +209,11 @@ export async function generateReplyDraft(
   if (!generated) return { ok: false, reason: "ai_null" };
 
   // Mirror generateTouchpointDraft: only Send-without-review (mode_a) auto-approves.
+  // Exception: when we couldn't read the lead's actual inbound, the draft is a
+  // best-effort blind continuation — never auto-send that. Force it to pending so
+  // the coach reviews it even in mode_a.
   const status: "pending" | "approved" =
-    coach.autonomous_mode === "mode_a" ? "approved" : "pending";
+    coach.autonomous_mode === "mode_a" && inboundMessages ? "approved" : "pending";
   const now = new Date().toISOString();
 
   const { data: draft, error: insertError } = await adminClient

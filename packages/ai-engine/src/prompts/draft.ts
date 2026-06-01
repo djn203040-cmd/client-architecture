@@ -35,9 +35,24 @@ export function buildDraftUserPrompt(params: DraftGenerationParams): string {
   // A framingOverride lets flows that reuse this engine (e.g. re-engagement)
   // supply bespoke intent without minting a new lead_status. Falls back to the
   // state-derived framing.
-  const stateInstruction = (
-    params.framingOverride ?? STATE_FRAMING[params.leadStatus]
-  ).replace('{touchpointIndex}', String(params.touchpointIndex));
+  let baseFraming = params.framingOverride ?? STATE_FRAMING[params.leadStatus];
+
+  // Guard the "replied" contradiction: that framing promises the lead's words
+  // live in a <lead_reply> block, but inboundMessages can come back empty when
+  // the Gmail thread fetch degrades (no thread id, API hiccup). With no block,
+  // the original instruction makes the model beg the coach to paste the reply
+  // ("Jeg mangler Augusta's svar..."). When the block is genuinely absent, swap
+  // in a framing that never references it and never asks for the message — write
+  // a brief, honest continuation grounded in history and notes instead.
+  if (params.leadStatus === 'replied' && !params.inboundMessages) {
+    baseFraming =
+      "The lead has replied to your last message, but their exact words are not available to you here. Do NOT ask the coach to paste or send the reply, do NOT mention a missing <lead_reply> block, and do NOT invent or quote anything specific they said. Write a brief, warm, natural message that simply acknowledges they got back to you and gently moves the conversation toward the next step, grounded only in the conversation history and coach notes. Keep it short and low-pressure.";
+  }
+
+  const stateInstruction = baseFraming.replace(
+    '{touchpointIndex}',
+    String(params.touchpointIndex),
+  );
 
   const transcriptBlock = params.transcript
     ? `<transcript>\n${params.transcript}\n</transcript>`

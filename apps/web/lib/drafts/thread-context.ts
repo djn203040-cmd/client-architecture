@@ -39,10 +39,22 @@ export function extractUnansweredInbound(
     .map((m) => (m.body || m.snippet).trim())
     .filter(Boolean);
 
-  if (outstanding.length === 0) return null;
-  if (outstanding.length === 1) return outstanding[0]!;
-  return outstanding
-    .map((body, i) => `Message ${i + 1} of ${outstanding.length}:\n${body}`)
+  return formatInboundMessages(outstanding);
+}
+
+/**
+ * Format an ordered list of the lead's inbound message bodies into a single
+ * <lead_reply> payload. One message passes through verbatim; a burst is labelled
+ * "Message i of n" so the model answers all of them together. Shared by the
+ * Gmail-thread path and the stored-`received`-rows path so both render identically.
+ * Blank entries are dropped; returns null when nothing usable remains.
+ */
+export function formatInboundMessages(bodies: string[]): string | null {
+  const cleaned = bodies.map((b) => (b ?? "").trim()).filter(Boolean);
+  if (cleaned.length === 0) return null;
+  if (cleaned.length === 1) return cleaned[0]!;
+  return cleaned
+    .map((body, i) => `Message ${i + 1} of ${cleaned.length}:\n${body}`)
     .join("\n\n");
 }
 

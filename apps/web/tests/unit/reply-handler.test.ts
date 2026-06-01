@@ -42,7 +42,7 @@ function makeStep() {
 
 const event = {
   name: "lead/replied",
-  data: { coachId: "c1", leadId: "l1", messageId: "m1" },
+  data: { coachId: "c1", leadId: "l1", messageId: "m1", threadId: "t1" },
 };
 
 function invoke(step: ReturnType<typeof makeStep>) {
@@ -70,8 +70,14 @@ describe("replyHandlerFn — STATE-005 reply pipeline", () => {
     const res = await invoke(step);
 
     // Regression guard: a reply must actually generate a draft (the old code
-    // fired an orphaned "draft/generate" event with no consumer).
-    expect(mockGen).toHaveBeenCalledWith({ coachId: "c1", leadId: "l1" });
+    // fired an orphaned "draft/generate" event with no consumer), and it must
+    // forward the triggering message/thread so the draft answers THAT message.
+    expect(mockGen).toHaveBeenCalledWith({
+      coachId: "c1",
+      leadId: "l1",
+      messageId: "m1",
+      threadId: "t1",
+    });
 
     expect(step.sendEvent).toHaveBeenCalledWith(
       "notify-lead-replied",

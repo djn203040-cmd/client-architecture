@@ -6,6 +6,7 @@ vi.mock("server-only", () => ({}));
 import {
   extractUnansweredInbound,
   formatThreadAsConversation,
+  formatInboundMessages,
 } from "@/lib/drafts/thread-context";
 import type { TThreadEmail } from "@/lib/gmail/thread";
 
@@ -85,5 +86,26 @@ describe("formatThreadAsConversation", () => {
 
   it("returns null for an empty thread", () => {
     expect(formatThreadAsConversation([], LEAD, "Jordan", "Sam")).toBeNull();
+  });
+});
+
+describe("formatInboundMessages (stored-received path)", () => {
+  it("passes a single message through verbatim", () => {
+    expect(formatInboundMessages(["kan ikke finde en tid der passer"])).toBe(
+      "kan ikke finde en tid der passer",
+    );
+  });
+
+  it("numbers a burst oldest-first", () => {
+    const out = formatInboundMessages(["first", "second"]);
+    expect(out).toContain("Message 1 of 2:\nfirst");
+    expect(out).toContain("Message 2 of 2:\nsecond");
+  });
+
+  it("drops blank entries and returns null when nothing usable remains", () => {
+    expect(formatInboundMessages(["  ", ""])).toBeNull();
+    expect(formatInboundMessages([])).toBeNull();
+    // A blank among real ones is dropped, collapsing to the single-message form.
+    expect(formatInboundMessages(["", "real one"])).toBe("real one");
   });
 });

@@ -93,6 +93,27 @@ export function buildHeldBlocks(): unknown[] {
   ];
 }
 
+// Shown when a draft is approved somewhere other than Slack (dashboard, review
+// link) and the original interactive message's buttons must be retired so the
+// coach can't double-act on it.
+export function buildApprovedElsewhereBlocks(): unknown[] {
+  return [
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: ":white_check_mark: Approved — sending shortly." },
+    },
+  ];
+}
+
+export function buildCancelledBlocks(): unknown[] {
+  return [
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: ":x: Cancelled — no message was sent." },
+    },
+  ];
+}
+
 export function buildEditModalView(args: {
   draftId: string;
   currentSubject: string;

@@ -9,6 +9,7 @@ import {
 } from "@/lib/drafts/approve-atomic";
 import { inngest } from "@/inngest/client";
 import { runPreSendSafetyCheck } from "@/inngest/functions/sequence-step";
+import { syncSlackDraftMessage } from "@/lib/slack/sync-draft-message";
 
 const BodySchema = z
   .object({
@@ -106,6 +107,9 @@ export async function PATCH(
       name: "draft/send_via_gmail",
       data: { draftId: id, coachId: draft.coach_id, source: "dashboard" },
     });
+    // Retire the buttons on the Slack message for this draft (if any) so it no
+    // longer shows Approve/Edit/Hold after a dashboard approval.
+    await syncSlackDraftMessage({ draftId: id, coachId: draft.coach_id, state: "approved" });
     return NextResponse.json({ ok: true, new_status: result.new_status });
   }
 
@@ -122,6 +126,7 @@ export async function PATCH(
       name: "draft/held_manually",
       data: { draftId: id, coachId: draft.coach_id },
     });
+    await syncSlackDraftMessage({ draftId: id, coachId: draft.coach_id, state: "held" });
     return NextResponse.json({ ok: true, new_status: result.new_status });
   }
 
@@ -133,6 +138,7 @@ export async function PATCH(
       name: "draft/cancelled",
       data: { draftId: id, coachId: draft.coach_id },
     });
+    await syncSlackDraftMessage({ draftId: id, coachId: draft.coach_id, state: "cancelled" });
     return NextResponse.json({ ok: true, new_status: "cancelled" });
   }
 

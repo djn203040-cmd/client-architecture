@@ -1,7 +1,7 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
 import { getGmailClientForCoach } from "./client";
-import { extractHeader } from "./thread";
+import { extractHeader, extractBody } from "./thread";
 import { isBounceMessage } from "./bounce-detector";
 import { LEAD_REPLIED, LEAD_BOUNCED } from "@client/shared/constants/events";
 // NO Inngest import — this module has no side effects beyond DB writes
@@ -9,6 +9,56 @@ import { LEAD_REPLIED, LEAD_BOUNCED } from "@client/shared/constants/events";
 export interface InngestEvent {
   name: string;
   data: object;
+}
+
+/** Pull the bare email out of a "Name <email>" From header, lowercased. */
+function senderEmailOf(fromHeader: string): string {
+  return (fromHeader.match(/<([^>]+)>/)?.[1] ?? fromHeader).trim().toLowerCase();
+}
+
+/**
+ * Persist an inbound reply as a `received` email_events row, exactly once. The
+ * partial unique index (coach_id, gmail_message_id) WHERE event_type='received'
+ * is the idempotency gate: a duplicate insert (23505) means Gmail history
+ * replayed a message we already handled, so the caller must NOT re-fire
+ * LEAD_REPLIED. The body/snippet are kept in raw_payload so generate-reply.ts
+ * has a durable ground truth instead of re-scraping the thread live.
+ *
+ * Returns isNew=false only for a confirmed duplicate. A non-dedup write error is
+ * logged and treated as new (fire anyway) — a storage hiccup must never swallow
+ * a real reply; generate-reply degrades to fetching the message by id.
+ */
+async function recordInbound(args: {
+  coachId: string;
+  leadId: string;
+  messageId: string;
+  threadId: string;
+  from: string;
+  subject: string;
+  snippet: string;
+  body: string;
+}): Promise<{ isNew: boolean }> {
+  const { error } = await adminClient.from("email_events").insert({
+    coach_id: args.coachId,
+    lead_id: args.leadId,
+    event_type: "received",
+    gmail_message_id: args.messageId,
+    gmail_thread_id: args.threadId,
+    raw_payload: {
+      from: args.from,
+      subject: args.subject,
+      snippet: args.snippet,
+      body: args.body,
+    },
+  });
+  if (error) {
+    if (error.code === "23505") return { isNew: false }; // already processed
+    console.error("[monitor] recordInbound write failed; firing anyway", {
+      code: error.code,
+      leadId: args.leadId,
+    });
+  }
+  return { isNew: true };
 }
 
 /**
@@ -73,17 +123,21 @@ export async function processHistoryUpdate(
   for (const { message } of messages) {
     if (!message?.id) continue;
 
+    // format:full so we capture the inbound body + threadId once, here — the
+    // reply generator reads it back from email_events instead of re-scraping.
     const msg = await gmail.users.messages.get({
       userId: "me",
       id: message.id,
-      format: "metadata",
-      metadataHeaders: ["From", "In-Reply-To", "Message-ID", "Subject"],
+      format: "full",
     });
 
     const headers = msg.data.payload?.headers ?? [];
     const fromAddress = extractHeader(headers, "from");
     const inReplyTo = extractHeader(headers, "in-reply-to");
     const subject = extractHeader(headers, "subject");
+    const threadId = msg.data.threadId ?? "";
+    const snippet = msg.data.snippet ?? "";
+    const body = msg.data.payload ? extractBody(msg.data.payload) : "";
 
     // COMPLY-005: MAILER-DAEMON detection for hard bounces
     if (isBounceMessage(headers)) {
@@ -99,6 +153,8 @@ export async function processHistoryUpdate(
       continue;
     }
 
+    const senderEmail = fromAddress ? senderEmailOf(fromAddress) : "";
+
     // GMAIL-008, D-14: Reply detection via In-Reply-To header
     if (inReplyTo) {
       // Strip angle brackets: "<msg-id@mail.gmail.com>" → "msg-id@mail.gmail.com"
@@ -112,15 +168,40 @@ export async function processHistoryUpdate(
         .maybeSingle();
 
       if (emailEvent?.lead_id) {
-        eventsToFire.push({
-          name: LEAD_REPLIED,
-          data: {
-            coachId,
-            leadId: emailEvent.lead_id,
-            messageId: message.id,
-            inReplyToMessageId: cleanedMessageId,
-          },
+        // Guard against false triggers: a reply only counts if it actually came
+        // FROM the lead. Our own threaded sends (coach is the sender) and any
+        // third-party participant land in the same thread and carry In-Reply-To
+        // too — without this they spawn phantom reply drafts answering nothing.
+        const { data: lead } = await adminClient
+          .from("leads")
+          .select("email")
+          .eq("id", emailEvent.lead_id)
+          .maybeSingle();
+        const leadEmail = lead?.email?.toLowerCase() ?? null;
+        if (!leadEmail || senderEmail !== leadEmail) continue;
+
+        const { isNew } = await recordInbound({
+          coachId,
+          leadId: emailEvent.lead_id as string,
+          messageId: message.id,
+          threadId,
+          from: fromAddress,
+          subject,
+          snippet,
+          body,
         });
+        if (isNew) {
+          eventsToFire.push({
+            name: LEAD_REPLIED,
+            data: {
+              coachId,
+              leadId: emailEvent.lead_id,
+              messageId: message.id,
+              threadId,
+              inReplyToMessageId: cleanedMessageId,
+            },
+          });
+        }
         continue;
       }
     }
@@ -128,7 +209,6 @@ export async function processHistoryUpdate(
     // D-18: Fresh email from lead currently in_sequence → fire LEAD_REPLIED, not intake card
     // D-22: Inbound email from known lead NOT in active sequence → surface intake card
     if (fromAddress) {
-      const senderEmail = fromAddress.match(/<([^>]+)>/)?.[1] ?? fromAddress.trim();
       if (senderEmail) {
         const { data: lead } = await adminClient
           .from("leads")
@@ -139,10 +219,22 @@ export async function processHistoryUpdate(
 
         if (lead && lead.status === "in_sequence") {
           // D-18: Fresh email (no In-Reply-To) from in_sequence lead → treat as reply
-          eventsToFire.push({
-            name: LEAD_REPLIED,
-            data: { coachId, leadId: lead.id, messageId: message.id },
+          const { isNew } = await recordInbound({
+            coachId,
+            leadId: lead.id,
+            messageId: message.id,
+            threadId,
+            from: fromAddress,
+            subject,
+            snippet,
+            body,
           });
+          if (isNew) {
+            eventsToFire.push({
+              name: LEAD_REPLIED,
+              data: { coachId, leadId: lead.id, messageId: message.id, threadId },
+            });
+          }
           continue;
         }
 
