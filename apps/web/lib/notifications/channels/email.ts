@@ -83,11 +83,16 @@ export async function sendEmail(
         settingsUrl: `${process.env.NEXT_PUBLIC_APP_URL}/leads`,
       });
     } else {
-      // integration_broken — minimal notification
+      // integration_broken — name the provider when we know it.
+      const what = payload.provider
+        ? `Your ${payload.provider} connection`
+        : "One of your integrations";
       templateOut = {
-        subject: "Sonorous integration needs attention",
-        html: "<p>One of your integrations needs attention. Please visit your Sonorous dashboard.</p>",
-        text: "One of your integrations needs attention. Please visit your Sonorous dashboard.",
+        subject: payload.provider
+          ? `Your ${payload.provider} connection needs attention`
+          : "Sonorous integration needs attention",
+        html: `<p>${what} needs attention — please reconnect it from your Sonorous dashboard.</p>`,
+        text: `${what} needs attention — please reconnect it from your Sonorous dashboard.`,
       };
     }
 

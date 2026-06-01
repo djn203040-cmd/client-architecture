@@ -21,6 +21,8 @@ export interface TNotificationEvent {
     body?: string;
     subject?: string;
     confidenceLevel?: "high" | "low";
+    /** Human-readable integration name for integration_broken (e.g. "Gmail"). */
+    provider?: string;
   };
 }
 

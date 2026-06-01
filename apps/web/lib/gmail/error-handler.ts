@@ -1,4 +1,5 @@
 import { adminClient } from "@/lib/supabase/admin";
+import { inngest } from "@/inngest/client";
 
 export class OAuthInvalidGrantError extends Error {
   constructor(public readonly coachId: string) {
@@ -29,11 +30,24 @@ export async function handleInvalidGrant(coachId: string): Promise<void> {
     .eq("coach_id", coachId)
     .eq("status", "active");
 
-  // 3. Log notification (Phase 4 sends actual email/Slack/WhatsApp)
-  await adminClient.from("notification_log").insert({
-    coach_id: coachId,
-    channel: "email",
-    event_type: "oauth_disconnected",
-    status: "pending",
-  });
+  // 3. Tell the coach their Gmail connection broke so they can reconnect.
+  // This fires notification/integration_broken — the same matrix-driven fan-out
+  // every other notification uses (the dispatcher already registers this event,
+  // and email/slack/sms each render an integration_broken branch). Previously
+  // this only wrote a perpetually-"pending" notification_log row that nothing
+  // sent, so the integration_broken toggle was dead. Best-effort: a notification
+  // failure must not mask or re-throw inside the OAuth error path.
+  try {
+    await inngest.send({
+      name: "notification/integration_broken",
+      data: {
+        coachId,
+        eventType: "integration_broken",
+        payload: { provider: "Gmail" },
+      },
+    });
+  } catch {
+    // Swallow — the integration is already marked disconnected and sequences
+    // paused; the coach will also see the broken state in the dashboard.
+  }
 }

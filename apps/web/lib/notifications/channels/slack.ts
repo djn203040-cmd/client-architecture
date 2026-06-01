@@ -59,7 +59,9 @@ export async function sendSlack(event: TNotificationEvent): Promise<TChannelResu
       fallbackText =
         eventType === "hard_bounce"
           ? `Email to ${payload.leadEmail ?? "your lead"} bounced. Check integrations.`
-          : "An integration needs attention.";
+          : payload.provider
+            ? `Your ${payload.provider} connection needs attention — reconnect it from your dashboard.`
+            : "An integration needs attention.";
       blocks = [{ type: "section", text: { type: "mrkdwn", text: fallbackText } }];
     }
 

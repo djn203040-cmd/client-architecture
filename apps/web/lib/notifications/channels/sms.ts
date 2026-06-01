@@ -66,7 +66,9 @@ export async function sendSMS(
         leadEmail: payload.leadEmail,
       });
     } else {
-      body = "Sonorous: An integration needs attention. Open dashboard.";
+      body = payload.provider
+        ? `Sonorous: Your ${payload.provider} connection needs attention. Open dashboard to reconnect.`
+        : "Sonorous: An integration needs attention. Open dashboard.";
     }
 
     if (body.length > MAX_SMS_LENGTH) {
