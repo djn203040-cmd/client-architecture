@@ -1,13 +1,14 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Users, EnvelopeSimple, Gear, LockSimple } from "@phosphor-icons/react";
+import { House, Users, EnvelopeSimple, PhoneCall, Gear, LockSimple } from "@phosphor-icons/react";
 import type { Route } from "next";
 
 const ITEMS = [
   { href: "/dashboard", label: "Dashboard", Icon: House },
   { href: "/leads", label: "Leads", Icon: Users },
   { href: "/drafts", label: "Drafts", Icon: EnvelopeSimple },
+  { href: "/calls", label: "Calls", Icon: PhoneCall },
   { href: "/settings", label: "Settings", Icon: Gear },
 ] as const;
 
