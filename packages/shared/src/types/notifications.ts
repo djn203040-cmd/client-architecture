@@ -4,7 +4,8 @@ export type TNotificationEventType =
   | "draft_ready"
   | "lead_replied"
   | "integration_broken"
-  | "hard_bounce";
+  | "hard_bounce"
+  | "call_outcome_pending";
 
 export type TNotificationPreferenceRow =
   Database["public"]["Tables"]["notification_preferences"]["Row"];

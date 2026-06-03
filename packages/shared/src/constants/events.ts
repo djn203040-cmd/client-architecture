@@ -1,6 +1,7 @@
 export const LEAD_NO_SHOW = "lead/no_show";
 export const LEAD_CALL_BOOKED = "lead/call_booked";
 export const LEAD_CALL_COMPLETED = "lead/call_completed";
+export const LEAD_CONVERTED = "lead/converted";
 export const LEAD_REPLIED = "lead/replied";
 export const LEAD_BOUNCED = "lead/bounced";
 export const LEAD_UNSUBSCRIBED = "lead/unsubscribed";

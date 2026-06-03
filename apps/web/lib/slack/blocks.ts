@@ -114,6 +114,73 @@ export function buildCancelledBlocks(): unknown[] {
   ];
 }
 
+// ---------------------------------------------------------------------------
+// Call Outcomes (Phase 7, D-18) — groundwork. STABLE export imported by both
+// wave-2 plans (07-02 dispatcher posts the prompt; 07-03 extends interactivity).
+// Mirrors buildDraftReadyBlocks: action_id carries intent, value carries the id.
+// ---------------------------------------------------------------------------
+
+export function buildCallOutcomeBlocks(args: {
+  leadName: string;
+  callOutcomeId: string;
+  callTime: string;
+}): unknown[] {
+  return [
+    {
+      type: "header",
+      text: { type: "plain_text", text: `How did the call with ${args.leadName} go?` },
+    },
+    {
+      type: "context",
+      elements: [{ type: "mrkdwn", text: `Scheduled call time: *${args.callTime}*` }],
+    },
+    {
+      type: "actions",
+      block_id: `call_outcome_actions_${args.callOutcomeId}`,
+      elements: [
+        {
+          type: "button",
+          text: { type: "plain_text", text: "No show" },
+          value: args.callOutcomeId,
+          action_id: "call_outcome_no_show",
+        },
+        {
+          type: "button",
+          text: { type: "plain_text", text: "Call completed" },
+          style: "primary",
+          value: args.callOutcomeId,
+          action_id: "call_outcome_completed",
+        },
+        {
+          type: "button",
+          text: { type: "plain_text", text: "Converted 🎉" },
+          value: args.callOutcomeId,
+          action_id: "call_outcome_converted",
+        },
+      ],
+    },
+  ];
+}
+
+// Retire-state blocks (no buttons) for the chat.update once an outcome is
+// recorded — mirrors buildApprovedBlocks / buildHeldBlocks.
+export function buildCallOutcomeResolvedBlocks(
+  outcome: "no_show" | "completed" | "converted",
+): unknown[] {
+  const label =
+    outcome === "no_show"
+      ? "No show"
+      : outcome === "completed"
+        ? "Call completed"
+        : "Converted 🎉";
+  return [
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: `:white_check_mark: Recorded: ${label}` },
+    },
+  ];
+}
+
 export function buildEditModalView(args: {
   draftId: string;
   currentSubject: string;
