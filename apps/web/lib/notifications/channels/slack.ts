@@ -1,6 +1,7 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
 import { getSlackClientForCoach } from "@/lib/slack/client";
+import { isSlackAuthRevokedError, handleSlackIntegrationBroken } from "@/lib/slack/error-handler";
 import { buildDraftReadyBlocks } from "@/lib/slack/blocks";
 import type { TNotificationEvent, TChannelResult } from "@client/shared";
 
@@ -57,6 +58,12 @@ export async function postCallOutcomeSlack(args: {
     return { channel: "slack", status: "sent", external_id: res.ts, error_message: null };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "send_failed";
+    // A revoked bot token means the Slack integration is broken — flag it and
+    // notify the coach on their other channels (no recursion risk here: this
+    // path only ever runs for call_outcome_pending, never integration_broken).
+    if (isSlackAuthRevokedError(err)) {
+      await handleSlackIntegrationBroken(coachId);
+    }
     await adminClient.from("notification_log").insert({
       coach_id: coachId,
       event_type: "call_outcome_pending",
@@ -148,6 +155,14 @@ export async function sendSlack(event: TNotificationEvent): Promise<TChannelResu
     return { channel: "slack", status: "sent", external_id: res.ts, error_message: null };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "send_failed";
+    // A revoked bot token means the Slack integration is broken — flag it and
+    // notify the coach. Guard against eventType === "integration_broken": that
+    // notice is itself fanned out over Slack, so re-detecting here would have
+    // the dispatcher emit integration_broken forever. The coach still gets the
+    // notice via dashboard + email (both enabled in the seed matrix).
+    if (eventType !== "integration_broken" && isSlackAuthRevokedError(err)) {
+      await handleSlackIntegrationBroken(coachId);
+    }
     await adminClient.from("notification_log").insert({
       coach_id: coachId,
       draft_id: payload.draftId ?? null,
