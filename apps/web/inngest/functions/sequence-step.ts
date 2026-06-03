@@ -1,6 +1,6 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
-import { TERMINAL_STATES } from "@client/shared";
+import { SEND_BLOCK_STATES } from "@client/shared";
 
 export async function runPreSendSafetyCheck(
   leadId: string,
@@ -12,7 +12,10 @@ export async function runPreSendSafetyCheck(
     .eq("id", leadId)
     .single();
 
-  if (!lead || (TERMINAL_STATES as readonly string[]).includes(lead.status)) {
+  // D-01: gate on SEND_BLOCK_STATES (excludes "converted") so reply-driven /
+  // approved drafts to a converted client still send; lost / unsubscribed /
+  // do_not_contact / bounced still hard-block.
+  if (!lead || (SEND_BLOCK_STATES as readonly string[]).includes(lead.status)) {
     return "terminal_lead";
   }
   if (lead.do_not_contact || lead.bounced) {
