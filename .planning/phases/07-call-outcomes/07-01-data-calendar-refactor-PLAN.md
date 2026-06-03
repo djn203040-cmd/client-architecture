@@ -16,6 +16,7 @@ files_modified:
   - apps/web/lib/calendar/upsert-lead.ts
   - apps/web/lib/calendar/process-event.ts
   - apps/web/lib/call-outcomes/record-atomic.ts
+  - apps/web/lib/slack/blocks.ts
   - apps/web/app/api/webhooks/calendar/calendly/route.ts
   - apps/web/app/api/webhooks/calendar/cal-com/route.ts
   - apps/web/app/api/webhooks/calendar/acuity/route.ts
@@ -32,6 +33,7 @@ must_haves:
     - "A duplicate booking webhook does not create a second call_outcomes row (UNIQUE coach_id, external_event_id)"
     - "call_outcomes is RLS-scoped to coach_id (FORCE) and present in the realtime publication"
     - "record_call_outcome_atomic CAS-resolves awaiting_outcome rows once; double calls no-op"
+    - "A reschedule updates the call_outcomes window AND re-emits LEAD_CALL_BOOKED so the monitor re-arms against the new time"
   artifacts:
     - path: "supabase/migrations/20260603000001_call_outcomes.sql"
       provides: "call_outcomes table, 2 enums, call_converted event, RLS, record_call_outcome_atomic RPC"
@@ -48,6 +50,9 @@ must_haves:
     - path: "apps/web/lib/call-outcomes/record-atomic.ts"
       provides: "typed wrapper over record_call_outcome_atomic RPC"
       contains: "record_call_outcome_atomic"
+    - path: "apps/web/lib/slack/blocks.ts"
+      provides: "buildCallOutcomeBlocks (3 buttons) + buildCallOutcomeResolvedBlocks — stable export both wave-2 plans import"
+      contains: "buildCallOutcomeBlocks"
   key_links:
     - from: "apps/web/app/api/webhooks/calendar/calendly/route.ts"
       to: "apps/web/lib/calendar/process-event.ts"
@@ -63,7 +68,7 @@ must_haves:
 Lay the data + calendar foundation for the Call Outcomes module. Create the `call_outcomes` table (2 new enums, `call_converted` timeline event, RLS, realtime, atomic resolve RPC), push it to the live Supabase DB and regenerate types, add the shared types/constants, and centralize the 7 duplicated calendar webhook handlers behind one `processCalendarEvent` path that auto-creates leads and opens outcome rows.
 
 Purpose: Every downstream plan (Inngest monitor, API/Slack, frontend) reads `call_outcomes`. This plan also fixes the standing no-lead-gap bug (D-12) so `LEAD_CALL_BOOKED` always fires.
-Output: New migrations (pushed), regenerated `packages/database` types, shared types/events, `lib/calendar/{process-event,upsert-lead}.ts`, `lib/call-outcomes/record-atomic.ts`, and 7 thinned webhook handlers.
+Output: New migrations (pushed), regenerated `packages/database` types, shared types/events, `lib/calendar/{process-event,upsert-lead}.ts`, `lib/call-outcomes/record-atomic.ts`, the stable `buildCallOutcomeBlocks` Slack-blocks groundwork (consumed by both wave-2 plans), and 7 thinned webhook handlers.
 </objective>
 
 <execution_context>
@@ -127,6 +132,7 @@ Current no-lead gap (apps/web/app/api/webhooks/calendar/calendly/route.ts:39-71)
     - packages/shared/src/types/index.ts (TApproveAtomicResult, draft type pattern via Database["public"]["Tables"])
     - packages/shared/src/types/notifications.ts (TNotificationEventType)
     - packages/shared/src/constants/events.ts (LEAD_* constants)
+    - apps/web/lib/slack/blocks.ts (buildDraftReadyBlocks / buildApprovedBlocks / buildHeldBlocks — mirror header+actions shape; value=id, action_id=intent — for the buildCallOutcomeBlocks groundwork below)
   </read_first>
   <action>
     Create supabase/migrations/20260603000001_call_outcomes.sql:
@@ -146,6 +152,11 @@ Current no-lead gap (apps/web/app/api/webhooks/calendar/calendly/route.ts:39-71)
     - packages/shared/src/constants/events.ts: add `export const LEAD_CONVERTED = "lead/converted";`
     - packages/shared/src/types/notifications.ts: add `'call_outcome_pending'` to TNotificationEventType union.
     - packages/shared/src/types/index.ts: add `export type TCallOutcome = Database["public"]["Tables"]["call_outcomes"]["Row"];` plus `export type TCallOutcomeStatus = Database["public"]["Enums"]["call_outcome_status"];` and `export type TCallOutcomeValue = Database["public"]["Enums"]["call_outcome_value"];` (mirror the existing draft type export). These will only type-check after Task 2 regenerates packages/database — that is expected ordering.
+
+    Slack-blocks groundwork (pure, dependency-light — placed here so BOTH wave-2 plans 07-02 and 07-03 can import a STABLE export and neither blocks the other's typecheck):
+    - Add to apps/web/lib/slack/blocks.ts `export function buildCallOutcomeBlocks(args: { leadName: string; callOutcomeId: string; callTime: string }): unknown[]` — mirror buildDraftReadyBlocks: a header/section "How did the call with {leadName} go?" (+ a context line with callTime), then an `actions` block with three buttons, each `value: args.callOutcomeId`: { text:"No show", action_id:"call_outcome_no_show" }, { text:"Call completed", style:"primary", action_id:"call_outcome_completed" }, { text:"Converted 🎉", action_id:"call_outcome_converted" }.
+    - Also add `export function buildCallOutcomeResolvedBlocks(outcome: 'no_show'|'completed'|'converted'): unknown[]` (no buttons) for the chat.update retire state (mirror buildApprovedBlocks/buildHeldBlocks), e.g. "✅ Recorded: {label}".
+    - This is groundwork only — 07-02's dispatcher imports buildCallOutcomeBlocks to post the Slack prompt; 07-03 EXTENDS the interactivity/sync around these (CALL-006 stays in 07-03). Do NOT wire interactivity here.
   </action>
   <acceptance_criteria>
     - `supabase/migrations/20260603000001_call_outcomes.sql` contains `CREATE TYPE call_outcome_status`
@@ -158,6 +169,8 @@ Current no-lead gap (apps/web/app/api/webhooks/calendar/calendly/route.ts:39-71)
     - `packages/shared/src/constants/events.ts` contains `LEAD_CONVERTED = "lead/converted"`
     - `grep -v '^//' packages/shared/src/types/notifications.ts | grep -c call_outcome_pending` >= 1
     - `packages/shared/src/types/index.ts` contains `export type TCallOutcome`
+    - `apps/web/lib/slack/blocks.ts` contains `buildCallOutcomeBlocks` and all three action_ids: `call_outcome_no_show`, `call_outcome_completed`, `call_outcome_converted`
+    - `apps/web/lib/slack/blocks.ts` contains `buildCallOutcomeResolvedBlocks`
   </acceptance_criteria>
   <verify>
     <automated>grep -q "record_call_outcome_atomic" supabase/migrations/20260603000001_call_outcomes.sql && grep -q "ADD TABLE public.call_outcomes" supabase/migrations/20260603000002_call_outcomes_realtime.sql && grep -q 'LEAD_CONVERTED' packages/shared/src/constants/events.ts && echo OK</automated>
@@ -214,7 +227,7 @@ Current no-lead gap (apps/web/app/api/webhooks/calendar/calendly/route.ts:39-71)
   <action>
     Create apps/web/lib/calendar/upsert-lead.ts exporting `upsertLeadFromBooking(event: TCalendarEvent): Promise<string>` (returns leadId):
     - Dedup by (coach_id, email) when event.leadEmail present; else dedup by (coach_id, phone) (D-04).
-    - If a lead exists: return its id. NEVER write status/do_not_contact on an existing lead whose status ∈ ('converted','lost','do_not_contact') OR do_not_contact=true (D-11 never-regress). For a benign existing lead you may refresh name/phone but MUST NOT downgrade status.
+    - If a lead exists: return its id. NEVER write status/do_not_contact on an existing lead whose status ∈ ('converted','lost','do_not_contact') OR do_not_contact=true (D-11 never-regress). Use the renamed enum value `'lost'` (the status enum was renamed closed→lost in migration 20260601000001 — do NOT use `'closed'`; 07-CONTEXT prose that says "closed" is stale). For a benign existing lead you may refresh name/phone but MUST NOT downgrade status.
     - If no lead: insert with coach_id, name = event.leadName ?? placeholder (derive from invitee name; if none, `"Lead — "+provider+" booking"`; NEVER fabricate an email), email = event.leadEmail ?? null, phone = event.leadPhone ?? null, source = event.provider, status = 'call_booked'. When email absent set external_ids = { email_pending: true } (D-04). Return new id. Use adminClient (service role, server-only).
 
     Create apps/web/lib/calendar/process-event.ts exporting `processCalendarEvent(event: TCalendarEvent): Promise<void>`:
@@ -222,7 +235,7 @@ Current no-lead gap (apps/web/app/api/webhooks/calendar/calendly/route.ts:39-71)
     - branch on event.eventType:
       * booking_created: leadId = await upsertLeadFromBooking(event); UPDATE calendar_events.lead_id; INSERT lead_events { coach_id, lead_id, type:'call_booked', metadata } (timeline); INSERT call_outcomes { coach_id, lead_id, calendar_event_id, provider, external_event_id, scheduled_at: event.eventStartAt, ends_at: event.eventEndAt, status:'scheduled' } ON CONFLICT (coach_id, external_event_id) DO NOTHING; then `inngest.send({ id: <provider>-<externalEventId>, name: LEAD_CALL_BOOKED, data: { coachId, leadId, provider, externalEventId, eventStartAt, eventEndAt, callOutcomeId } })`. Because the lead now ALWAYS resolves, LEAD_CALL_BOOKED ALWAYS fires (D-12 fix).
       * no_show: find the matching call_outcomes row by (coach_id, external_event_id); if status='awaiting_outcome' OR 'scheduled', call record_call_outcome_atomic(id,'no_show','provider') via the wrapper; on ok fire LEAD_NO_SHOW (data incl leadId); leave Slack retirement to 07-03's sync (emit nothing extra here). (D-03 provider-authoritative auto-resolve.)
-      * rescheduled: UPDATE call_outcomes SET scheduled_at=event.eventStartAt, ends_at=event.eventEndAt WHERE (coach_id, external_event_id); re-arm handled by 07-02's cancelOn/re-fire — emit LEAD_CALL_BOOKED-equivalent re-arm per 07-02 contract (note: monitor cancelOn rescheduled, then re-send). For THIS plan just update the window + emit `calendar/rescheduled` event with callOutcomeId.
+      * rescheduled: load the existing call_outcomes row by (coach_id, external_event_id) to get its callOutcomeId + leadId; UPDATE call_outcomes SET scheduled_at=event.eventStartAt, ends_at=event.eventEndAt WHERE (coach_id, external_event_id). THEN, deterministically re-arm the monitor: first emit `inngest.send({ name: "calendar/rescheduled", data: { callOutcomeId } })` (this cancels the stale monitor run via its cancelOn match), and IMMEDIATELY AFTER, re-emit `inngest.send({ id: <provider>-<externalEventId>-resched-<eventStartAt>, name: LEAD_CALL_BOOKED, data: { coachId, leadId, provider, externalEventId, eventStartAt: event.eventStartAt, eventEndAt: event.eventEndAt, callOutcomeId } })` so a FRESH monitor arms against the new window. Both sends happen in THIS branch — there is no deferred re-arm. (The re-emit id includes the new eventStartAt so the reschedule is not deduped against the original LEAD_CALL_BOOKED.)
       * cancelled: UPDATE call_outcomes SET status='cancelled' WHERE (coach_id, external_event_id); emit `calendar/cancelled` with callOutcomeId (07-02 cancels sequences).
 
     Create apps/web/lib/call-outcomes/record-atomic.ts: `recordCallOutcomeAtomic(id: string, outcome: TCallOutcomeValue, actor: string)` — direct mirror of approveDraftAtomic: adminClient.rpc("record_call_outcome_atomic", { p_id: id, p_outcome: outcome, p_actor: actor }); rowToResult({ ok, reason, new_status }); return { ok, reason, new_status }.
@@ -234,6 +247,8 @@ Current no-lead gap (apps/web/app/api/webhooks/calendar/calendly/route.ts:39-71)
     - `apps/web/lib/calendar/process-event.ts` contains `from("call_outcomes")` and `LEAD_CALL_BOOKED`
     - `apps/web/lib/calendar/upsert-lead.ts` contains `export async function upsertLeadFromBooking` and `email_pending`
     - `apps/web/lib/calendar/upsert-lead.ts` contains a guard string matching `converted` (never-regress)
+    - never-regress guard uses the renamed `lost` status (NOT `closed`): `grep -c "'lost'" apps/web/lib/calendar/upsert-lead.ts` >= 1 AND `grep -c "'closed'" apps/web/lib/calendar/upsert-lead.ts` == 0
+    - rescheduled branch re-arms the monitor: `grep -c "LEAD_CALL_BOOKED" apps/web/lib/calendar/process-event.ts` >= 1 within the rescheduled handling (re-emit, not just booking_created)
     - `apps/web/lib/call-outcomes/record-atomic.ts` contains `record_call_outcome_atomic`
     - Each of the 7 handler files contains `processCalendarEvent`: `grep -l processCalendarEvent apps/web/app/api/webhooks/calendar/*/route.ts | wc -l` == 7
     - No handler still contains the bare `if (inngestEventName && leadId)` gap pattern: `grep -rL "inngestEventName && leadId" apps/web/app/api/webhooks/calendar/*/route.ts | wc -l` == 7

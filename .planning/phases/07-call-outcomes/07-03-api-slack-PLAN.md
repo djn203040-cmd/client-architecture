@@ -8,7 +8,6 @@ autonomous: true
 requirements: [CALL-006, CALL-007, CALL-009]
 files_modified:
   - apps/web/app/api/call-outcomes/[id]/route.ts
-  - apps/web/lib/slack/blocks.ts
   - apps/web/lib/slack/sync-call-outcome-message.ts
   - apps/web/app/api/webhooks/slack/interactivity/route.ts
 
@@ -22,9 +21,6 @@ must_haves:
     - path: "apps/web/app/api/call-outcomes/[id]/route.ts"
       provides: "PATCH endpoint: Zod, ownership, atomic resolve, downstream, timeline, Slack sync"
       contains: "record_call_outcome_atomic"
-    - path: "apps/web/lib/slack/blocks.ts"
-      provides: "buildCallOutcomeBlocks with 3 action_ids"
-      contains: "call_outcome_completed"
     - path: "apps/web/lib/slack/sync-call-outcome-message.ts"
       provides: "syncSlackCallOutcomeMessage chat.update retire"
       contains: "chat.update"
@@ -40,10 +36,10 @@ must_haves:
 ---
 
 <objective>
-Build the decision surfaces for Call Outcomes outside the dashboard: the `PATCH /api/call-outcomes/[id]` endpoint (the single resolve path used by every UI), the Slack Block Kit prompt + interactivity branch, and the `chat.update` sync that retires Slack buttons when an outcome is chosen on any surface.
+Build the decision surfaces for Call Outcomes outside the dashboard: the `PATCH /api/call-outcomes/[id]` endpoint (the single resolve path used by every UI), the Slack interactivity branch (consuming the buildCallOutcomeBlocks/buildCallOutcomeResolvedBlocks builders created in 07-01), and the `chat.update` sync that retires Slack buttons when an outcome is chosen on any surface.
 
 Purpose: Lets a coach resolve a call from Slack or via the dashboard/lead-profile (which both POST to this API), atomically and idempotently, with Slack kept in sync.
-Output: `app/api/call-outcomes/[id]/route.ts`, `buildCallOutcomeBlocks` in slack/blocks.ts, `lib/slack/sync-call-outcome-message.ts`, and the `call_outcome_*` branch in slack interactivity.
+Output: `app/api/call-outcomes/[id]/route.ts`, `lib/slack/sync-call-outcome-message.ts`, and the `call_outcome_*` branch in slack interactivity (the Block Kit builders are imported from 07-01's slack/blocks.ts).
 </objective>
 
 <execution_context>
@@ -76,6 +72,8 @@ From apps/web/app/api/drafts/[id]/route.ts (the exact template):
 
 From apps/web/lib/slack/blocks.ts: buildDraftReadyBlocks returns Block Kit array;
   buttons carry { value: draftId, action_id: "draft_approve"|"draft_edit"|"draft_hold" }.
+  buildCallOutcomeBlocks + buildCallOutcomeResolvedBlocks ALREADY EXIST here (created in 07-01) —
+  import them; the call_outcome_* action_ids are the contract this plan's interactivity branch keys on.
 From apps/web/app/api/webhooks/slack/interactivity/route.ts:
   verifySlackSignature({...}) already runs; findCoachIdByTeam(payload.user.team_id);
   branches keyed on action.action_id === "draft_approve" etc.; action.value carries the id.
@@ -125,29 +123,27 @@ From apps/web/lib/slack/sync-draft-message.ts: reads notification_log.external_i
 </task>
 
 <task type="auto">
-  <name>Task 2: buildCallOutcomeBlocks Block Kit (3 buttons)</name>
+  <name>Task 2: Confirm the Block Kit builders (from 07-01) match D-18 button copy/action_ids</name>
   <read_first>
-    - apps/web/lib/slack/blocks.ts (buildDraftReadyBlocks — mirror its header + actions structure; value=id, action_id=intent)
+    - apps/web/lib/slack/blocks.ts (buildCallOutcomeBlocks + buildCallOutcomeResolvedBlocks — CREATED in 07-01 as stable groundwork; this task EXTENDS/verifies, never re-creates)
     - .planning/phases/07-call-outcomes/07-CONTEXT.md (D-18 + Specific Requirements — exact button copy)
   </read_first>
   <action>
-    Add to apps/web/lib/slack/blocks.ts:
-    - `export function buildCallOutcomeBlocks(args: { leadName: string; callOutcomeId: string; callTime: string }): unknown[]` — header section text "How did the call with {leadName} go?" (+ a context line with callTime), then an `actions` block with three buttons, each `value: args.callOutcomeId`:
-      * { text: "No show", action_id: "call_outcome_no_show" }
-      * { text: "Call completed", style: "primary", action_id: "call_outcome_completed" }
-      * { text: "Converted 🎉", action_id: "call_outcome_converted" }
-    - Add a `export function buildCallOutcomeResolvedBlocks(outcome: 'no_show'|'completed'|'converted'): unknown[]` (no buttons) for the chat.update retire state, e.g. "✅ Recorded: {label}" (mirror buildApprovedBlocks/buildHeldBlocks).
+    The Block Kit builders already exist (07-01 created buildCallOutcomeBlocks + buildCallOutcomeResolvedBlocks in apps/web/lib/slack/blocks.ts). Do NOT re-create them. This task only reconciles them with D-18:
+    - Confirm buildCallOutcomeBlocks emits exactly three buttons with action_ids `call_outcome_no_show`, `call_outcome_completed`, `call_outcome_converted`, each `value` = callOutcomeId, header "How did the call with {leadName} go?" + a callTime context line. If 07-01's copy drifts from the exact D-18 requirement, adjust the text/style ONLY (do not change the action_ids — the interactivity branch in Task 3 + the dispatcher in 07-02 depend on them).
+    - Confirm buildCallOutcomeResolvedBlocks(outcome) renders a buttonless "✅ Recorded: {label}" state used by syncSlackCallOutcomeMessage (Task 3).
+    - If both already satisfy D-18, this task is a no-op verification (no file edit) — record that in the SUMMARY. The grep acceptance below treats blocks.ts as an imported dependency, not a file this plan creates.
   </action>
   <acceptance_criteria>
-    - `apps/web/lib/slack/blocks.ts` contains `buildCallOutcomeBlocks`
+    - `apps/web/lib/slack/blocks.ts` contains `buildCallOutcomeBlocks` (created in 07-01; present as a dependency)
     - file contains all three action_ids: `call_outcome_no_show`, `call_outcome_completed`, `call_outcome_converted`
     - file contains `buildCallOutcomeResolvedBlocks`
     - `pnpm --filter web typecheck` exits 0
   </acceptance_criteria>
   <verify>
-    <automated>grep -q "buildCallOutcomeBlocks" apps/web/lib/slack/blocks.ts && grep -q "call_outcome_no_show" apps/web/lib/slack/blocks.ts && grep -q "call_outcome_completed" apps/web/lib/slack/blocks.ts && grep -q "call_outcome_converted" apps/web/lib/slack/blocks.ts && echo OK</automated>
+    <automated>grep -q "buildCallOutcomeBlocks" apps/web/lib/slack/blocks.ts && grep -q "call_outcome_no_show" apps/web/lib/slack/blocks.ts && grep -q "call_outcome_completed" apps/web/lib/slack/blocks.ts && grep -q "call_outcome_converted" apps/web/lib/slack/blocks.ts && grep -q "buildCallOutcomeResolvedBlocks" apps/web/lib/slack/blocks.ts && echo OK</automated>
   </verify>
-  <done>Block Kit builder emits the 3-button prompt + a buttonless resolved state, matching draft block conventions.</done>
+  <done>The 07-01 Block Kit builders match D-18 (3 action_ids + resolved state); no duplicate builder created in this plan.</done>
 </task>
 
 <task type="auto">
@@ -207,7 +203,7 @@ From apps/web/lib/slack/sync-draft-message.ts: reads notification_log.external_i
 <verification>
 - `pnpm --filter web typecheck` exits 0.
 - PATCH route: Zod enum + 403 ownership + 409 + atomic + timeline + Slack sync present.
-- Slack: 3 action_ids in blocks; interactivity branch verifies ownership + resolves atomically; sync uses chat.update.
+- Slack: 3 action_ids in blocks (builder from 07-01); interactivity branch verifies ownership + resolves atomically; sync uses chat.update + buildCallOutcomeResolvedBlocks.
 </verification>
 
 <success_criteria>

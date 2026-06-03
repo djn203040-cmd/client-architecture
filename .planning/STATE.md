@@ -6,13 +6,13 @@
 
 ## Current Status
 
-**Stage:** Phase 5 context gathered — ready for `/gsd-plan-phase 5`
-**Active phase:** Phase 5 — Polish
-**Current plan:** Context (05-CONTEXT.md) complete; planning not yet started
-**Date:** 2026-05-20
+**Stage:** Phase 7 planned — ready to execute (`/gsd-execute-phase 7`)
+**Active phase:** Phase 7 — Call Outcomes (post-launch milestone v1.1)
+**Current plan:** 4 PLAN.md files in 3 waves; verified by gsd-plan-checker (PASSED after 1 revision round — 3 blockers + 4 warnings fixed)
+**Date:** 2026-06-03
 
-**Last session:** Discuss-phase for Phase 5 complete. CONTEXT.md captures decisions across 4 areas: locked module sell screens (dedicated routes, long-form, editorial premium, Cal.com inline embed), onboarding wizard (4 required steps, dedicated /onboarding route, redirect-then-banner resume, demo-lead walkthrough), settings page (single-page 6 sections, full profile fields, in-page danger zone), Playwright suite (8 specs total, local Supabase via CLI, per-test fixtures, full impeccable sweep).
-**Resume file:** `.planning/phases/05-polish/05-CONTEXT.md`
+**Last session:** Scoped + planned Phase 7 (Call Outcomes). Net-new post-launch feature added to ROADMAP (v1.7) and REQUIREMENTS (CALL-001..016). Monitors every calendar booking → auto-creates/updates lead (fixes the standing no-lead-on-booking gap) → opens a `call_outcomes` record → 30 min after the call asks the coach No Show / Call Completed / Converted on a `/calls` queue, the lead profile, and Slack buttons. 4 locked product decisions: Converted keeps the lead live (reply+transcript monitoring continue, only nurture stops — requires splitting TERMINAL_STATES into send-block vs nurture-block), prompt at call end +30m, provider no-show auto-resolves, no-email bookings get a placeholder lead. Plan set mirrors the drafts feature (queue/Slack/realtime/timeline) and supersedes the half-built pending_actions stub. Planner committed initial plans (16c2c8e); revisions + docs pending commit. NOTE: GSD `gsd-sdk` CLI is not installed in this env — workflow was driven by spawning the gsd-planner/gsd-plan-checker agents directly + manual gates.
+**Resume file:** `.planning/phases/07-call-outcomes/07-CONTEXT.md`
 
 ---
 

@@ -229,6 +229,29 @@
 
 ---
 
+## CALL — Call Outcome Capture (Phase 7)
+
+| ID | Requirement | Phase |
+|----|-------------|-------|
+| CALL-001 | Every calendar booking (all 7 providers) is monitored: if no lead matches, a lead is created; if one matches, it is updated. Lead set to `call_booked`; `call_booked` written to the activity timeline | 7 |
+| CALL-002 | A `call_outcomes` record is created on every `booking_created` event (lifecycle `scheduled`), linked to the lead and the `calendar_events` row, deduped on `(coach_id, external_event_id)` | 7 |
+| CALL-003 | 30 minutes after the call's scheduled end (buffer configurable per coach), the outcome flips to `awaiting_outcome` and the coach is prompted on every enabled notification channel | 7 |
+| CALL-004 | Dedicated `/calls` queue page (Awaiting / Upcoming / History tabs) mirroring the drafts queue — SSR + Supabase realtime, glass cards, empty/loading states | 7 |
+| CALL-005 | The lead profile surfaces any call awaiting an outcome, with the three outcome actions inline | 7 |
+| CALL-006 | Slack interactive prompt with three buttons; a click records the outcome and retires the buttons via `chat.update`; the message is kept in sync when the outcome is chosen on another surface | 7 |
+| CALL-007 | The coach picks exactly one of three manual outcomes: No Show, Call Completed, Converted | 7 |
+| CALL-008 | No Show fires `lead/no_show` → no-show sequence; Call Completed fires `lead/call_completed` → follow-up sequence; Converted marks the lead won and cancels nurture | 7 |
+| CALL-009 | The outcome decision is atomic (advisory-lock CAS on `awaiting_outcome`) and idempotent against duplicate or late provider webhooks | 7 |
+| CALL-010 | Provider-sent no-show webhooks (Calendly, Cal.com) auto-resolve the outcome as No Show, fire `lead/no_show`, and retire the prompt — the coach is not asked | 7 |
+| CALL-011 | Bookings with no email create a placeholder lead (dedup by phone, flagged for email enrichment) and still receive an outcome prompt | 7 |
+| CALL-012 | Rescheduled events re-arm the monitor and update the call window; cancelled events cancel the outcome and any active sequences | 7 |
+| CALL-013 | Converted is non-terminal for monitoring: the lead stays live in the reply handler and transcript ingestion; only nurture sequences stop; a quiet Module 2 CTA is shown on the lead | 7 |
+| CALL-014 | A resilience poller cron flips stranded `scheduled` outcomes whose end time has passed (no sole reliance on Inngest `sleepUntil`) | 7 |
+| CALL-015 | Every outcome is tracked in the activity timeline (`call_booked`, `no_show`, `call_completed`, `call_converted`) | 7 |
+| CALL-016 | `call_outcomes` has RLS scoped to `coach_id`, is added to the realtime publication, and every API boundary is Zod-validated | 7 |
+
+---
+
 ## INFRA — Infrastructure & Security
 
 | ID | Requirement | Phase |
@@ -246,5 +269,5 @@
 
 ---
 
-*Requirements version: 1.0 — 2026-05-05*
+*Requirements version: 1.1 — 2026-06-03 (added CALL — Call Outcome Capture, Phase 7)*
 *Next update: after Phase 1 execution*

@@ -4,7 +4,7 @@ plan: 04
 type: execute
 wave: 3
 depends_on: ["07-01", "07-02", "07-03"]
-autonomous: true
+autonomous: false   # Task 3 is a blocking human checkpoint (/impeccable audit + manual dashboard walkthrough)
 requirements: [CALL-004, CALL-005, CALL-013]
 files_modified:
   - apps/web/app/(dashboard)/calls/page.tsx
@@ -88,7 +88,7 @@ Templates to clone (mirror shape, swap payload):
   apps/web/components/ui/approve-button.tsx -> reuse the fill animation for the 3 outcome buttons.
   apps/web/components/drafts/CelebrationEmptyState.tsx -> CallCelebrationEmptyState + skeleton.
   apps/web/components/shell/SidebarNav.tsx -> ITEMS array: add { href: "/calls", label: "Calls", Icon: PhoneCall }.
-  apps/web/app/(dashboard)/leads/[id]/page.tsx + components/LeadDraftsPanel.tsx -> where LeadCallOutcomePanel mounts.
+  apps/web/app/(dashboard)/leads/[id]/page.tsx + app/(dashboard)/leads/[id]/components/LeadDraftsPanel.tsx -> where LeadCallOutcomePanel mounts.
   apps/web/components/leads/LeadEventIcon.tsx + app/(dashboard)/leads/[id]/activity-timeline.tsx -> add call_converted icon + label.
 </interfaces>
 </context>
@@ -142,7 +142,7 @@ Templates to clone (mirror shape, swap payload):
   <name>Task 2: LeadCallOutcomePanel + converted Module 2 CTA + call_converted timeline icon/label</name>
   <read_first>
     - apps/web/app/(dashboard)/leads/[id]/page.tsx (where LeadDraftsPanel mounts — mount LeadCallOutcomePanel alongside)
-    - apps/web/components/LeadDraftsPanel.tsx (lead-scoped panel + realtime-by-leadId pattern to mirror)
+    - apps/web/app/(dashboard)/leads/[id]/components/LeadDraftsPanel.tsx (lead-scoped panel + realtime-by-leadId pattern to mirror)
     - apps/web/components/calls/CallOutcomeCard.tsx (reuse the card built in Task 1)
     - apps/web/components/calls/call-outcome-realtime.tsx (useCallOutcomeRealtime with leadId scope)
     - apps/web/components/leads/LeadEventIcon.tsx (icon map — add call_converted)

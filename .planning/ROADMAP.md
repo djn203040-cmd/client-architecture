@@ -229,6 +229,32 @@ VOICE-005
 
 ---
 
+## Phase 7 — Call Outcomes
+**Goal:** Close the post-call loop. Every calendar booking (all 7 providers) is monitored — it creates a lead if new or updates an existing one, sets `call_booked`, and opens a `call_outcomes` record. Thirty minutes after the call's scheduled end, the coach is asked one question — **No Show / Call Completed / Converted** — surfaced in a dedicated `/calls` queue, inside the lead profile, and as interactive Slack buttons. The chosen outcome drives lead status, writes to the timeline, and fires the right downstream sequence. This is the productized front-end of the half-built `pending_actions` / `wait-for-coach-decision` stub, and it fixes the standing gap where calendar webhooks never auto-create leads.
+
+**Weeks:** 17–18 (post-launch milestone v1.1)
+
+**Requirements covered:** CALL-001 … CALL-016. Builds on CAL-006/007/008 (Inngest call events), STATE-002/003/004 (no_show / call_completed / converted states), STATE-009 (timeline logging).
+
+**Context:** `phases/07-call-outcomes/07-CONTEXT.md` — full scope + 4 locked product decisions (Converted keeps the lead live, prompt at call end +30m, provider no-show auto-resolves, no-email bookings get a placeholder lead).
+
+**Planned sub-plans (4, wave-ordered):**
+- [ ] 07-01 — Data + calendar processing refactor: `call_outcomes` table/enums/RLS/RPC, shared types, `processCalendarEvent` + `upsertLeadFromBooking` across all 7 webhooks, `call_booked` timeline. (Wave 1)
+- [ ] 07-02 — Inngest: `call-outcome-monitor` (sleep→awaiting), resilience poller cron, downstream wiring (no_show / call_completed / converted), notification-dispatcher case. (Wave 2, depends 07-01)
+- [ ] 07-03 — API + Slack: `PATCH /api/call-outcomes/[id]`, Block Kit builder, interactivity branch, `syncSlackCallOutcomeMessage`. (Wave 2, depends 07-01)
+- [ ] 07-04 — Frontend: `/calls` queue page, `LeadCallOutcomePanel`, timeline icons, sidebar nav, impeccable audit. (Wave 3, depends 07-01/02/03)
+
+### Exit criteria
+- [ ] A booking on any of the 7 providers creates/updates a lead and a `call_outcomes` row, with `call_booked` on the timeline
+- [ ] 30 min after a call ends, the coach is prompted on `/calls`, the lead profile, and Slack
+- [ ] Each of the 3 outcomes drives the correct status, timeline event, and downstream sequence
+- [ ] Converted leads stay live for replies + transcripts (not lumped with `closed`/`do_not_contact`)
+- [ ] Provider no-show webhooks auto-resolve; no-email bookings get a placeholder lead
+- [ ] Outcome decision is atomic + idempotent; resilience cron recovers stranded calls
+- [ ] `/impeccable audit` passes on the new queue + card
+
+---
+
 ## Milestone Summary
 
 | Phase | Name | Weeks | Status |
@@ -239,8 +265,9 @@ VOICE-005
 | 4 | Approval Channels | 10–12 | DONE 2026-05-20 |
 | 5 | Polish | 13–14 | DONE 2026-05-21 |
 | 6 | Testing & Security | 15–16 | PLANNED 2026-05-21 — 3 sub-plans decomposed |
+| 7 | Call Outcomes | 17–18 | PLANNING 2026-06-03 — post-launch v1.1 |
 
 ---
 
-*Roadmap version: 1.6 — 2026-05-21*
-*Next update: after Phase 6 execution*
+*Roadmap version: 1.7 — 2026-06-03*
+*Next update: after Phase 7 planning*
