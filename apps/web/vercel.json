@@ -7,10 +7,6 @@
     {
       "path": "/api/cron/gmail-poll",
       "schedule": "0 7 * * *"
-    },
-    {
-      "path": "/api/cron/call-outcome-poll",
-      "schedule": "*/15 * * * *"
     }
   ]
 }

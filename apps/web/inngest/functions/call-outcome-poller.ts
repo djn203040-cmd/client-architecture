@@ -83,7 +83,10 @@ export const callOutcomePoller = inngest.createFunction(
   {
     id: "call-outcome-poller",
     name: "Call outcome poller — recover stranded prompts (D-14)",
-    triggers: [{ event: "cron/call_outcome_poll" }],
+    // Inngest-native cron (every 15 min) is the live cadence: Vercel Hobby rejects
+    // sub-daily crons, and Inngest's scheduler has no such limit. The event trigger
+    // is retained so /api/cron/call-outcome-poll still works as a manual fast-path.
+    triggers: [{ cron: "*/15 * * * *" }, { event: "cron/call_outcome_poll" }],
     retries: 2,
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- reason: Inngest handler signature widened for event payload
