@@ -240,7 +240,7 @@ VOICE-005
 
 **Planned sub-plans (4, wave-ordered):**
 - [x] 07-01 — Data + calendar processing refactor: `call_outcomes` table/enums/RLS/RPC, shared types, `processCalendarEvent` + `upsertLeadFromBooking` across all 7 webhooks, `call_booked` timeline. (Wave 1) ✓ 2026-06-03
-- [ ] 07-02 — Inngest: `call-outcome-monitor` (sleep→awaiting), resilience poller cron, downstream wiring (no_show / call_completed / converted), notification-dispatcher case. (Wave 2, depends 07-01)
+- [x] 07-02 — Inngest: `call-outcome-monitor` (sleep→awaiting), resilience poller cron, downstream wiring (no_show / call_completed / converted), notification-dispatcher case, state-machine send-block/nurture-block split. (Wave 2, depends 07-01) ✓ 2026-06-03
 - [ ] 07-03 — API + Slack: `PATCH /api/call-outcomes/[id]`, Block Kit builder, interactivity branch, `syncSlackCallOutcomeMessage`. (Wave 2, depends 07-01)
 - [ ] 07-04 — Frontend: `/calls` queue page, `LeadCallOutcomePanel`, timeline icons, sidebar nav, impeccable audit. (Wave 3, depends 07-01/02/03)
 
@@ -265,7 +265,7 @@ VOICE-005
 | 4 | Approval Channels | 10–12 | DONE 2026-05-20 |
 | 5 | Polish | 13–14 | DONE 2026-05-21 |
 | 6 | Testing & Security | 15–16 | PLANNED 2026-05-21 — 3 sub-plans decomposed |
-| 7 | Call Outcomes | 17–18 | PLANNING 2026-06-03 — post-launch v1.1 |
+| 7 | Call Outcomes | 17–18 | EXECUTING 2026-06-03 — 2/4 plans (07-01, 07-02 done) |
 
 ---
 
