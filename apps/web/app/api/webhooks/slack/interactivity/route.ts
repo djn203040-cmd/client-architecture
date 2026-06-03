@@ -8,10 +8,27 @@ import {
   buildHeldBlocks,
   buildEditModalView,
   buildEditedApprovedBlocks,
+  buildCallOutcomeResolvedBlocks,
 } from "@/lib/slack/blocks";
 import { approveDraftAtomic, holdDraftAtomic } from "@/lib/drafts/approve-atomic";
 import { inngest } from "@/inngest/client";
 import { runPreSendSafetyCheck } from "@/inngest/functions/sequence-step";
+import { recordCallOutcomeAtomic } from "@/lib/call-outcomes/record-atomic";
+import { fireCallOutcomeDownstream } from "@/lib/call-outcomes/downstream";
+import type { TCallOutcomeValue, TLeadEventType } from "@client/shared";
+
+// call_outcome_<x> action_id -> the chosen outcome value (D-18). Stable contract
+// shared with buildCallOutcomeBlocks (07-01) and the PATCH route.
+const CALL_OUTCOME_ACTIONS: Record<string, TCallOutcomeValue> = {
+  call_outcome_no_show: "no_show",
+  call_outcome_completed: "completed",
+  call_outcome_converted: "converted",
+};
+const OUTCOME_EVENT: Record<TCallOutcomeValue, TLeadEventType> = {
+  no_show: "no_show",
+  completed: "call_completed",
+  converted: "call_converted",
+};
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -113,6 +130,56 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: lookup.reason }, { status: 200 });
     }
     const coachId = lookup.coachId;
+
+    // ---- Call Outcomes: No show / Call completed / Converted (D-18) ----
+    if (action.action_id.startsWith("call_outcome_")) {
+      const outcome = CALL_OUTCOME_ACTIONS[action.action_id];
+      if (!outcome) {
+        return NextResponse.json({ ok: false, reason: "unknown_action" }, { status: 200 });
+      }
+      const callOutcomeId = action.value;
+
+      // Ownership: the resolved coach (from the signed team_id) MUST own this
+      // outcome row — a forged/cross-team click can't resolve someone else's call
+      // (T-07-15). On mismatch / missing row we 200-ack with no action.
+      const { data: row } = await adminClient
+        .from("call_outcomes")
+        .select("coach_id, lead_id")
+        .eq("id", callOutcomeId)
+        .maybeSingle();
+      if (!row || row.coach_id !== coachId) {
+        return NextResponse.json({ ok: true });
+      }
+
+      // CAS resolve. On !ok (already resolved elsewhere / late provider no_show)
+      // still retire the buttons below for idempotent UX, but never re-fire
+      // downstream (T-07-16).
+      const result = await recordCallOutcomeAtomic(callOutcomeId, outcome, "slack");
+      if (result.ok) {
+        await adminClient.from("lead_events").insert({
+          coach_id: row.coach_id,
+          lead_id: row.lead_id,
+          event_type: OUTCOME_EVENT[outcome],
+          triggered_by: "coach",
+          payload: { source: "slack", callOutcomeId },
+        });
+        await fireCallOutcomeDownstream({
+          outcome,
+          coachId: row.coach_id,
+          leadId: row.lead_id,
+          callOutcomeId,
+        });
+      }
+
+      // Retire the prompt buttons on this very message (replace_original keeps the
+      // 3s budget; the cross-surface sync helper covers dashboard/lead-profile
+      // resolves). Done on both ok and !ok so a stale prompt never lingers.
+      await respondViaResponseUrl(payload.response_url, {
+        replace_original: true,
+        blocks: buildCallOutcomeResolvedBlocks(outcome),
+      });
+      return NextResponse.json({ ok: true });
+    }
 
     if (action.action_id === "draft_approve") {
       const { data: draft } = await adminClient
