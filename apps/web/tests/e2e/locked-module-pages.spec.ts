@@ -40,7 +40,9 @@ for (const { path, titleSegment, taglineSegment } of PAGES) {
     });
 
     await page.goto(path);
-    await expect(page.getByText(titleSegment)).toBeVisible();
+    // The title appears in the hero h1, the sidebar link, and prose — target
+    // the hero heading specifically to avoid a strict-mode match on all four.
+    await expect(page.getByRole("heading", { level: 1, name: titleSegment })).toBeVisible();
     await expect(page.getByText(taglineSegment)).toBeVisible();
 
     expect(criticalErrors).toHaveLength(0);

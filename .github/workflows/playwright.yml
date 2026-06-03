@@ -55,6 +55,9 @@ jobs:
           ANTHROPIC_API_KEY: test-anthropic-key
           INNGEST_SIGNING_KEY: test-inngest-key
           INNGEST_EVENT_KEY: test-inngest-event-key
+          # No Inngest dev server in CI — make event emission a no-op so
+          # event-emitting routes don't 401→500 against Inngest Cloud.
+          INNGEST_TEST_NOOP: "1"
 
       - uses: actions/upload-artifact@v4
         if: failure()

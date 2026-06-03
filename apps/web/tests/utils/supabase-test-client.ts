@@ -70,7 +70,8 @@ export async function seedCoach(
   const id = input.id ?? crypto.randomUUID();
   const { data, error } = await client
     .from("coaches")
-    .insert({ id, email: input.email })
+    // coaches.name is NOT NULL — seed a default so the insert satisfies the schema.
+    .insert({ id, email: input.email, name: "Test Coach" })
     .select("id, email")
     .single();
 
