@@ -49,6 +49,8 @@ function describe(e: Event): string {
       return "Email opened";
     case "replied":
       return "Lead replied";
+    case "call_converted":
+      return "Converted to client";
     default:
       return e.event_type.replace(/_/g, " ");
   }

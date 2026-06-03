@@ -12,7 +12,7 @@ import {
   ProhibitInset,
   Warning,
   Note,
-  Sparkle,
+  Trophy,
 } from "@phosphor-icons/react";
 import type { Icon } from "@phosphor-icons/react";
 import type { TLeadEventType } from "@client/shared/types";
@@ -21,7 +21,7 @@ const ICON: Record<TLeadEventType, { Icon: Icon; tone: string }> = {
   call_booked: { Icon: CalendarCheck, tone: "text-[oklch(70%_0.10_200)]" },
   no_show: { Icon: CalendarX, tone: "text-[oklch(75%_0.15_70)]" },
   call_completed: { Icon: PhoneCall, tone: "text-[oklch(65%_0.15_145)]" },
-  call_converted: { Icon: Sparkle, tone: "text-[oklch(80%_0.14_85)]" },
+  call_converted: { Icon: Trophy, tone: "text-[oklch(72%_0.13_85)]" },
   email_sent: { Icon: PaperPlaneRight, tone: "text-muted-foreground" },
   email_opened: { Icon: EnvelopeOpen, tone: "text-muted-foreground" },
   replied: { Icon: ChatText, tone: "text-accent" },

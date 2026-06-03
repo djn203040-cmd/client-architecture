@@ -10,9 +10,11 @@ import { ManualTranscriptUpload } from "./components/ManualTranscriptUpload";
 import { LeadAISummaryCard } from "./components/LeadAISummaryCard";
 import { GenerateDraftButton } from "./components/GenerateDraftButton";
 import { LeadDraftsPanel } from "./components/LeadDraftsPanel";
+import { LeadCallOutcomePanel } from "@/components/leads/LeadCallOutcomePanel";
 import { EmailThreadView } from "./components/EmailThreadView";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { TLeadStatus } from "@client/shared/types";
+import type { CallOutcomeRow } from "@/components/calls/call-outcome-realtime";
 import { buildSequenceView, type TSequenceConfig } from "@/lib/sequences/progress";
 
 export default async function LeadProfilePage({
@@ -37,6 +39,7 @@ export default async function LeadProfilePage({
     sequenceResult,
     coachResult,
     sequenceDraftsResult,
+    awaitingCallsResult,
   ] = await Promise.all([
       supabase
         .from("lead_events")
@@ -77,6 +80,14 @@ export default async function LeadProfilePage({
         .select("sequence_id, touchpoint_index, status, sent_at, scheduled_send_at")
         .eq("lead_id", id)
         .not("sequence_id", "is", null),
+      // Calls awaiting an outcome for this lead — surfaced inline with the
+      // three outcome buttons (D-20). RLS scopes the read to the coach.
+      supabase
+        .from("call_outcomes")
+        .select("*, leads(name)")
+        .eq("lead_id", id)
+        .eq("status", "awaiting_outcome")
+        .order("ends_at", { ascending: true }),
     ]);
 
   const allTranscripts = transcriptsResult.data ?? [];
@@ -118,6 +129,16 @@ export default async function LeadProfilePage({
         <div className="flex justify-end">
           <GenerateDraftButton leadId={lead.id} leadStatus={lead.status as TLeadStatus} />
         </div>
+        {user && (
+          <LeadCallOutcomePanel
+            coachId={user.id}
+            leadId={lead.id}
+            leadName={lead.name}
+            leadStatus={lead.status as TLeadStatus}
+            initialAwaiting={(awaitingCallsResult.data ?? []) as CallOutcomeRow[]}
+            timeZone={coachResult.data?.timezone}
+          />
+        )}
         {user && (
           <LeadDraftsPanel
             coachId={user.id}
