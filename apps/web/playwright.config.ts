@@ -3,7 +3,11 @@ import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 
 // Load .env.test for local runs without dotenv dependency.
-// CI populates these via: supabase status -o env >> apps/web/.env.test
+// CI APPENDS the live keys: supabase status -o env >> apps/web/.env.test — so
+// each Supabase key appears twice (committed placeholder, then the real value).
+// Real shell/CI process-env exports always win; within the file the LAST
+// occurrence wins, so the appended real key overrides the placeholder.
+const preExistingEnv = new Set(Object.keys(process.env));
 const envTestPath = path.resolve(__dirname, ".env.test");
 if (existsSync(envTestPath)) {
   for (const line of readFileSync(envTestPath, "utf8").split("\n")) {
@@ -15,8 +19,9 @@ if (existsSync(envTestPath)) {
     // `supabase status -o env` writes KEY="value"; strip surrounding quotes so
     // the value is a usable URL, not `"http://…"`.
     const value = trimmed.slice(eqIdx + 1).trim().replace(/^"(.*)"$/, "$1");
-    // Don't overwrite values already set in process.env (CI / shell exports win)
-    if (!(key in process.env)) process.env[key] = value;
+    // A real shell/CI export (present before we read the file) always wins.
+    if (preExistingEnv.has(key)) continue;
+    process.env[key] = value;
   }
 }
 
