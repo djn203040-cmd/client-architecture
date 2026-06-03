@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ApproveButton } from "@/components/ui/approve-button";
 import { CalendarX, PhoneCall, Sparkle } from "@phosphor-icons/react";
@@ -34,6 +34,7 @@ export function CallOutcomeCard({
 }: Props) {
   const [pending, setPending] = useState<Outcome | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     if (variant === "awaiting") cardRef.current?.focus();
@@ -100,9 +101,9 @@ export function CallOutcomeCard({
       tabIndex={0}
       role="article"
       aria-label={`How did the call with ${leadName} go?`}
-      initial={{ x: 300, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: -300, opacity: 0 }}
+      initial={reduce ? { opacity: 0 } : { x: 300, opacity: 0 }}
+      animate={reduce ? { opacity: 1 } : { x: 0, opacity: 1 }}
+      exit={reduce ? { opacity: 0 } : { x: -300, opacity: 0 }}
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
       className="rounded-2xl p-6 focus:outline-none focus:ring-2 focus:ring-primary-soft focus:ring-offset-2 backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
     >

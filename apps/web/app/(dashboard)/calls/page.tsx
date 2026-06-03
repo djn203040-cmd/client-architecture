@@ -43,7 +43,7 @@ export default async function CallsPage() {
         </h1>
         <p className="text-sm text-muted-foreground max-w-[60ch]">
           After every booked call, record the outcome in one tap. Converted leads
-          stay fully monitored — only the auto-nurture stops.
+          stay fully monitored; only the auto-nurture stops.
         </p>
       </header>
       <CallQueueScaffold

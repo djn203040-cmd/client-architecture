@@ -112,53 +112,62 @@ export function CallQueueScaffold({
         )}
       </div>
 
-      <div
-        role="tabpanel"
-        id="tabpanel-upcoming"
-        aria-labelledby="tab-upcoming"
-        tabIndex={0}
-        hidden={activeTab !== "upcoming"}
-      >
-        {upcoming.length === 0 ? (
-          <CallCelebrationEmptyState bucket="upcoming" />
-        ) : (
-          <div className="space-y-4">
-            {upcoming.map((o) => (
-              <CallOutcomeCard
-                key={o.id}
-                outcome={o}
-                leadName={nameOf(o)}
-                variant="readonly"
-                timeZone={timeZone}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      <ReadonlyTabPanel
+        bucket="upcoming"
+        active={activeTab === "upcoming"}
+        outcomes={upcoming}
+        nameOf={nameOf}
+        timeZone={timeZone}
+      />
 
-      <div
-        role="tabpanel"
-        id="tabpanel-history"
-        aria-labelledby="tab-history"
-        tabIndex={0}
-        hidden={activeTab !== "history"}
-      >
-        {history.length === 0 ? (
-          <CallCelebrationEmptyState bucket="history" />
-        ) : (
-          <div className="space-y-4">
-            {history.map((o) => (
-              <CallOutcomeCard
-                key={o.id}
-                outcome={o}
-                leadName={nameOf(o)}
-                variant="readonly"
-                timeZone={timeZone}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      <ReadonlyTabPanel
+        bucket="history"
+        active={activeTab === "history"}
+        outcomes={history}
+        nameOf={nameOf}
+        timeZone={timeZone}
+      />
+    </div>
+  );
+}
+
+/** Shared read-only tab body for the Upcoming and History buckets. */
+function ReadonlyTabPanel({
+  bucket,
+  active,
+  outcomes,
+  nameOf,
+  timeZone,
+}: {
+  bucket: "upcoming" | "history";
+  active: boolean;
+  outcomes: CallOutcomeRow[];
+  nameOf: (o: CallOutcomeRow) => string;
+  timeZone?: string | null;
+}) {
+  return (
+    <div
+      role="tabpanel"
+      id={`tabpanel-${bucket}`}
+      aria-labelledby={`tab-${bucket}`}
+      tabIndex={0}
+      hidden={!active}
+    >
+      {outcomes.length === 0 ? (
+        <CallCelebrationEmptyState bucket={bucket} />
+      ) : (
+        <div className="space-y-4">
+          {outcomes.map((o) => (
+            <CallOutcomeCard
+              key={o.id}
+              outcome={o}
+              leadName={nameOf(o)}
+              variant="readonly"
+              timeZone={timeZone}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
