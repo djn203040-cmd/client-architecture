@@ -15,6 +15,10 @@ export interface TNotificationEvent {
   eventType: TNotificationEventType;
   payload: {
     draftId?: string;
+    /** Call Outcomes (D-16): the awaiting call_outcomes row this prompt is for. */
+    callOutcomeId?: string;
+    /** Human-readable scheduled call time for the call_outcome_pending prompt. */
+    callTime?: string;
     leadId?: string;
     leadName?: string;
     leadEmail?: string;

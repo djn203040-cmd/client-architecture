@@ -75,7 +75,11 @@ export async function callOutcomeMonitorHandler({
 
   await step.sendEvent("notify", {
     name: "notification/call_outcome_pending",
-    data: { coachId, leadId, callOutcomeId },
+    data: {
+      coachId,
+      eventType: "call_outcome_pending",
+      payload: { callOutcomeId, leadId },
+    },
   });
 
   return { flipped: true, callOutcomeId };

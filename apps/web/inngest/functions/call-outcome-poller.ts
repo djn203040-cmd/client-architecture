@@ -67,7 +67,11 @@ export async function callOutcomePollerHandler({ step }: { event: PollerEvent; s
 
     await step.sendEvent(`notify-${row.id}`, {
       name: "notification/call_outcome_pending",
-      data: { coachId: row.coach_id, leadId: row.lead_id, callOutcomeId: row.id },
+      data: {
+        coachId: row.coach_id,
+        eventType: "call_outcome_pending",
+        payload: { callOutcomeId: row.id, leadId: row.lead_id },
+      },
     });
     recovered += 1;
   }

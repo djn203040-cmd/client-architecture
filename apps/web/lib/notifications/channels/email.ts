@@ -76,6 +76,15 @@ export async function sendEmail(
         settingsUrl: `${process.env.NEXT_PUBLIC_APP_URL}/settings/notifications`,
         unsubscribeUrl: `${process.env.NEXT_PUBLIC_APP_URL}/settings/notifications`,
       });
+    } else if (eventType === "call_outcome_pending") {
+      // D-16: nudge the coach to record the call outcome in the dashboard.
+      const leadName = payload.leadName ?? "your lead";
+      const callsUrl = `${process.env.NEXT_PUBLIC_APP_URL}/calls`;
+      templateOut = {
+        subject: `How did the call with ${leadName} go?`,
+        html: `<p>Your call with ${leadName} just wrapped. Let us know how it went so we can take the next step.</p><p><a href="${callsUrl}">Record the outcome</a></p>`,
+        text: `Your call with ${leadName} just wrapped. Record the outcome: ${callsUrl}`,
+      };
     } else if (eventType === "hard_bounce") {
       templateOut = buildHardBounceEmail({
         leadEmail: payload.leadEmail ?? "unknown",

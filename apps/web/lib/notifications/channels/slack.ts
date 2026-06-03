@@ -4,6 +4,71 @@ import { getSlackClientForCoach } from "@/lib/slack/client";
 import { buildDraftReadyBlocks } from "@/lib/slack/blocks";
 import type { TNotificationEvent, TChannelResult } from "@client/shared";
 
+/**
+ * Low-level Slack poster for the Call Outcomes prompt (D-16). The dispatcher
+ * builds the blocks (buildCallOutcomeBlocks) and hands them here so the posting
+ * + notification_log bookkeeping stays in one place. The ts is logged with the
+ * call_outcome_pending event_type and payload.callOutcomeId so 07-03's
+ * syncSlackCallOutcomeMessage can find the message to retire its buttons.
+ */
+export async function postCallOutcomeSlack(args: {
+  coachId: string;
+  callOutcomeId: string;
+  blocks: unknown[];
+  fallbackText: string;
+}): Promise<TChannelResult> {
+  const { coachId, callOutcomeId, blocks, fallbackText } = args;
+  try {
+    const { data: integration } = await adminClient
+      .from("integrations")
+      .select("external_account_id, status")
+      .eq("coach_id", coachId)
+      .eq("provider", "slack")
+      .maybeSingle();
+
+    if (!integration || integration.status !== "connected" || !integration.external_account_id) {
+      await adminClient.from("notification_log").insert({
+        coach_id: coachId,
+        event_type: "call_outcome_pending",
+        channel: "slack",
+        status: "failed",
+        error_message: "slack_not_connected",
+        payload: { callOutcomeId },
+      });
+      return { channel: "slack", status: "failed", external_id: null, error_message: "slack_not_connected" };
+    }
+
+    const slack = await getSlackClientForCoach(coachId);
+    const res = await slack.chat.postMessage({
+      channel: integration.external_account_id,
+      text: fallbackText,
+      blocks: blocks as never[],
+    });
+    if (!res.ok || !res.ts) throw new Error(`slack_post_failed:${res.error ?? "no_ts"}`);
+
+    await adminClient.from("notification_log").insert({
+      coach_id: coachId,
+      event_type: "call_outcome_pending",
+      channel: "slack",
+      external_id: res.ts,
+      status: "sent",
+      payload: { callOutcomeId },
+    });
+    return { channel: "slack", status: "sent", external_id: res.ts, error_message: null };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "send_failed";
+    await adminClient.from("notification_log").insert({
+      coach_id: coachId,
+      event_type: "call_outcome_pending",
+      channel: "slack",
+      status: "failed",
+      error_message: msg,
+      payload: { callOutcomeId },
+    });
+    return { channel: "slack", status: "failed", external_id: null, error_message: msg };
+  }
+}
+
 export async function sendSlack(event: TNotificationEvent): Promise<TChannelResult> {
   const { coachId, eventType, payload } = event;
 

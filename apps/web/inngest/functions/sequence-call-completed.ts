@@ -36,42 +36,15 @@ export const sequenceCallCompleted = inngest.createFunction(
     triggers: [{ event: LEAD_CALL_COMPLETED }],
   },
   async ({ event, step, runId }) => {
-    const { coachId, leadId, eventEndAt, externalEventId, leadName } = event.data as {
+    const { coachId, leadId } = event.data as {
       coachId: string;
       leadId: string;
-      eventEndAt: string;
-      externalEventId: string;
-      leadName: string;
     };
 
-    // Wait 30 minutes after the call ends before surfacing the pending action
-    const callEndTime = new Date(eventEndAt);
-    callEndTime.setMinutes(callEndTime.getMinutes() + 30);
-    await step.sleepUntil("wait-for-call-end", callEndTime);
-
-    // Surface a pending action card for the coach to decide next steps
-    await step.run("create-pending-action", async () => {
-      await adminClient.from("pending_actions").insert({
-        coach_id: coachId,
-        lead_id: leadId,
-        type: "call_follow_up",
-        payload: { leadName, calendarEventId: externalEventId },
-      });
-    });
-
-    // Wait for the coach to decide: start follow-up, mark lost, or reschedule
-    // If no decision within 30 days, abandon quietly
-    const decision = await step.waitForEvent("wait-for-coach-decision", {
-      event: LEAD_CALL_COMPLETED,
-      if: `async.data.calendarEventId == event.data.externalEventId`,
-      timeout: "30d",
-    });
-
-    if (!decision || decision.data?.action !== "start_follow_up") {
-      return { abandoned: true };
-    }
-
-    // Coach chose to start follow-up — create sequence and run 3-touchpoint loop
+    // D-15: the coach's decision IS the Call Outcomes feature now. LEAD_CALL_COMPLETED
+    // only fires AFTER the coach picks "Call completed" (via fireCallOutcomeDownstream),
+    // so the old pending-action card + coach-decision wait are gone — we enroll
+    // directly into the follow-up track.
     const sequenceId = await step.run("create-sequence", async () => {
       await adminClient
         .from("sequences")
