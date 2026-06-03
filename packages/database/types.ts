@@ -881,7 +881,7 @@ export type Database = {
         | "in_sequence"
         | "replied"
         | "converted"
-        | "closed"
+        | "lost"
         | "unsubscribed"
         | "do_not_contact"
         | "bounced"
@@ -1079,7 +1079,7 @@ export const Constants = {
         "in_sequence",
         "replied",
         "converted",
-        "closed",
+        "lost",
         "unsubscribed",
         "do_not_contact",
         "bounced",

@@ -45,7 +45,7 @@
   --state-converted-bg:       #1E3A2E;  --state-converted-fg:       #E5DCC5;
   --state-no-show-bg:         #F5D9B0;  --state-no-show-fg:         #8C4A12;
   --state-bounced-bg:         #E5C898;  --state-bounced-fg:         #6B4515;
-  --state-closed-bg:          #D5CDBE;  --state-closed-fg:          #524C42;
+  --state-lost-bg:            #D5CDBE;  --state-lost-fg:            #524C42;
   --state-unsubscribed-bg:    #E5C5BC;  --state-unsubscribed-fg:    #7A2F22;
   --state-do-not-contact-bg:  #4A1F18;  --state-do-not-contact-fg:  #F5E0DC;
 }
@@ -90,7 +90,7 @@
   --state-converted-bg:       #1E3A2E;  --state-converted-fg:       #E5DCC5;
   --state-no-show-bg:         #3A2A18;  --state-no-show-fg:         #E5B575;
   --state-bounced-bg:         #2D2515;  --state-bounced-fg:         #C9A565;
-  --state-closed-bg:          #1F1D18;  --state-closed-fg:          #8A8278;
+  --state-lost-bg:            #1F1D18;  --state-lost-fg:            #8A8278;
   --state-unsubscribed-bg:    #2D1F1A;  --state-unsubscribed-fg:    #C5A09A;
   --state-do-not-contact-bg:  #4A1F18;  --state-do-not-contact-fg:  #F5E0DC;
 }

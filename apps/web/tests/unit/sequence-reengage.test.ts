@@ -109,7 +109,7 @@ describe("sequenceReengageHandler — silence-gated re-engagement", () => {
     );
     expect(notified.length).toBe(2);
 
-    // Exhausted → lead closed out.
+    // Exhausted → lead marked lost.
     expect(vi.mocked(adminClient.from)).toHaveBeenCalledWith("sequences");
     expect(res).toEqual({ completed: true, attempts: 2 });
   });

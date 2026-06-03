@@ -8,7 +8,7 @@ describe("STATE-001: Lead state machine enum has all 11 values", () => {
   it("includes all 11 lead states", () => {
     const all: TLeadStatus[] = assertExhaustive<TLeadStatus>([
       "identified", "call_booked", "no_show", "call_completed",
-      "in_sequence", "replied", "converted", "closed",
+      "in_sequence", "replied", "converted", "lost",
       "unsubscribed", "do_not_contact", "bounced",
     ]);
     expect(all).toHaveLength(11);
@@ -16,7 +16,7 @@ describe("STATE-001: Lead state machine enum has all 11 values", () => {
   });
 
   it("includes terminal states (cannot send emails)", () => {
-    const terminal: TLeadStatus[] = ["converted", "closed", "unsubscribed", "do_not_contact", "bounced"];
+    const terminal: TLeadStatus[] = ["converted", "lost", "unsubscribed", "do_not_contact", "bounced"];
     terminal.forEach(s => expect(s).toBeDefined());
   });
 });

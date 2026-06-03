@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
   if (draft.lead_id) {
     await adminClient
       .from("leads")
-      .update({ status: "closed" })
+      .update({ status: "lost" })
       .eq("id", draft.lead_id)
       .eq("coach_id", user.id);
   }

@@ -22,7 +22,7 @@ const STATE_FRAMING: Record<TLeadStatus, string> = {
     'The lead has replied. THE LEAD\'S ACTUAL REPLY IS IN THE <lead_reply> BLOCK — read it and respond directly to what they said. Address their specific words, concerns, or questions. If there are several messages in that block, the lead sent them before you could answer; respond to all of them together in one coherent reply, not just the last one. Do NOT ask the coach to paste in the reply (you already have it). Do NOT write a generic response. The coach notes may describe the coach\'s intent for the response (e.g. "I want to hold the price but offer a bridge") — if so, honor that intent while still answering what the lead actually wrote.',
   converted:
     'The lead has become a client. Write a warm, personal, forward-looking welcome-aboard message. Celebrate their decision without being over-the-top. Set a positive tone for the journey ahead. Reference their goals if available from the transcript or coach notes.',
-  closed:
+  lost:
     'This lead is dormant — there was prior interest that did not convert and the relationship has gone quiet. The coach notes describe the history and what changed (or why things stalled). Write a reactivation message: light touch, no guilt about the gap, reference the specific context in the notes (what was discussed, what changed, why now is a sensible moment to reopen). Do NOT write a welcome-aboard message — they are not a new client.',
   // These states are hard-blocked — generateDraft returns null before reaching this map.
   // Entries are required for TypeScript exhaustiveness on the full TLeadStatus union.
@@ -65,7 +65,7 @@ export function buildDraftUserPrompt(params: DraftGenerationParams): string {
   // Coach notes are the coach's own running record of what's happened with
   // this lead and what they want the next message to do. They are the most
   // recent and authoritative source of truth for any state where there's no
-  // transcript (no-show, identified, in_sequence, replied, closed). The model
+  // transcript (no-show, identified, in_sequence, replied, lost). The model
   // must read them and treat them as fact, not background flavor.
   const notesBlock = params.coachNotes
     ? `<coach_notes>\n${params.coachNotes}\n</coach_notes>`

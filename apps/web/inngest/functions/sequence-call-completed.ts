@@ -59,7 +59,7 @@ export const sequenceCallCompleted = inngest.createFunction(
       });
     });
 
-    // Wait for the coach to decide: start follow-up, mark closed, or reschedule
+    // Wait for the coach to decide: start follow-up, mark lost, or reschedule
     // If no decision within 30 days, abandon quietly
     const decision = await step.waitForEvent("wait-for-coach-decision", {
       event: LEAD_CALL_COMPLETED,
@@ -189,13 +189,13 @@ export const sequenceCallCompleted = inngest.createFunction(
     }
 
     await step.run("auto-close-lead", async () => {
-      await adminClient.from("leads").update({ status: "closed" }).eq("id", leadId);
+      await adminClient.from("leads").update({ status: "lost" }).eq("id", leadId);
       await adminClient.from("sequences").update({ status: "completed" }).eq("id", sequenceId);
       await adminClient.from("lead_events").insert({
         lead_id: leadId,
         coach_id: coachId,
         event_type: "state_changed",
-        payload: { to: "closed", reason: "sequence_exhausted" },
+        payload: { to: "lost", reason: "sequence_exhausted" },
         triggered_by: "system",
       });
     });

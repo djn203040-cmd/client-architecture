@@ -10,7 +10,7 @@ const TERMINAL_STATUS_CASES = [
   "do_not_contact",
   "unsubscribed",
   "converted",
-  "closed",
+  "lost",
 ] as const;
 
 for (const status of TERMINAL_STATUS_CASES) {

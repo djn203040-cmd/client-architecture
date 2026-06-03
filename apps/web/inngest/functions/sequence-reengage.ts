@@ -44,7 +44,7 @@ export async function checkReengageEligible(
     .maybeSingle();
 
   // Only a lead still sitting in "replied" is a re-engagement candidate. Any
-  // other status means they moved on (converted/closed/booked/unsubscribed) or
+  // other status means they moved on (converted/lost/booked/unsubscribed) or
   // re-entered a fresh sequence — stop nudging.
   if (!lead) return { eligible: false, reason: "lead_missing" };
   if (lead.status !== "replied") return { eligible: false, reason: `status:${lead.status}` };
@@ -175,7 +175,7 @@ export async function sequenceReengageHandler({
 
     await adminClient
       .from("leads")
-      .update({ status: "closed" })
+      .update({ status: "lost" })
       .eq("id", leadId)
       .eq("coach_id", coachId);
     await adminClient
@@ -188,7 +188,7 @@ export async function sequenceReengageHandler({
       lead_id: leadId,
       coach_id: coachId,
       event_type: "state_changed",
-      payload: { from: "replied", to: "closed", reason: "reengagement_exhausted" },
+      payload: { from: "replied", to: "lost", reason: "reengagement_exhausted" },
       triggered_by: "system",
     });
   });

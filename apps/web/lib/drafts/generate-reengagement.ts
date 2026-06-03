@@ -11,7 +11,7 @@ export type GenerateReengagementParams = {
   leadId: string;
   /** 1-based re-engagement attempt number. */
   attempt: number;
-  /** Total attempts allowed before the lead is closed out. */
+  /** Total attempts allowed before the lead is marked lost. */
   maxAttempts: number;
 };
 

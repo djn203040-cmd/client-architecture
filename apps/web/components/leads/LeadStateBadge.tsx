@@ -10,7 +10,7 @@ const TONE: Record<TLeadStatus, string> = {
   converted:       "bg-[var(--state-converted-bg)] text-[var(--state-converted-fg)]",
   no_show:         "bg-[var(--state-no-show-bg)] text-[var(--state-no-show-fg)]",
   bounced:         "bg-[var(--state-bounced-bg)] text-[var(--state-bounced-fg)]",
-  closed:          "bg-[var(--state-closed-bg)] text-[var(--state-closed-fg)]",
+  lost:            "bg-[var(--state-lost-bg)] text-[var(--state-lost-fg)]",
   unsubscribed:    "bg-[var(--state-unsubscribed-bg)] text-[var(--state-unsubscribed-fg)]",
   do_not_contact:  "bg-[var(--state-do-not-contact-bg)] text-[var(--state-do-not-contact-fg)]",
 };
@@ -23,7 +23,7 @@ const LABEL: Record<TLeadStatus, string> = {
   in_sequence: "In sequence",
   replied: "Replied",
   converted: "Converted",
-  closed: "Closed",
+  lost: "Lost",
   unsubscribed: "Unsubscribed",
   do_not_contact: "Do not contact",
   bounced: "Bounced",

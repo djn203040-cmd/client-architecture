@@ -26,8 +26,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
     query = query.eq("status", "converted");
   } else if (tab === "held") {
     query = query.eq("status", "do_not_contact");
-  } else if (tab === "closed") {
-    query = query.in("status", ["closed", "unsubscribed", "bounced"]);
+  } else if (tab === "lost") {
+    query = query.in("status", ["lost", "unsubscribed", "bounced"]);
   }
 
   if (q) query = query.ilike("name", `%${q}%`);

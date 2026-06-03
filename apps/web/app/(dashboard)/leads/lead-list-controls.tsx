@@ -10,7 +10,7 @@ const TABS = [
   { id: "replied", label: "Replied" },
   { id: "won", label: "Won" },
   { id: "held", label: "Held" },
-  { id: "closed", label: "Closed" },
+  { id: "lost", label: "Lost" },
 ] as const;
 
 export function LeadListControls({ activeTab, q }: { activeTab: string; q: string }) {

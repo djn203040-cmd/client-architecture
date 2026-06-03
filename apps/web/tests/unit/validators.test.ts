@@ -96,7 +96,7 @@ describe("INFRA-005: UpdateLeadSchema", () => {
 
 describe("STATE-001: isTerminalState helper", () => {
   it("returns true for terminal states", () => {
-    const terminal: TLeadStatus[] = ["converted", "closed", "unsubscribed", "do_not_contact", "bounced"];
+    const terminal: TLeadStatus[] = ["converted", "lost", "unsubscribed", "do_not_contact", "bounced"];
     terminal.forEach((s) => expect(isTerminalState(s)).toBe(true));
   });
   it("returns false for non-terminal states", () => {

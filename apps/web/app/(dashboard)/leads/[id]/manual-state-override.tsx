@@ -29,7 +29,7 @@ const LABELS: Record<TLeadStatus, string> = {
   in_sequence: "In sequence",
   replied: "Replied",
   converted: "Converted",
-  closed: "Closed",
+  lost: "Lost",
   unsubscribed: "Unsubscribed",
   do_not_contact: "Do not contact",
   bounced: "Bounced",

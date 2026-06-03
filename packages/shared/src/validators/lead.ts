@@ -22,7 +22,7 @@ export const LeadStatusEnum = z.enum([
   "in_sequence",
   "replied",
   "converted",
-  "closed",
+  "lost",
   "unsubscribed",
   "do_not_contact",
   "bounced",

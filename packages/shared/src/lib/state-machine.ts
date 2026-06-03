@@ -2,7 +2,7 @@ import type { TLeadStatus } from "../types";
 
 export const TERMINAL_STATES: readonly TLeadStatus[] = [
   "converted",
-  "closed",
+  "lost",
   "unsubscribed",
   "do_not_contact",
   "bounced",

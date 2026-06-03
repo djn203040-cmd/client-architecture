@@ -42,12 +42,12 @@ describe.skipIf(skipIf)("STATE-009: State transitions logged to activity timelin
 
   it("lead status change inserts lead_event with event_type=state_changed", async () => {
     // Simulate server route behaviour: UPDATE leads + INSERT lead_event
-    await admin.from("leads").update({ status: "closed" }).eq("id", leadId);
+    await admin.from("leads").update({ status: "lost" }).eq("id", leadId);
     await admin.from("lead_events").insert({
       lead_id: leadId,
       coach_id: coachId,
       event_type: "state_changed",
-      payload: { from: "identified", to: "closed" },
+      payload: { from: "identified", to: "lost" },
       triggered_by: "coach",
     });
 
@@ -58,7 +58,7 @@ describe.skipIf(skipIf)("STATE-009: State transitions logged to activity timelin
       .eq("event_type", "state_changed");
 
     expect(events?.length).toBeGreaterThanOrEqual(1);
-    expect(events?.[0]?.payload).toMatchObject({ to: "closed" });
+    expect(events?.[0]?.payload).toMatchObject({ to: "lost" });
   });
 
   it("state change event includes previous and new status in payload", async () => {
@@ -71,7 +71,7 @@ describe.skipIf(skipIf)("STATE-009: State transitions logged to activity timelin
     const event = events?.[0];
     const payload = event?.payload as { from?: string; to?: string } | null;
     expect(payload?.from).toBe("identified");
-    expect(payload?.to).toBe("closed");
+    expect(payload?.to).toBe("lost");
   });
 
   it("lead_events rows include coach_id and triggered_by fields", async () => {
