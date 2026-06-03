@@ -7,7 +7,13 @@ import { adminClient } from "@/lib/supabase/admin";
 export const dynamic = "force-dynamic";
 
 const BodySchema = z.object({
-  event_type: z.enum(["draft_ready", "lead_replied", "integration_broken", "hard_bounce"]),
+  event_type: z.enum([
+    "draft_ready",
+    "lead_replied",
+    "call_outcome_pending",
+    "integration_broken",
+    "hard_bounce",
+  ]),
   channel: z.enum(["dashboard", "email", "slack", "whatsapp", "sms"]),
   enabled: z.boolean(),
 });

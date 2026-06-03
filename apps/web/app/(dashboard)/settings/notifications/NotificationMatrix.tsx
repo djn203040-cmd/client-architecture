@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 
 type Channel = "dashboard" | "email" | "slack" | "whatsapp" | "sms";
-type EventType = "draft_ready" | "lead_replied" | "integration_broken" | "hard_bounce";
+type EventType = "draft_ready" | "lead_replied" | "call_outcome_pending" | "integration_broken" | "hard_bounce";
 
 interface Pref {
   event_type: string;
@@ -33,10 +33,11 @@ interface Integration {
 }
 
 const EVENT_ROWS: { key: EventType; label: string }[] = [
-  { key: "draft_ready",        label: "Draft ready" },
-  { key: "lead_replied",       label: "Lead replied" },
-  { key: "integration_broken", label: "Integration broken" },
-  { key: "hard_bounce",        label: "Hard bounce" },
+  { key: "draft_ready",          label: "Draft ready" },
+  { key: "lead_replied",         label: "Lead replied" },
+  { key: "call_outcome_pending", label: "Call outcome needed" },
+  { key: "integration_broken",   label: "Integration broken" },
+  { key: "hard_bounce",          label: "Hard bounce" },
 ];
 
 const CHANNEL_COLS: {
