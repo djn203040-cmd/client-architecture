@@ -76,9 +76,11 @@ export interface SafeLogger {
 
 export const logger: SafeLogger = {
   info(label, data) {
-    // eslint-disable-next-line no-console
+    // This SafeLogger is the one audited console sink (COMPLY-009): every value
+    // goes through redact() first, so console.info is intentional here.
+    // eslint-disable-next-line no-console, no-restricted-syntax
     if (data !== undefined) console.info(label, redact(data));
-    // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console, no-restricted-syntax
     else console.info(label);
   },
   warn(label, data) {

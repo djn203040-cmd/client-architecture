@@ -68,7 +68,7 @@ export function StepBooking({ initialUrl }: Props) {
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground leading-relaxed">
         Paste the public booking link your leads use to book a call with you. The AI will use this
-        verbatim when a draft needs to offer a time, so you never see "[CALENDLY LINK]" placeholders
+        verbatim when a draft needs to offer a time, so you never see &ldquo;[CALENDLY LINK]&rdquo; placeholders
         in your emails.
       </p>
 
