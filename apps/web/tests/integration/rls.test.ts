@@ -26,12 +26,25 @@ describe.skipIf(skipIf)("INFRA-001: RLS isolates coaches", () => {
       { id: b.user.id, name: "Coach B", email: b.user.email!, role: "coach" },
     ]);
 
-    // Sign in to obtain JWT for each
-    const aJwt = await createClient(SUPABASE_URL, ANON).auth.signInWithPassword({ email: a.user.email!, password: "test-password-1234" });
-    const bJwt = await createClient(SUPABASE_URL, ANON).auth.signInWithPassword({ email: b.user.email!, password: "test-password-1234" });
+    // Sign in to obtain a JWT for each. On a cold CI auth server the user may
+    // not be immediately signin-able right after admin.createUser, so retry a
+    // few times and surface the real GoTrue error rather than null-derefing.
+    const signIn = async (email: string): Promise<string> => {
+      let lastErr = "no session";
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const { data, error } = await createClient(SUPABASE_URL, ANON).auth.signInWithPassword({
+          email,
+          password: "test-password-1234",
+        });
+        if (data.session) return data.session.access_token;
+        lastErr = error?.message ?? "no session returned";
+        await new Promise((r) => setTimeout(r, 500));
+      }
+      throw new Error(`sign-in failed for ${email}: ${lastErr}`);
+    };
 
-    coachA = { id: a.user.id, jwt: aJwt.data.session!.access_token };
-    coachB = { id: b.user.id, jwt: bJwt.data.session!.access_token };
+    coachA = { id: a.user.id, jwt: await signIn(a.user.email!) };
+    coachB = { id: b.user.id, jwt: await signIn(b.user.email!) };
 
     // Insert one lead per coach via admin (bypassing RLS)
     await admin.from("leads").insert([
@@ -41,6 +54,7 @@ describe.skipIf(skipIf)("INFRA-001: RLS isolates coaches", () => {
   });
 
   afterAll(async () => {
+    if (!coachA || !coachB) return; // setup failed; nothing to clean up
     await admin.from("leads").delete().in("coach_id", [coachA.id, coachB.id]);
     await admin.from("coaches").delete().in("id", [coachA.id, coachB.id]);
     await admin.auth.admin.deleteUser(coachA.id);

@@ -61,10 +61,14 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], colorScheme: "dark" },
     },
   ],
-  webServer: process.env.CI ? undefined : {
+  // Playwright manages the app server in every environment. In CI neither
+  // workflow started Next, so every spec hit ERR_CONNECTION_REFUSED; let
+  // Playwright boot it and wait for it to answer. The command inherits the env
+  // (incl. the Supabase keys loaded from .env.test above).
+  webServer: {
     command: "NODE_ENV=test pnpm dev",
     url: "http://localhost:3000",
     timeout: 120_000,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
   },
 });

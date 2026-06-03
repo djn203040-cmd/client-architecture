@@ -35,6 +35,11 @@ describe.skipIf(skipIf)("INFRA-003: Vault SECURITY DEFINER functions are private
     expect(storeErr).toBeNull();
     expect(vaultId).toBeTruthy();
 
+    // The RPC returns the Vault UUID; the caller writes it to integrations
+    // (see app/api/auth/gmail/callback/route.ts). Mirror that so the GMAIL-003
+    // assertion below reflects the real stored state.
+    await admin.from("integrations").update({ vault_secret_id: vaultId }).eq("coach_id", coachId).eq("provider", "gmail");
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: retrieved, error: getErr } = await (admin.schema("private") as any).rpc("get_gmail_tokens", { p_coach_id: coachId });
     expect(getErr).toBeNull();

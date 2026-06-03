@@ -28,7 +28,10 @@ describe.skipIf(skipIf)("GMAIL-003: integrations table holds only vault UUID, ne
 
   it("integrations columns never include access_token / refresh_token literal strings", async () => {
     const tokens = { access_token: "ya29.UNIQUE_SECRET_12345", refresh_token: "1//UNIQUE_REFRESH_67890", expiry_date: Date.now() + 3600_000 };
-    await admin.schema("private").rpc("store_gmail_tokens", { p_coach_id: coachId, p_tokens: tokens });
+    // store_gmail_tokens returns the Vault UUID; the caller writes it back to
+    // integrations.vault_secret_id (see app/api/auth/gmail/callback/route.ts).
+    const { data: vaultId } = await admin.schema("private").rpc("store_gmail_tokens", { p_coach_id: coachId, p_tokens: tokens });
+    await admin.from("integrations").update({ vault_secret_id: vaultId }).eq("coach_id", coachId).eq("provider", "gmail");
 
     const { data: integ } = await admin.from("integrations").select("*").eq("coach_id", coachId).single();
     const serialized = JSON.stringify(integ);

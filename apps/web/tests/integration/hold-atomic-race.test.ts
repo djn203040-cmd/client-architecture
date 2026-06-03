@@ -60,9 +60,12 @@ describe.skipIf(!isRealSupabase)("DRAFT-011: hold-draft-atomic race guard", () =
   it("concurrent hold-draft-atomic calls: exactly one succeeds, others get conflict", async () => {
     const attempts = await Promise.allSettled(
       Array.from({ length: 5 }, () =>
+        // public.hold_draft_atomic(p_draft_id, p_actor) — wraps the private
+        // advisory-lock RPC. Mirrors lib/drafts/approve-atomic.ts (the
+        // production caller); `p_coach_id` was never a parameter.
         client.rpc("hold_draft_atomic", {
           p_draft_id: draftId,
-          p_coach_id: coachId,
+          p_actor: "dashboard",
         }),
       ),
     );

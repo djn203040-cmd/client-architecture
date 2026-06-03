@@ -69,11 +69,26 @@ describe.skipIf(skipIf)(
             (payload: { new: unknown }) => {
               received.push(payload.new);
             }
-          )
-          .subscribe();
+          );
 
-        // Wait for subscription to establish
-        await new Promise((r) => setTimeout(r, 1000));
+        // Wait for the channel to actually reach SUBSCRIBED before inserting.
+        // A fixed sleep is unreliable on a cold CI Realtime container — the WS
+        // handshake + publication snapshot can take several seconds.
+        await new Promise<void>((resolve, reject) => {
+          const timer = setTimeout(
+            () => reject(new Error("realtime channel did not reach SUBSCRIBED in 15s")),
+            15_000
+          );
+          channel.subscribe((status: string) => {
+            if (status === "SUBSCRIBED") {
+              clearTimeout(timer);
+              resolve();
+            } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+              clearTimeout(timer);
+              reject(new Error(`realtime subscribe failed: ${status}`));
+            }
+          });
+        });
 
         await admin.from("drafts").insert({
           coach_id: coachId,
@@ -86,9 +101,9 @@ describe.skipIf(skipIf)(
           scheduled_send_at: new Date(Date.now() + 60_000).toISOString(),
         });
 
-        // Poll for event delivery (up to 5s)
+        // Poll for event delivery (up to 10s)
         const start = Date.now();
-        while (received.length === 0 && Date.now() - start < 5000) {
+        while (received.length === 0 && Date.now() - start < 10_000) {
           await new Promise((r) => setTimeout(r, 100));
         }
 
@@ -96,7 +111,7 @@ describe.skipIf(skipIf)(
         expect((received[0] as { coach_id: string }).coach_id).toBe(coachId);
         await admin.removeChannel(channel);
       },
-      15_000
+      30_000
     );
   }
 );
