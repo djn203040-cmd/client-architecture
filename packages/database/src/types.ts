@@ -40,7 +40,31 @@ export type Database = {
           reason: string
         }[]
       }
+      delete_calendar_tokens: {
+        Args: {
+          p_coach_id: string
+          p_provider: Database["public"]["Enums"]["integration_provider"]
+        }
+        Returns: boolean
+      }
+      delete_voice_corpus: { Args: { p_coach_id: string }; Returns: undefined }
+      get_calendar_tokens: {
+        Args: {
+          p_coach_id: string
+          p_provider: Database["public"]["Enums"]["integration_provider"]
+        }
+        Returns: Json
+      }
+      get_calendar_webhook_secret: {
+        Args: {
+          p_coach_id: string
+          p_provider: Database["public"]["Enums"]["integration_provider"]
+        }
+        Returns: string
+      }
       get_gmail_tokens: { Args: { p_coach_id: string }; Returns: Json }
+      get_slack_token: { Args: { p_coach_id: string }; Returns: string }
+      get_voice_corpus: { Args: { p_coach_id: string }; Returns: Json }
       hold_draft_atomic: {
         Args: { p_actor: string; p_draft_id: string }
         Returns: {
@@ -53,12 +77,44 @@ export type Database = {
         Args: { p_draft_id: string }
         Returns: number
       }
+      record_call_outcome_atomic: {
+        Args: {
+          p_actor: string
+          p_id: string
+          p_outcome: Database["public"]["Enums"]["call_outcome_value"]
+        }
+        Returns: {
+          new_status: Database["public"]["Enums"]["call_outcome_status"]
+          ok: boolean
+          reason: string
+        }[]
+      }
+      store_calendar_tokens: {
+        Args: {
+          p_coach_id: string
+          p_provider: Database["public"]["Enums"]["integration_provider"]
+          p_tokens: Json
+        }
+        Returns: string
+      }
+      store_calendar_webhook_secret: {
+        Args: {
+          p_coach_id: string
+          p_provider: Database["public"]["Enums"]["integration_provider"]
+          p_secret: string
+        }
+        Returns: string
+      }
       store_gmail_tokens: {
         Args: { p_coach_id: string; p_tokens: Json }
         Returns: string
       }
       store_slack_token: {
         Args: { p_coach_id: string; p_token: string }
+        Returns: string
+      }
+      store_voice_corpus: {
+        Args: { p_coach_id: string; p_corpus: Json }
         Returns: string
       }
     }
@@ -71,6 +127,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action: string
+          coach_id: string
+          created_at: string
+          id: string
+          ip_address: unknown
+          metadata: Json
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          coach_id: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_log_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_events: {
         Row: {
           coach_id: string
@@ -112,42 +206,169 @@ export type Database = {
           },
         ]
       }
-      coaches: {
+      call_outcomes: {
         Row: {
-          autonomous_mode: string | null
+          calendar_event_id: string | null
+          coach_id: string
           created_at: string
-          email: string
+          decided_at: string | null
+          decided_by: string | null
+          decided_via: string | null
+          ends_at: string | null
+          external_event_id: string
           id: string
-          name: string
-          role: string
-          sequence_config: Json | null
-          service_info: Json | null
+          lead_id: string
+          notes: string | null
+          outcome: Database["public"]["Enums"]["call_outcome_value"] | null
+          prompted_at: string | null
+          provider: Database["public"]["Enums"]["integration_provider"]
+          reminder_sent_at: string | null
+          scheduled_at: string | null
+          status: Database["public"]["Enums"]["call_outcome_status"]
+          status_locked_at: string | null
           updated_at: string
-          voice_model: Json | null
         }
         Insert: {
-          autonomous_mode?: string | null
+          calendar_event_id?: string | null
+          coach_id: string
           created_at?: string
-          email: string
-          id: string
-          name: string
-          role?: string
-          sequence_config?: Json | null
-          service_info?: Json | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decided_via?: string | null
+          ends_at?: string | null
+          external_event_id: string
+          id?: string
+          lead_id: string
+          notes?: string | null
+          outcome?: Database["public"]["Enums"]["call_outcome_value"] | null
+          prompted_at?: string | null
+          provider: Database["public"]["Enums"]["integration_provider"]
+          reminder_sent_at?: string | null
+          scheduled_at?: string | null
+          status?: Database["public"]["Enums"]["call_outcome_status"]
+          status_locked_at?: string | null
           updated_at?: string
-          voice_model?: Json | null
         }
         Update: {
-          autonomous_mode?: string | null
+          calendar_event_id?: string | null
+          coach_id?: string
           created_at?: string
-          email?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decided_via?: string | null
+          ends_at?: string | null
+          external_event_id?: string
           id?: string
-          name?: string
+          lead_id?: string
+          notes?: string | null
+          outcome?: Database["public"]["Enums"]["call_outcome_value"] | null
+          prompted_at?: string | null
+          provider?: Database["public"]["Enums"]["integration_provider"]
+          reminder_sent_at?: string | null
+          scheduled_at?: string | null
+          status?: Database["public"]["Enums"]["call_outcome_status"]
+          status_locked_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_outcomes_calendar_event_id_fkey"
+            columns: ["calendar_event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_outcomes_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_outcomes_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coaches: {
+        Row: {
+          active_calendar_provider:
+            | Database["public"]["Enums"]["integration_provider"]
+            | null
+          autonomous_mode: string | null
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          email: string
+          email_signature: string | null
+          id: string
+          name: string
+          notification_settings: Json
+          onboarding_completed_at: string | null
+          onboarding_progress: Json
+          public_booking_url: string | null
+          role: string
+          role_title: string | null
+          sequence_config: Json | null
+          service_info: Json | null
+          timezone: string | null
+          updated_at: string
+          voice_model: Json | null
+          working_hours: Json
+        }
+        Insert: {
+          active_calendar_provider?:
+            | Database["public"]["Enums"]["integration_provider"]
+            | null
+          autonomous_mode?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email: string
+          email_signature?: string | null
+          id: string
+          name: string
+          notification_settings?: Json
+          onboarding_completed_at?: string | null
+          onboarding_progress?: Json
+          public_booking_url?: string | null
           role?: string
+          role_title?: string | null
           sequence_config?: Json | null
           service_info?: Json | null
+          timezone?: string | null
           updated_at?: string
           voice_model?: Json | null
+          working_hours?: Json
+        }
+        Update: {
+          active_calendar_provider?:
+            | Database["public"]["Enums"]["integration_provider"]
+            | null
+          autonomous_mode?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          email_signature?: string | null
+          id?: string
+          name?: string
+          notification_settings?: Json
+          onboarding_completed_at?: string | null
+          onboarding_progress?: Json
+          public_booking_url?: string | null
+          role?: string
+          role_title?: string | null
+          sequence_config?: Json | null
+          service_info?: Json | null
+          timezone?: string | null
+          updated_at?: string
+          voice_model?: Json | null
+          working_hours?: Json
         }
         Relationships: []
       }
@@ -381,6 +602,7 @@ export type Database = {
           coach_id: string
           created_at: string
           error_message: string | null
+          external_account_id: string | null
           id: string
           last_checked_at: string | null
           metadata: Json | null
@@ -396,6 +618,7 @@ export type Database = {
           coach_id: string
           created_at?: string
           error_message?: string | null
+          external_account_id?: string | null
           id?: string
           last_checked_at?: string | null
           metadata?: Json | null
@@ -411,6 +634,7 @@ export type Database = {
           coach_id?: string
           created_at?: string
           error_message?: string | null
+          external_account_id?: string | null
           id?: string
           last_checked_at?: string | null
           metadata?: Json | null
@@ -479,7 +703,7 @@ export type Database = {
           coach_notes: string | null
           created_at: string
           do_not_contact: boolean
-          email: string
+          email: string | null
           external_ids: Json | null
           id: string
           last_activity_at: string | null
@@ -497,7 +721,7 @@ export type Database = {
           coach_notes?: string | null
           created_at?: string
           do_not_contact?: boolean
-          email: string
+          email?: string | null
           external_ids?: Json | null
           id?: string
           last_activity_at?: string | null
@@ -515,7 +739,7 @@ export type Database = {
           coach_notes?: string | null
           created_at?: string
           do_not_contact?: boolean
-          email?: string
+          email?: string | null
           external_ids?: Json | null
           id?: string
           last_activity_at?: string | null
@@ -769,6 +993,30 @@ export type Database = {
           },
         ]
       }
+      webhook_events: {
+        Row: {
+          external_event_id: string
+          id: number
+          payload_hash: string | null
+          received_at: string
+          source: string
+        }
+        Insert: {
+          external_event_id: string
+          id?: never
+          payload_hash?: string | null
+          received_at?: string
+          source: string
+        }
+        Update: {
+          external_event_id?: string
+          id?: never
+          payload_hash?: string | null
+          received_at?: string
+          source?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -806,12 +1054,30 @@ export type Database = {
         Args: { p_draft_id: string }
         Returns: number
       }
+      record_call_outcome_atomic: {
+        Args: {
+          p_actor: string
+          p_id: string
+          p_outcome: Database["public"]["Enums"]["call_outcome_value"]
+        }
+        Returns: {
+          new_status: Database["public"]["Enums"]["call_outcome_status"]
+          ok: boolean
+          reason: string
+        }[]
+      }
       store_slack_token: {
         Args: { p_coach_id: string; p_token: string }
         Returns: string
       }
     }
     Enums: {
+      call_outcome_status:
+        | "scheduled"
+        | "awaiting_outcome"
+        | "resolved"
+        | "cancelled"
+      call_outcome_value: "no_show" | "completed" | "converted"
       draft_status:
         | "pending"
         | "approved"
@@ -819,6 +1085,8 @@ export type Database = {
         | "sent"
         | "held"
         | "cancelled"
+        | "generating"
+        | "error"
       integration_provider:
         | "gmail"
         | "calendly"
@@ -853,6 +1121,7 @@ export type Database = {
         | "sequence_completed"
         | "sequence_cancelled"
         | "manually_enrolled"
+        | "call_converted"
       lead_source:
         | "calendly"
         | "cal_com"
@@ -1009,6 +1278,13 @@ export const Constants = {
   },
   public: {
     Enums: {
+      call_outcome_status: [
+        "scheduled",
+        "awaiting_outcome",
+        "resolved",
+        "cancelled",
+      ],
+      call_outcome_value: ["no_show", "completed", "converted"],
       draft_status: [
         "pending",
         "approved",
@@ -1016,6 +1292,8 @@ export const Constants = {
         "sent",
         "held",
         "cancelled",
+        "generating",
+        "error",
       ],
       integration_provider: [
         "gmail",
@@ -1052,6 +1330,7 @@ export const Constants = {
         "sequence_completed",
         "sequence_cancelled",
         "manually_enrolled",
+        "call_converted",
       ],
       lead_source: [
         "calendly",
