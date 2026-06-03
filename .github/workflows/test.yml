@@ -68,12 +68,15 @@ jobs:
         with: { version: latest }
       - run: supabase start
       - name: Export Supabase keys
+        # `supabase status -o env` emits KEY="value" (quoted). $GITHUB_ENV keeps
+        # the quotes literally, so the value reaches the runtime as `"http://…"`
+        # and fails supabase-js URL validation. Strip the surrounding quotes.
         run: |
           supabase status -o env \
             --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
             --override-name auth.anon_key=NEXT_PUBLIC_SUPABASE_ANON_KEY \
             --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
-            >> $GITHUB_ENV
+            | sed -E 's/="(.*)"$/=\1/' >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter web test:integration
 
@@ -99,12 +102,14 @@ jobs:
         with: { version: latest }
       - run: supabase start
       - name: Export Supabase keys to .env.test
+        # Strip the surrounding quotes `supabase status -o env` adds (KEY="value")
+        # so the loaded env vars are valid URLs, not `"http://…"`.
         run: |
           supabase status -o env \
             --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
             --override-name auth.anon_key=NEXT_PUBLIC_SUPABASE_ANON_KEY \
             --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
-            >> apps/web/.env.test
+            | sed -E 's/="(.*)"$/=\1/' >> apps/web/.env.test
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright browsers
         run: pnpm --filter web exec playwright install --with-deps ${{ matrix.project }}

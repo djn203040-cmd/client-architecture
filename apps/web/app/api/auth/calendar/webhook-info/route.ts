@@ -56,7 +56,7 @@ export async function GET(request: Request) {
         p_secret: generated,
       });
       if (error || !vaultId) {
-        // eslint-disable-next-line no-console
+        // eslint-disable-next-line no-console -- reason: server-side error log; vault store failure in a route handler, not client code
         console.error("[webhook-info] vault store failed:", error);
       } else {
         // Non-destructive: update if the row exists (don't clobber `status`), insert if not.
@@ -84,7 +84,7 @@ export async function GET(request: Request) {
       }
     }
   } catch (err) {
-    // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console -- reason: server-side error log; secret retrieval failure in a route handler, not client code
     console.error("[webhook-info] secret retrieval failed:", err);
   }
 

@@ -12,7 +12,9 @@ if (existsSync(envTestPath)) {
     const eqIdx = trimmed.indexOf("=");
     if (eqIdx < 0) continue;
     const key = trimmed.slice(0, eqIdx).trim();
-    const value = trimmed.slice(eqIdx + 1).trim();
+    // `supabase status -o env` writes KEY="value"; strip surrounding quotes so
+    // the value is a usable URL, not `"http://…"`.
+    const value = trimmed.slice(eqIdx + 1).trim().replace(/^"(.*)"$/, "$1");
     // Don't overwrite values already set in process.env (CI / shell exports win)
     if (!(key in process.env)) process.env[key] = value;
   }

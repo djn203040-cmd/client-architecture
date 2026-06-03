@@ -89,7 +89,7 @@ export async function unregisterCalComWebhook(coachId: string): Promise<void> {
       headers: { accept: "application/json", authorization: `Bearer ${apiKey}` },
     });
   } catch (err) {
-    // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console -- reason: server-side error log; best-effort webhook unregister failure
     console.error("[cal-com] unregister webhook best-effort failed:", err);
   }
 }

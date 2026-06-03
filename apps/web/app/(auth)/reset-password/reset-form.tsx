@@ -20,7 +20,7 @@ export function ResetForm() {
     if (code) {
       supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
         if (error) {
-          // eslint-disable-next-line no-console
+          // eslint-disable-next-line no-console -- reason: client error diagnostic; auth code exchange failure also surfaced to user via setDebugError
           console.error("[reset-password] exchangeCodeForSession failed:", error);
           setDebugError(`${error.name ?? "Error"}: ${error.message}`);
           setTokenStatus("invalid");
@@ -43,7 +43,7 @@ export function ResetForm() {
         .setSession({ access_token, refresh_token })
         .then(({ error }) => {
           if (error) {
-            // eslint-disable-next-line no-console
+            // eslint-disable-next-line no-console -- reason: client error diagnostic; setSession failure also surfaced to user via setDebugError
             console.error("[reset-password] setSession failed:", error);
             setDebugError(`${error.name ?? "Error"}: ${error.message}`);
           }

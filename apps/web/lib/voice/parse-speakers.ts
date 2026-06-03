@@ -35,7 +35,7 @@ function parseWhatsApp(text: string): ParsedMessage[] {
   const lines = cleaned.split(/\r?\n/);
 
   // Auto-detect date order (dd/mm vs mm/dd) by scanning every timestamp in
-  // the corpus: any first-position value > 12 locks dd/mm; any second-position
+  // the corpus — a first-position value > 12 locks dd/mm; a second-position
   // value > 12 locks mm/dd. If ambiguous, default to dd/mm (European norm —
   // the app is built for that audience).
   const order = detectDateOrder(lines);

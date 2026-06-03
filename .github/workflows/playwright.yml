@@ -28,12 +28,14 @@ jobs:
         run: supabase start
 
       - name: Export Supabase keys to .env.test
+        # Strip the surrounding quotes `supabase status -o env` adds (KEY="value")
+        # so the loaded env vars are valid URLs, not `"http://…"`.
         run: |
           supabase status -o env \
             --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
             --override-name auth.anon_key=NEXT_PUBLIC_SUPABASE_ANON_KEY \
             --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
-            >> apps/web/.env.test
+            | sed -E 's/="(.*)"$/=\1/' >> apps/web/.env.test
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

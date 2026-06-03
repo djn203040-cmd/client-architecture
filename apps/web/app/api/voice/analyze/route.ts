@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const profile = await analyzeVoiceCorpus({ coachId: user.id, corpus });
     return NextResponse.json(profile);
   } catch (err) {
-    // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console -- reason: server-side error log; voice analysis failure in a route handler
     console.error("[voice/analyze] analyzeVoiceCorpus failed:", err);
     return NextResponse.json(
       { error: "Something went wrong analyzing your writing. Try again or add more content." },

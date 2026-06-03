@@ -41,7 +41,7 @@ export async function POST(
         await revokeAccessToken({ provider: config, accessToken });
       }
     } catch (err) {
-      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console -- reason: server-side error log; best-effort token revoke failure in a route handler
       console.error("[calendar-disconnect] revoke best-effort failed:", err);
     }
   }
@@ -59,7 +59,7 @@ export async function POST(
       p_provider: config.id,
     });
   } catch (err) {
-    // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console -- reason: server-side error log; vault delete failure in a route handler
     console.error("[calendar-disconnect] vault delete failed:", err);
   }
 

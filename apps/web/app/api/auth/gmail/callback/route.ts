@@ -67,7 +67,7 @@ export async function GET(request: Request) {
     if (vaultErr || !data) throw new Error(vaultErr?.message ?? "vault store returned null");
     vaultId = data;
   } catch (err) {
-    // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console -- reason: server-side error log; vault store failure in a route handler, not client code
     console.error("[gmail-callback] vault store failed:", err);
     return NextResponse.redirect(new URL("/settings?error=oauth_vault_failed", APP_URL));
   }

@@ -68,7 +68,7 @@ export async function GET(
     if (error || !data) throw new Error(error?.message ?? "vault store returned null");
     vaultId = data as string;
   } catch (err) {
-    // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console -- reason: server-side error log; vault store failure in a route handler, not client code
     console.error("[calendar-callback] vault store failed:", err);
     return NextResponse.redirect(new URL(`/settings?error=calendar_vault_failed&provider=${config.id}`, APP_URL));
   }
@@ -97,7 +97,7 @@ export async function GET(
     try {
       await registerCalendarWebhook({ coachId, provider: config, accessToken: tokens.access_token });
     } catch (err) {
-      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console -- reason: server-side error log; non-fatal webhook registration failure in a route handler
       console.error(`[calendar-callback] webhook registration failed for ${config.id}:`, err);
       // Leave integration connected; webhook registration can be retried from /settings.
     }

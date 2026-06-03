@@ -75,7 +75,7 @@ export async function POST(
     if (error || !data) throw new Error(error?.message ?? "vault store returned null");
     vaultId = data as string;
   } catch (err) {
-    // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console -- reason: server-side error log; vault store failure in a route handler, not client code
     console.error("[calendar-api-key] vault store failed:", err);
     return NextResponse.json({ ok: false, error: "vault_failed" }, { status: 500 });
   }
@@ -103,7 +103,7 @@ export async function POST(
       await registerCalendarWebhook({ coachId: user.id, provider: config });
       webhookRegistered = true;
     } catch (err) {
-      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console -- reason: server-side error log; non-fatal webhook registration failure in a route handler
       console.error(`[calendar-api-key] webhook registration failed for ${config.id}:`, err);
       webhookRegistered = false;
     }
