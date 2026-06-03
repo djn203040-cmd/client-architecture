@@ -46,11 +46,18 @@ additional_redirect_urls = ["https://127.0.0.1:3000"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
-enable_signup = false
+# Enabled so integration tests can sign in admin-created coach users. This is
+# the local/CI stack only (see file header); the hosted project keeps public
+# signup off via dashboard settings.
+enable_signup = true
 minimum_password_length = 8
 
 [auth.email]
-enable_signup = false
+# Email provider enabled so password sign-in works for test users on the
+# local/CI stack. `enable_signup = false` here disables the email provider's
+# login entirely ("Email logins are disabled"), which the RLS integration test
+# depends on. enable_confirmations stays false so no email round-trip is needed.
+enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
 

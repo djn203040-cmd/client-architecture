@@ -90,6 +90,11 @@ describe.skipIf(skipIf)(
           });
         });
 
+        // SUBSCRIBED means the channel joined, but on a cold CI Realtime
+        // container the WAL replication stream can still be catching up — an
+        // INSERT fired in that window is missed. Let the stream go live first.
+        await new Promise((r) => setTimeout(r, 2000));
+
         await admin.from("drafts").insert({
           coach_id: coachId,
           lead_id: leadId,
