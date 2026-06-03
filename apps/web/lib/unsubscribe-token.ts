@@ -26,6 +26,9 @@ export function verifyUnsubscribeToken(token: string): UnsubscribePayload | null
   if (parts.length !== 2) return null;
 
   const [encodedPayload, providedHmac] = parts;
+  // Length check above doesn't narrow the destructured elements under
+  // noUncheckedIndexedAccess — guard explicitly so both are `string`.
+  if (!encodedPayload || !providedHmac) return null;
 
   const expectedHmac = createHmac("sha256", secret)
     .update(encodedPayload)

@@ -74,7 +74,11 @@ async function runCascade(firstStatus = "pending", secondStatus = "pending") {
     name: "draft/created_pending",
     data: { draftId: "draft-cascade", coachId: "coach-1", createdAt: new Date(Date.now() - 1000).toISOString() },
   };
-  const result = await draftFollowupCtaHandler({ event, step });
+  // The vi.fn() step mock infers a non-generic `run`; cast to the handler's
+  // param type to bridge the generic gap (the mock is structurally complete).
+  const result = await draftFollowupCtaHandler(
+    { event, step } as Parameters<typeof draftFollowupCtaHandler>[0],
+  );
   return { result, step, sleepUntilIds };
 }
 

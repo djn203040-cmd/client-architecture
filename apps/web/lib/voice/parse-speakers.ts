@@ -44,11 +44,12 @@ function parseWhatsApp(text: string): ParsedMessage[] {
   for (const line of lines) {
     const m = WHATSAPP_LINE.exec(line);
     if (m) {
-      const speaker = m[3].trim();
+      const speaker = (m[3] ?? "").trim();
       const dt = parseWhatsAppDate(m[1] ?? m[2] ?? "", order);
       messages.push({ speaker, lines: [m[4] ?? ""], timestamp: dt });
     } else if (messages.length > 0) {
-      messages[messages.length - 1].lines.push(line);
+      const last = messages[messages.length - 1];
+      if (last) last.lines.push(line);
     }
   }
   return messages
@@ -66,8 +67,8 @@ function detectDateOrder(lines: string[]): DateOrder {
     const dateStr = m[1] ?? m[2] ?? "";
     const parts = dateStr.match(/([0-9]{1,2})[./-]([0-9]{1,2})[./-]([0-9]{2,4})/);
     if (!parts) continue;
-    const a = parseInt(parts[1], 10);
-    const b = parseInt(parts[2], 10);
+    const a = parseInt(parts[1] ?? "", 10);
+    const b = parseInt(parts[2] ?? "", 10);
     if (a > 12) dmyHits++;
     if (b > 12) mdyHits++;
   }
@@ -81,11 +82,11 @@ function parseWhatsAppDate(raw: string, order: DateOrder): Date | undefined {
     /([0-9]{1,2})[./-]([0-9]{1,2})[./-]([0-9]{2,4})[,\s]+([0-9]{1,2})[:.]([0-9]{2})(?:[:.]([0-9]{2}))?(?:\s*([AP]M))?/i,
   );
   if (!m) return undefined;
-  const a = parseInt(m[1], 10);
-  const b = parseInt(m[2], 10);
-  const yRaw = parseInt(m[3], 10);
-  let hour = parseInt(m[4], 10);
-  const min = parseInt(m[5], 10);
+  const a = parseInt(m[1] ?? "", 10);
+  const b = parseInt(m[2] ?? "", 10);
+  const yRaw = parseInt(m[3] ?? "", 10);
+  let hour = parseInt(m[4] ?? "", 10);
+  const min = parseInt(m[5] ?? "", 10);
   const sec = m[6] ? parseInt(m[6], 10) : 0;
   const ampm = m[7]?.toUpperCase();
 
@@ -176,7 +177,7 @@ function parseLinkedIn(text: string): ParsedMessage[] {
   const cleaned = stripFileHeaders(text);
   const rows = parseCSV(cleaned);
   if (rows.length < 2) return [];
-  const header = rows[0].map((c) => c.trim().toUpperCase());
+  const header = (rows[0] ?? []).map((c) => c.trim().toUpperCase());
   const fromIdx = header.indexOf("FROM");
   const contentIdx = header.indexOf("CONTENT");
   const dateIdx = header.indexOf("DATE");
@@ -184,6 +185,7 @@ function parseLinkedIn(text: string): ParsedMessage[] {
   const out: ParsedMessage[] = [];
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
+    if (!row) continue;
     const speaker = (row[fromIdx] ?? "").trim();
     const content = (row[contentIdx] ?? "").trim();
     if (!speaker || !content) continue;
@@ -235,11 +237,11 @@ function parseGmail(text: string): ParsedMessage[] {
   for (const block of blocks) {
     const fromMatch = block.match(/^From:\s*(.+)$/m);
     if (!fromMatch) continue;
-    const speaker = fromMatch[1].trim();
+    const speaker = (fromMatch[1] ?? "").trim();
     const dateMatch = block.match(/^Date:\s*(.+)$/m);
     let ts: Date | undefined;
     if (dateMatch) {
-      const parsed = new Date(dateMatch[1].trim());
+      const parsed = new Date((dateMatch[1] ?? "").trim());
       if (!isNaN(parsed.getTime())) ts = parsed;
     }
     const blankIdx = block.search(/\n\r?\n/);

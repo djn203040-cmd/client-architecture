@@ -16,8 +16,8 @@ describe("buildDraftOutcome (04-08 draft dispatch branching)", () => {
     it("fires draft/send_via_gmail with source=mode_a", () => {
       const { events } = buildDraftOutcome("mode_a", DRAFT_ID, COACH_ID, LEAD_NAME, "high", NOW);
       expect(events).toHaveLength(1);
-      expect(events[0].name).toBe("draft/send_via_gmail");
-      expect(events[0].data).toMatchObject({ draftId: DRAFT_ID, coachId: COACH_ID, source: "mode_a" });
+      expect(events[0]!.name).toBe("draft/send_via_gmail");
+      expect(events[0]!.data).toMatchObject({ draftId: DRAFT_ID, coachId: COACH_ID, source: "mode_a" });
     });
   });
 
@@ -30,16 +30,16 @@ describe("buildDraftOutcome (04-08 draft dispatch branching)", () => {
     it("fires draft/created_mode_b with scheduledSendAt 24h after now", () => {
       const { events } = buildDraftOutcome("mode_b", DRAFT_ID, COACH_ID, LEAD_NAME, "high", NOW);
       expect(events).toHaveLength(1);
-      expect(events[0].name).toBe("draft/created_mode_b");
+      expect(events[0]!.name).toBe("draft/created_mode_b");
 
-      const { scheduledSendAt } = events[0].data as { scheduledSendAt: string };
+      const { scheduledSendAt } = events[0]!.data as { scheduledSendAt: string };
       const delta = new Date(scheduledSendAt).getTime() - new Date(NOW).getTime();
       expect(delta).toBe(24 * 60 * 60 * 1000);
     });
 
     it("includes draftId and coachId in mode_b event", () => {
       const { events } = buildDraftOutcome("mode_b", DRAFT_ID, COACH_ID, LEAD_NAME, "low", NOW);
-      expect(events[0].data).toMatchObject({ draftId: DRAFT_ID, coachId: COACH_ID });
+      expect(events[0]!.data).toMatchObject({ draftId: DRAFT_ID, coachId: COACH_ID });
     });
   });
 
