@@ -239,7 +239,7 @@ VOICE-005
 **Context:** `phases/07-call-outcomes/07-CONTEXT.md` — full scope + 4 locked product decisions (Converted keeps the lead live, prompt at call end +30m, provider no-show auto-resolves, no-email bookings get a placeholder lead).
 
 **Planned sub-plans (4, wave-ordered):**
-- [ ] 07-01 — Data + calendar processing refactor: `call_outcomes` table/enums/RLS/RPC, shared types, `processCalendarEvent` + `upsertLeadFromBooking` across all 7 webhooks, `call_booked` timeline. (Wave 1)
+- [x] 07-01 — Data + calendar processing refactor: `call_outcomes` table/enums/RLS/RPC, shared types, `processCalendarEvent` + `upsertLeadFromBooking` across all 7 webhooks, `call_booked` timeline. (Wave 1) ✓ 2026-06-03
 - [ ] 07-02 — Inngest: `call-outcome-monitor` (sleep→awaiting), resilience poller cron, downstream wiring (no_show / call_completed / converted), notification-dispatcher case. (Wave 2, depends 07-01)
 - [ ] 07-03 — API + Slack: `PATCH /api/call-outcomes/[id]`, Block Kit builder, interactivity branch, `syncSlackCallOutcomeMessage`. (Wave 2, depends 07-01)
 - [ ] 07-04 — Frontend: `/calls` queue page, `LeadCallOutcomePanel`, timeline icons, sidebar nav, impeccable audit. (Wave 3, depends 07-01/02/03)

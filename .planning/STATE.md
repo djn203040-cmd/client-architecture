@@ -6,9 +6,9 @@
 
 ## Current Status
 
-**Stage:** Phase 7 planned — ready to execute (`/gsd-execute-phase 7`)
+**Stage:** Phase 7 executing — Wave 1 complete (07-01); Wave 2 next (07-02 + 07-03 in parallel)
 **Active phase:** Phase 7 — Call Outcomes (post-launch milestone v1.1)
-**Current plan:** 4 PLAN.md files in 3 waves; verified by gsd-plan-checker (PASSED after 1 revision round — 3 blockers + 4 warnings fixed)
+**Current plan:** Wave 1 (07-01) DONE — 3 migrations live in prod Supabase (call_outcomes table + 2 enums + FORCE RLS + record_call_outcome_atomic RPC + realtime; leads.email nullable; call_converted event); 7 calendar webhooks centralized behind processCalendarEvent/upsertLeadFromBooking; types regenerated. Wave 2 = 07-02 (Inngest monitor/poller/downstream + state-machine send-block/nurture-block split) + 07-03 (PATCH /api/call-outcomes/[id] + Slack interactivity); Wave 3 = 07-04 (frontend /calls queue + impeccable audit, autonomous:false)
 **Date:** 2026-06-03
 
 **Last session:** Scoped + planned Phase 7 (Call Outcomes). Net-new post-launch feature added to ROADMAP (v1.7) and REQUIREMENTS (CALL-001..016). Monitors every calendar booking → auto-creates/updates lead (fixes the standing no-lead-on-booking gap) → opens a `call_outcomes` record → 30 min after the call asks the coach No Show / Call Completed / Converted on a `/calls` queue, the lead profile, and Slack buttons. 4 locked product decisions: Converted keeps the lead live (reply+transcript monitoring continue, only nurture stops — requires splitting TERMINAL_STATES into send-block vs nurture-block), prompt at call end +30m, provider no-show auto-resolves, no-email bookings get a placeholder lead. Plan set mirrors the drafts feature (queue/Slack/realtime/timeline) and supersedes the half-built pending_actions stub. Planner committed initial plans (16c2c8e); revisions + docs pending commit. NOTE: GSD `gsd-sdk` CLI is not installed in this env — workflow was driven by spawning the gsd-planner/gsd-plan-checker agents directly + manual gates.
