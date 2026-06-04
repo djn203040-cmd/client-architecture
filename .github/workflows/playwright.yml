@@ -58,6 +58,9 @@ jobs:
           # No Inngest dev server in CI — make event emission a no-op so
           # event-emitting routes don't 401→500 against Inngest Cloud.
           INNGEST_TEST_NOOP: "1"
+          # Token-signing secrets — tests sign tokens the routes must verify.
+          UNSUBSCRIBE_SECRET: test-unsub-secret
+          JWT_REVIEW_SECRET: test-review-secret
 
       - uses: actions/upload-artifact@v4
         if: failure()

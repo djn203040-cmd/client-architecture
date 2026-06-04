@@ -24,6 +24,13 @@ test("full onboarding wizard golden path — all steps complete", async ({ coach
   });
   expect(gmailRes.status()).toBe(200);
 
+  // Steps booking + calendar — no server-side gate, just record progress.
+  // STEP_ORDER requires all six steps before onboarding is marked complete.
+  for (const step of ["booking", "calendar"] as const) {
+    const res = await page.request.patch(`/api/onboarding/complete-step`, { data: { step } });
+    expect(res.status()).toBe(200);
+  }
+
   // Step 2: voice — seed 8 examples via admin, then complete step
   await admin.from("coaches").update({ voice_model: FAKE_VOICE_MODEL }).eq("id", coach.id);
   const voiceRes = await page.request.patch(`/api/onboarding/complete-step`, {

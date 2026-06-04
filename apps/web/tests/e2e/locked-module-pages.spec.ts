@@ -43,7 +43,8 @@ for (const { path, titleSegment, taglineSegment } of PAGES) {
     // The title appears in the hero h1, the sidebar link, and prose — target
     // the hero heading specifically to avoid a strict-mode match on all four.
     await expect(page.getByRole("heading", { level: 1, name: titleSegment })).toBeVisible();
-    await expect(page.getByText(taglineSegment)).toBeVisible();
+    // Scope to <main> — the tagline also appears in the sidebar locked tile.
+    await expect(page.getByRole("main").getByText(taglineSegment)).toBeVisible();
 
     expect(criticalErrors).toHaveLength(0);
   });
@@ -55,6 +56,8 @@ test("sidebar locked tile deep-links to /modules/threshold", async ({ coach, pag
 
   await page.goto("/dashboard");
   await page.getByText("The Threshold Experience").click();
+  // Client-side navigation is async — wait for the route before asserting.
+  await page.waitForURL("**/modules/threshold");
   expect(page.url()).toContain("/modules/threshold");
 });
 
@@ -64,5 +67,7 @@ test("sidebar locked tile deep-links to /modules/continuation", async ({ coach, 
 
   await page.goto("/dashboard");
   await page.getByText("The Continuation").click();
+  // Client-side navigation is async — wait for the route before asserting.
+  await page.waitForURL("**/modules/continuation");
   expect(page.url()).toContain("/modules/continuation");
 });
