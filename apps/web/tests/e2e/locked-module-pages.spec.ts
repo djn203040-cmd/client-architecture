@@ -31,10 +31,22 @@ for (const { path, titleSegment, taglineSegment } of PAGES) {
     // Intercept cal.com to avoid network dependency — iframe still mounts
     await page.route("**/cal.com/**", (route) => route.abort());
 
+    // Ignore noise from the intentionally-aborted cal.com iframe. WebKit reports
+    // the aborted load as "Failed to load resource: ... TLS handshake" with no
+    // "cal.com" in the text, so match on the resource-failure shape too.
+    const IGNORED_ERROR_FRAGMENTS = [
+      "cal.com",
+      "Failed to load resource",
+      "TLS handshake",
+      "ERR_",
+      "net::",
+    ];
     const criticalErrors: string[] = [];
     page.on("console", (msg) => {
-      // Ignore cal.com network errors (expected in offline test env)
-      if (msg.type() === "error" && !msg.text().includes("cal.com")) {
+      if (
+        msg.type() === "error" &&
+        !IGNORED_ERROR_FRAGMENTS.some((frag) => msg.text().includes(frag))
+      ) {
         criticalErrors.push(msg.text());
       }
     });
@@ -55,8 +67,9 @@ test("sidebar locked tile deep-links to /modules/threshold", async ({ coach, pag
   await page.context().addCookies(coach.cookies);
 
   await page.goto("/dashboard");
-  await page.getByText("The Threshold Experience").click();
-  // Client-side navigation is async — wait for the route before asserting.
+  // Click the link element (not the inner text node) so navigation fires
+  // reliably in WebKit; then wait for the async client-side route.
+  await page.getByRole("link", { name: /The Threshold Experience/ }).click();
   await page.waitForURL("**/modules/threshold");
   expect(page.url()).toContain("/modules/threshold");
 });
@@ -66,8 +79,9 @@ test("sidebar locked tile deep-links to /modules/continuation", async ({ coach, 
   await page.context().addCookies(coach.cookies);
 
   await page.goto("/dashboard");
-  await page.getByText("The Continuation").click();
-  // Client-side navigation is async — wait for the route before asserting.
+  // Click the link element (not the inner text node) so navigation fires
+  // reliably in WebKit; then wait for the async client-side route.
+  await page.getByRole("link", { name: /The Continuation/ }).click();
   await page.waitForURL("**/modules/continuation");
   expect(page.url()).toContain("/modules/continuation");
 });

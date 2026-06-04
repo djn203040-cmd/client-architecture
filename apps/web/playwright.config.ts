@@ -56,7 +56,9 @@ export default defineConfig({
     {
       name: "tablet-chromium",
       testMatch: /dashboard.*\.spec\.ts/,
-      use: { ...devices["iPad (gen 7)"], viewport: { width: 768, height: 1024 } },
+      // Chromium engine at a tablet viewport (the iPad device pulls in WebKit,
+      // which the chromium-only standalone E2E workflow doesn't install).
+      use: { ...devices["Desktop Chrome"], viewport: { width: 768, height: 1024 } },
     },
     // 06-PLAN.md §1.6 — dual-mode axe scan: dark + light. Dark variant runs the
     // critical visual surfaces in colorScheme: 'dark' for contrast violations.
