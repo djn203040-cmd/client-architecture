@@ -70,6 +70,10 @@ regexes = [
   '''(?i)example[._-]?(key|token|secret)''',
   # Supabase local-dev anon key (deterministic, public, identical on every machine)
   '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlLWRlbW8iLCJpYXQiOjE2NDE3NjkyMDAsImV4cCI6MTc5OTUzNTYwMH0\..*''',
+  # False positive: the `resend-api-key` rule (re_[A-Za-z0-9_]{20,}) matches the
+  # SQL/RPC function name `store_calendar_webhook_secret` (substring `re_calendar_webhook_secret`).
+  # Not a Resend key — real keys are mixed-case base62, never an all-lowercase snake_case identifier.
+  '''re_calendar_webhook_secret''',
 ]
 
 stopwords = [
