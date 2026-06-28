@@ -7,6 +7,9 @@ on:
   schedule:
     # Weekly OWASP ZAP baseline scan (Mondays 06:00 UTC)
     - cron: "0 6 * * 1"
+  # Manual trigger to run the full scheduled scan (incl. the weekly ZAP
+  # baseline) on demand, without waiting for the Monday cron.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -100,7 +103,7 @@ jobs:
 
   zap-baseline:
     name: OWASP ZAP baseline scan (weekly)
-    if: github.event_name == 'schedule'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
