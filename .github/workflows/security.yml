@@ -133,7 +133,9 @@ jobs:
           fi
       - name: ZAP baseline scan
         if: steps.target.outputs.reachable == 'true'
-        uses: zaproxy/action-baseline@v0.12.0
+        # v0.15.0+ uses actions/upload-artifact@v4; v0.12.0 hit the deprecated
+        # artifact API ("artifact name zap_scan is not valid", HTTP 400).
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: ${{ steps.target.outputs.url }}
           fail_action: false
