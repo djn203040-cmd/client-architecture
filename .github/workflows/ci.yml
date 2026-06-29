@@ -10,7 +10,7 @@ jobs:
     name: Security grep checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Block NEXT_PUBLIC_ on service role key (INFRA-002)
         run: |
           if grep -rn "NEXT_PUBLIC_[A-Z_]*SERVICE_ROLE\|NEXT_PUBLIC_[A-Z_]*service_role" \
@@ -31,7 +31,7 @@ jobs:
     name: TypeScript type-check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with: { version: 9.15.4 }
       - uses: actions/setup-node@v4
@@ -43,7 +43,7 @@ jobs:
     name: ESLint (no-console enforcement)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with: { version: 9.15.4 }
       - uses: actions/setup-node@v4
@@ -55,7 +55,7 @@ jobs:
     name: Unit + integration tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with: { version: 9.15.4 }
       - uses: actions/setup-node@v4
@@ -67,7 +67,7 @@ jobs:
     name: Next.js build + ai-engine bundle audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with: { version: 9.15.4 }
       - uses: actions/setup-node@v4
