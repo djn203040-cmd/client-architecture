@@ -6,14 +6,10 @@ port = 54321
 schemas = ["public", "private"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
-# Supabase CLI v2.106.0 flipped this default to false: local start/reset now
-# REVOKEs the Data API grants (anon/authenticated/service_role) for tables not
-# explicitly granted, breaking every PostgREST-backed integration test
-# ("permission denied for table leads"). Our migrations grant EXECUTE on RPCs
-# but rely on the legacy auto-expose for table grants. Restore that behavior.
-# DEPRECATED — removed 2026-10-30. Durable fix tracked in a follow-up issue:
-# add explicit GRANTs per public table/sequence in migrations before then.
-auto_expose_new_tables = true
+# Data API table/sequence grants (revoked by default since CLI v2.106.0) are
+# now restored explicitly in migration 20260628000001_explicit_data_api_grants
+# — so we intentionally leave `auto_expose_new_tables` at its new default
+# (false) rather than relying on the deprecated escape hatch (issue #66).
 
 [db]
 port = 54322

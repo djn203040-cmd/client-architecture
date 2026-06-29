@@ -65,7 +65,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
       - uses: supabase/setup-cli@v2
-        with: { version: latest }
+        with: { version: 2.108.0 }
       - run: supabase start
       - name: Export Supabase keys
         # `supabase status -o env` emits KEY="value" (quoted). $GITHUB_ENV keeps
@@ -99,7 +99,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
       - uses: supabase/setup-cli@v2
-        with: { version: latest }
+        with: { version: 2.108.0 }
       - run: supabase start
       - name: Export Supabase keys to .env.test
         # Strip the surrounding quotes `supabase status -o env` adds (KEY="value")
@@ -163,7 +163,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v2
-        with: { version: latest }
+        with: { version: 2.108.0 }
       - run: supabase start
       - run: supabase db reset --no-seed
       - run: supabase db diff -f post_reset_diff
