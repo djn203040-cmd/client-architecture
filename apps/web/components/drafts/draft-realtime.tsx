@@ -21,6 +21,11 @@ export function useDraftRealtime(
   const leadId = opts?.leadId;
   const [drafts, setDrafts] = useState<DraftRow[]>(opts?.initialDrafts ?? []);
   const [loading, setLoading] = useState(!opts?.initialDrafts);
+  // When the caller doesn't seed rows server-side (e.g. the Held tab), the hook
+  // must fetch the current bucket itself — otherwise it only ever shows drafts
+  // that transition INTO this status while subscribed, so existing rows (every
+  // already-held draft) never appear.
+  const needsFetch = !opts?.initialDrafts;
 
   // Move the first draft to the back — used by the Skip button so the coach
   // can defer a draft without changing its status. Client-only; no DB write.
@@ -33,6 +38,29 @@ export function useDraftRealtime(
 
   useEffect(() => {
     const supabase = createClient();
+    let cancelled = false;
+
+    // Initial load for non-seeded buckets. Merge (dedupe by id) so we don't
+    // clobber rows already delivered by a realtime event mid-fetch.
+    if (needsFetch) {
+      setLoading(true);
+      let query = supabase
+        .from("drafts")
+        .select("*, leads(name)")
+        .eq("coach_id", coachId)
+        .eq("status", status);
+      if (leadId) query = query.eq("lead_id", leadId);
+      void query.then(({ data }) => {
+        if (cancelled) return;
+        if (data) {
+          setDrafts((prev) => {
+            const seen = new Set(prev.map((d) => d.id));
+            return [...prev, ...(data as DraftRow[]).filter((r) => !seen.has(r.id))];
+          });
+        }
+        setLoading(false);
+      });
+    }
 
     const channel = supabase
       .channel(`coach-drafts-${status}-${coachId}${leadId ? `-${leadId}` : ""}`)
@@ -84,12 +112,16 @@ export function useDraftRealtime(
           });
         },
       )
-      .subscribe(() => setLoading(false));
+      // When fetching, the query above owns the loading flag; let it clear.
+      .subscribe(() => {
+        if (!needsFetch) setLoading(false);
+      });
 
     return () => {
+      cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [coachId, status, leadId]);
+  }, [coachId, status, leadId, needsFetch]);
 
   const result = useMemo(
     () => ({ drafts, loading, rotateCurrent }),
