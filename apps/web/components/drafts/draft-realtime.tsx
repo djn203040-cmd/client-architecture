@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useId } from "react";
 import { createClient } from "@/lib/supabase/browser";
 import type { Database } from "@client/database";
 
@@ -31,6 +31,13 @@ export function useDraftRealtime(
   // that transition INTO this status while subscribed, so existing rows (every
   // already-held draft) never appear.
   const needsFetch = !opts?.initialDrafts;
+
+  // Per-instance suffix so two hooks watching the same bucket never collide on
+  // one Realtime topic. The dashboard subscribes to "held" twice — once for the
+  // tab badge count, once inside the Held tab itself — and two channels sharing
+  // a topic on the same socket make the second subscribe fail. A stable useId()
+  // keeps each instance's channel distinct.
+  const instanceId = useId();
 
   // Move the first draft to the back — used by the Skip button so the coach
   // can defer a draft without changing its status. Client-only; no DB write.
@@ -79,7 +86,7 @@ export function useDraftRealtime(
     }
 
     const channel = supabase
-      .channel(`coach-drafts-${status}-${coachId}${leadId ? `-${leadId}` : ""}`)
+      .channel(`coach-drafts-${status}-${coachId}${leadId ? `-${leadId}` : ""}-${instanceId}`)
       .on(
         "postgres_changes",
         {
@@ -137,7 +144,7 @@ export function useDraftRealtime(
       cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [coachId, status, leadId, needsFetch]);
+  }, [coachId, status, leadId, needsFetch, instanceId]);
 
   const result = useMemo(
     () => ({ drafts, loading, rotateCurrent, removeDraft }),
