@@ -12,7 +12,7 @@ export function HeldTab({
   /** Coach's IANA timezone — renders draft send times in their local clock. */
   timeZone?: string | null;
 }) {
-  const { drafts, loading } = useDraftRealtime(coachId, { status: "held" });
+  const { drafts, loading, removeDraft } = useDraftRealtime(coachId, { status: "held" });
 
   const sorted = useMemo(
     () => [...drafts].sort((a, b) => (b.held_at ?? "").localeCompare(a.held_at ?? "")),
@@ -41,7 +41,13 @@ export function HeldTab({
     <div className="space-y-3">
       <AnimatePresence mode="popLayout">
         {sorted.map((d) => (
-          <DraftCard key={d.id} draft={d} variant="held" timeZone={timeZone} />
+          <DraftCard
+            key={d.id}
+            draft={d}
+            variant="held"
+            timeZone={timeZone}
+            onDeleted={() => removeDraft(d.id)}
+          />
         ))}
       </AnimatePresence>
     </div>

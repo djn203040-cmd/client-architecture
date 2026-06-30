@@ -36,12 +36,12 @@ export function LeadDraftsPanel({
   initialHeld,
   timeZone,
 }: Props) {
-  const { drafts: pendingRaw } = useDraftRealtime(coachId, {
+  const { drafts: pendingRaw, removeDraft: removePending } = useDraftRealtime(coachId, {
     status: "pending",
     leadId,
     initialDrafts: initialPending,
   });
-  const { drafts: heldRaw } = useDraftRealtime(coachId, {
+  const { drafts: heldRaw, removeDraft: removeHeld } = useDraftRealtime(coachId, {
     status: "held",
     leadId,
     initialDrafts: initialHeld,
@@ -70,10 +70,17 @@ export function LeadDraftsPanel({
               variant="pending"
               showSkip={false}
               timeZone={timeZone}
+              onDeleted={() => removePending(draft.id)}
             />
           ))}
           {held.map((draft) => (
-            <DraftCard key={draft.id} draft={draft} variant="held" timeZone={timeZone} />
+            <DraftCard
+              key={draft.id}
+              draft={draft}
+              variant="held"
+              timeZone={timeZone}
+              onDeleted={() => removeHeld(draft.id)}
+            />
           ))}
         </AnimatePresence>
       </div>

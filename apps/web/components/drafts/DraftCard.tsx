@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { PencilSimple, CheckCircle, SkipForward, PauseCircle, ArrowsClockwise, WarningCircle } from "@phosphor-icons/react";
 import { InlineDraftEditor } from "./InlineDraftEditor";
 import { HeldDraftActions } from "./HeldDraftActions";
+import { DraftDeleteButton } from "./DraftDeleteButton";
 import { toast } from "sonner";
 import type { Database } from "@client/database";
 import { formatDateTimeInTZ } from "@/lib/format/datetime";
@@ -21,6 +22,11 @@ interface DraftCardProps {
   surface?: "app" | "review";
   reviewToken?: string;
   onAdvance?: () => void;
+  /**
+   * Called after this draft is hard-deleted so the surface can drop the card.
+   * Omitted on the review surface, where delete isn't offered.
+   */
+  onDeleted?: () => void;
   /**
    * Skip is a queue-only concept (defer to the next card without changing
    * status). On the lead profile page there is no "next" — pass false to hide
@@ -37,6 +43,7 @@ export function DraftCard({
   surface = "app",
   reviewToken,
   onAdvance,
+  onDeleted,
   showSkip = true,
   timeZone,
 }: DraftCardProps) {
@@ -217,6 +224,15 @@ export function DraftCard({
 
       {variant === "held" && (
         <HeldDraftActions draft={draft} onAdvance={onAdvance} />
+      )}
+
+      {/* Delete is intentionally separated from the primary actions and kept
+          quiet — operator escape hatch only. Hidden on the public review
+          surface (a tokenized link shouldn't destroy records). */}
+      {!isReview && (
+        <div className="mt-5 flex justify-end border-t border-border/40 pt-3">
+          <DraftDeleteButton draftId={draft.id} onDeleted={onDeleted} />
+        </div>
       )}
     </motion.div>
   );

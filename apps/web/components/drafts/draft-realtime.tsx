@@ -16,7 +16,12 @@ export function useDraftRealtime(
     // When set, INSERT/UPDATE events for other leads are ignored.
     leadId?: string;
   },
-): { drafts: DraftRow[]; loading: boolean; rotateCurrent: () => void } {
+): {
+  drafts: DraftRow[];
+  loading: boolean;
+  rotateCurrent: () => void;
+  removeDraft: (id: string) => void;
+} {
   const status = opts?.status ?? "pending";
   const leadId = opts?.leadId;
   const [drafts, setDrafts] = useState<DraftRow[]>(opts?.initialDrafts ?? []);
@@ -32,6 +37,17 @@ export function useDraftRealtime(
   const rotateCurrent = useMemo(
     () => () => {
       setDrafts((prev) => (prev.length > 1 ? [...prev.slice(1), prev[0]!] : prev));
+    },
+    [],
+  );
+
+  // Drop a draft from local state immediately after a hard delete. Realtime
+  // doesn't reliably echo DELETE events back (the old record carries only the
+  // PK, so the coach_id filter can't match), so the acting client removes the
+  // card optimistically — same as approve/hold rely on the acting client.
+  const removeDraft = useMemo(
+    () => (id: string) => {
+      setDrafts((prev) => prev.filter((d) => d.id !== id));
     },
     [],
   );
@@ -124,8 +140,8 @@ export function useDraftRealtime(
   }, [coachId, status, leadId, needsFetch]);
 
   const result = useMemo(
-    () => ({ drafts, loading, rotateCurrent }),
-    [drafts, loading, rotateCurrent],
+    () => ({ drafts, loading, rotateCurrent, removeDraft }),
+    [drafts, loading, rotateCurrent, removeDraft],
   );
   return result;
 }

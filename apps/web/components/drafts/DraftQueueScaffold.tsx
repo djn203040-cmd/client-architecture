@@ -34,7 +34,7 @@ export function DraftQueueScaffold({
   const [justEmptied, setJustEmptied] = useState(false);
   const prevLengthRef = useRef(initialDrafts.length);
 
-  const { drafts, loading: draftsLoading, rotateCurrent } = useDraftRealtime(coachId, {
+  const { drafts, loading: draftsLoading, rotateCurrent, removeDraft } = useDraftRealtime(coachId, {
     status: "pending",
     initialDrafts,
   });
@@ -123,6 +123,7 @@ export function DraftQueueScaffold({
                 key={drafts[0]!.id}
                 draft={drafts[0]!}
                 onAdvance={drafts.length > 1 ? rotateCurrent : advance}
+                onDeleted={() => removeDraft(drafts[0]!.id)}
                 timeZone={timeZone}
               />
             </AnimatePresence>

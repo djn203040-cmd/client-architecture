@@ -144,3 +144,45 @@ export async function PATCH(
 
   return NextResponse.json({ ok: true }); // body/subject-only edit
 }
+
+// Hard delete. Distinct from PATCH status='cancelled' (a soft, recoverable
+// terminal state): this removes the row entirely. It's the operator's escape
+// hatch for junk drafts (e.g. a reply draft generated with no inbound to
+// answer). draft_edits cascade with the row; email_events / notification_log
+// keep their history with draft_id nulled (ON DELETE SET NULL).
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: draft } = await adminClient
+    .from("drafts")
+    .select("id, coach_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (!draft) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (draft.coach_id !== user.id)
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  // Wind down side effects while the row still exists: cancel any sleeping
+  // Inngest timers (cancelOn consumers exit on this event) and retire the
+  // Slack buttons (the sync needs the draft to resolve its message).
+  await inngest.send({
+    name: "draft/cancelled",
+    data: { draftId: id, coachId: draft.coach_id },
+  });
+  await syncSlackDraftMessage({ draftId: id, coachId: draft.coach_id, state: "cancelled" });
+
+  const { error } = await adminClient.from("drafts").delete().eq("id", id);
+  if (error) {
+    return NextResponse.json({ ok: false, error: "delete_failed" }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true });
+}
