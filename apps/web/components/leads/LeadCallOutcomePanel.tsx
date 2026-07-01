@@ -82,17 +82,17 @@ function ConvertedModuleCTA() {
   return (
     <Link
       href="/modules/threshold"
-      className="group block rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-colors hover:bg-white/15 dark:hover:bg-white/8"
+      className="group block rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-colors hover:bg-white/15 dark:hover:bg-white/8"
     >
-      <p className="text-sm leading-[1.5]">
+      <p className="text-base leading-[1.55]">
         <span className="font-semibold">The Threshold Experience</span>
         {" — your client's first 48 hours, built from your sales call."}
       </p>
-      <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[oklch(55%_0.13_80)] dark:text-[oklch(80%_0.14_85)]">
+      <span className="mt-3 inline-flex items-center gap-1.5 text-base font-medium text-[oklch(55%_0.13_80)] dark:text-[oklch(80%_0.14_85)]">
         Book a call
         <ArrowUpRight
           weight="bold"
-          className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          className="size-[18px] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
         />
       </span>
     </Link>
