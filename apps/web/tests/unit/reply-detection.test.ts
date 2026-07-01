@@ -20,6 +20,7 @@ type DB = {
 
 let db: DB;
 const inboundInserts: Array<Record<string, unknown>> = [];
+const integrationUpdates: Array<Record<string, unknown>> = [];
 
 // ---- Supabase admin mock: a thenable builder routed by table+op+filters ----
 const { adminClient } = vi.hoisted(() => {
@@ -40,6 +41,7 @@ function makeBuilder(table: string) {
       return { data: { metadata: { last_history_id: "100" } }, error: null };
     }
     if (state.table === "integrations" && state.op === "update") {
+      integrationUpdates.push(state.payload ?? {});
       return { data: null, error: null };
     }
     if (state.table === "email_events" && state.op === "select") {
@@ -145,6 +147,7 @@ beforeEach(() => {
     recordedInbound: new Set(),
   };
   inboundInserts.length = 0;
+  integrationUpdates.length = 0;
   mockHistoryList.mockReset();
   mockMessagesGet.mockReset();
   mockHistoryList.mockResolvedValue({
@@ -176,6 +179,28 @@ describe("processHistoryUpdate — reply detection", () => {
       event_type: "received",
       gmail_message_id: "inbound-1",
       lead_id: "l1",
+    });
+  });
+
+  it("re-baselines and fires nothing when history.list 404s on a stale historyId", async () => {
+    // Gmail purges history older than ~1 week: a stale stored baseline makes
+    // history.list 404 forever. The monitor must NOT throw (which would strand
+    // it — the throw is before the baseline advances); it must reset the
+    // baseline to this push's current historyId and skip the lost delta.
+    mockHistoryList.mockRejectedValue(
+      Object.assign(new Error("Requested entity was not found."), {
+        code: 404,
+        status: "NOT_FOUND",
+      }),
+    );
+
+    const { eventsToFire } = await processHistoryUpdate("c1", "999");
+
+    expect(eventsToFire).toHaveLength(0);
+    // Baseline reset to the incoming historyId so the next push queries validly.
+    expect(integrationUpdates).toHaveLength(1);
+    expect(integrationUpdates[0]).toMatchObject({
+      metadata: { last_history_id: "999" },
     });
   });
 

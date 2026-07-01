@@ -6,6 +6,19 @@ import { isBounceMessage } from "./bounce-detector";
 import { LEAD_REPLIED, LEAD_BOUNCED } from "@client/shared/constants/events";
 // NO Inngest import — this module has no side effects beyond DB writes
 
+/**
+ * Gmail's history.list returns 404 (`notFound`) when startHistoryId is older
+ * than Gmail's history retention window (~1 week). Local + dependency-free so
+ * this module stays Inngest-free and unit-testable (unlike error-handler.ts,
+ * which imports the Inngest client). Once the stored baseline ages out, every
+ * push replays the same doomed query — detecting it lets us re-baseline.
+ */
+function isHistoryNotFoundError(e: unknown): boolean {
+  if (typeof e !== "object" || e === null) return false;
+  const err = e as { code?: number | string; status?: string; response?: { status?: number } };
+  return err.code === 404 || err.code === "404" || err.status === "NOT_FOUND" || err.response?.status === 404;
+}
+
 export interface InngestEvent {
   name: string;
   data: object;
@@ -110,12 +123,32 @@ export async function processHistoryUpdate(
   const meta = integration?.metadata as { last_history_id?: string } | null;
   const startHistoryId = meta?.last_history_id ?? historyId;
 
-  const historyResponse = await gmail.users.history.list({
-    userId: "me",
-    startHistoryId,
-    historyTypes: ["messageAdded"],
-    labelId: "INBOX",
-  });
+  const historyResponse = await gmail.users.history
+    .list({
+      userId: "me",
+      startHistoryId,
+      historyTypes: ["messageAdded"],
+      labelId: "INBOX",
+    })
+    .catch((e: unknown) => {
+      // Stale baseline: Gmail purged history past startHistoryId (404 notFound).
+      // Re-throw anything else; null signals the caller to re-baseline below.
+      if (isHistoryNotFoundError(e)) return null;
+      throw e;
+    });
+
+  if (historyResponse === null) {
+    // Re-baseline to this push's current historyId so future pushes query from a
+    // valid point, and skip this delta (it's unrecoverable — Gmail no longer has
+    // it). Without this the 404 strands the monitor: the baseline never advances,
+    // so every subsequent push replays the same doomed query.
+    await adminClient
+      .from("integrations")
+      .update({ metadata: { ...(meta ?? {}), last_history_id: historyId } })
+      .eq("coach_id", coachId)
+      .eq("provider", "gmail");
+    return { eventsToFire: [] };
+  }
 
   const historyItems = historyResponse.data.history ?? [];
   const messages = historyItems.flatMap((h) => h.messagesAdded ?? []);
