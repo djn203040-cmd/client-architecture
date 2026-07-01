@@ -6,7 +6,6 @@ import {
   LEAD_CALL_BOOKED,
   LEAD_UNSUBSCRIBED,
   LEAD_NO_SHOW,
-  LEAD_CALL_COMPLETED,
   LEAD_MANUALLY_ENROLLED,
 } from "@client/shared/constants/events";
 import { generateReengagementDraft } from "@/lib/drafts/generate-reengagement";
@@ -201,6 +200,14 @@ export const sequenceReengage = inngest.createFunction(
     id: "sequence-reengage",
     name: "Silence-gated re-engagement after a reply goes quiet",
     concurrency: { limit: 5, key: "event.data.coachId" },
+    // Inngest caps cancelOn at 5 events per function. All of these transitions
+    // are already backstopped by the post-sleep eligibility re-check
+    // (checkReengageEligible stops on any lead status != "replied"), so cancelOn
+    // is an instant-teardown optimization, not a correctness requirement — a
+    // stale run that isn't cancelled here still self-terminates (and never sends)
+    // at its next silence-window wake. LEAD_CALL_COMPLETED is deliberately
+    // omitted to stay within the cap: a call can't complete without first being
+    // booked, and LEAD_CALL_BOOKED below already cancels the run at booking time.
     cancelOn: [
       // A newer reply supersedes this watcher — cancel so a fresh run re-arms the
       // silence timer from the latest message. This is what makes a rapid
@@ -217,10 +224,6 @@ export const sequenceReengage = inngest.createFunction(
       { event: LEAD_UNSUBSCRIBED, if: "async.data.leadId == event.data.leadId" },
       {
         event: LEAD_NO_SHOW,
-        if: "async.data.leadId == event.data.leadId && async.data.coachId == event.data.coachId",
-      },
-      {
-        event: LEAD_CALL_COMPLETED,
         if: "async.data.leadId == event.data.leadId && async.data.coachId == event.data.coachId",
       },
       {
