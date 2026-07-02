@@ -23,8 +23,10 @@ export interface FireCallOutcomeDownstreamArgs {
  *
  * - no_show    -> LEAD_NO_SHOW (sequence-no-show.ts, unchanged).
  * - completed  -> LEAD_CALL_COMPLETED (simplified follow-up track).
- * - converted  -> cancel active sequences, set status='converted', write the
- *                 call_converted timeline event, emit LEAD_CONVERTED.
+ * - converted  -> cancel active sequences, set status='converted', emit
+ *                 LEAD_CONVERTED. The call_converted timeline event is written by
+ *                 the resolve surface (API PATCH / Slack handler) — NOT here — so
+ *                 conversion produces exactly one timeline entry (#76).
  *
  * CONVERTED is live-not-nurtured (D-01): see packages/shared/src/lib/state-machine.ts
  * — converted is ABSENT from SEND_BLOCK_STATES (reply-driven / approved drafts to
@@ -64,15 +66,8 @@ export async function fireCallOutcomeDownstream({
     .eq("id", leadId)
     .not("status", "in", "(converted,lost,do_not_contact)");
 
-  // (c) Timeline event — call_converted (added to lead_event_type in 07-01).
-  await adminClient.from("lead_events").insert({
-    coach_id: coachId,
-    lead_id: leadId,
-    event_type: "call_converted",
-    payload: { reason: "call_outcome_converted" },
-    triggered_by: "coach",
-  });
-
-  // (d) Broadcast for any cancelOn consumers that should retire on conversion.
+  // (c) Broadcast for any cancelOn consumers that should retire on conversion.
+  // The call_converted timeline event is written once by the resolve surface
+  // (API PATCH / Slack handler), so it is intentionally NOT written here (#76).
   await inngest.send({ name: LEAD_CONVERTED, data: { coachId, leadId } });
 }
