@@ -9,7 +9,12 @@ import {
 } from "@/lib/email/templates/draft-ready";
 import type { TNotificationEvent, TChannelResult } from "@client/shared";
 
-const FROM_ADDRESS = "Sonorous Drafts <drafts@sonorous.com>";
+// Coach-notification sender. The domain here MUST be a verified domain in the
+// Resend account, or every send is rejected. Override the whole address via the
+// RESEND_FROM env var (e.g. "Acme Coaching <drafts@acme.com>"); falls back to the
+// default sonorous.com sender when unset.
+const FROM_ADDRESS =
+  process.env.RESEND_FROM ?? "Sonorous Drafts <drafts@sonorous.com>";
 
 export async function sendEmail(
   event: TNotificationEvent,
