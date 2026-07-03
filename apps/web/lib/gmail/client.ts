@@ -3,6 +3,71 @@ import { adminClient } from "@/lib/supabase/admin";
 import { createOAuth2Client } from "./auth";
 import { isInvalidGrantError, OAuthInvalidGrantError, handleInvalidGrant } from "./error-handler";
 
+/**
+ * Recursively wrap the gmail client so ANY API call routes invalid_grant
+ * through handleInvalidGrant (mark disconnected + pause sequences + notify).
+ *
+ * Why recursive (#55): every real Gmail call is nested —
+ * `gmail.users.messages.send(...)`, `gmail.users.history.list(...)` — but the
+ * previous Proxy only intercepted direct function properties of the ROOT
+ * client. `gmail.users` is a plain object, so it was returned unwrapped and
+ * every nested call escaped the invalid_grant handling. When a refresh token
+ * was revoked, googleapis' `refreshTokenNoCache` rejected the API call with a
+ * raw `Error: invalid_grant` (the `on("tokens")` event only fires on a
+ * SUCCESSFUL refresh, so that path never sees the failure), the self-heal
+ * never ran, and the integration stayed `status='connected'` with a dead
+ * token. Wrapping nested objects lazily closes that gap.
+ */
+function wrapWithInvalidGrantSelfHeal<T extends object>(
+  target: T,
+  coachId: string,
+  cache: WeakMap<object, unknown> = new WeakMap(),
+): T {
+  const cached = cache.get(target);
+  if (cached) return cached as T;
+
+  const proxy = new Proxy(target, {
+    get(t, prop) {
+      const value: unknown = Reflect.get(t, prop, t);
+
+      if (typeof value === "function") {
+        return (...args: unknown[]) => {
+          try {
+            const result: unknown = value.apply(t, args);
+            if (result && typeof (result as Promise<unknown>).then === "function") {
+              return (result as Promise<unknown>).catch(async (e: unknown) => {
+                if (isInvalidGrantError(e)) {
+                  await handleInvalidGrant(coachId);
+                  throw new OAuthInvalidGrantError(coachId);
+                }
+                throw e;
+              });
+            }
+            return result;
+          } catch (e) {
+            if (isInvalidGrantError(e)) {
+              handleInvalidGrant(coachId).catch(() => undefined);
+              throw new OAuthInvalidGrantError(coachId);
+            }
+            throw e;
+          }
+        };
+      }
+
+      // Nested resource (gmail.users, gmail.users.messages, ...): wrap it too
+      // so the leaf method call above is always reached through this handler.
+      if (typeof value === "object" && value !== null) {
+        return wrapWithInvalidGrantSelfHeal(value, coachId, cache);
+      }
+
+      return value;
+    },
+  });
+
+  cache.set(target, proxy);
+  return proxy;
+}
+
 export async function getGmailClientForCoach(coachId: string) {
   const { data: tokens, error } = await adminClient.schema("private").rpc("get_gmail_tokens", { p_coach_id: coachId });
   if (error || !tokens) throw new Error(`No Gmail tokens for coach ${coachId}`);
@@ -26,35 +91,8 @@ export async function getGmailClientForCoach(coachId: string) {
     }
   });
 
-  // Wrap the gmail client so any direct API call also catches invalid_grant
+  // Wrap the gmail client (recursively — see wrapWithInvalidGrantSelfHeal) so
+  // any API call, including nested ones, catches invalid_grant and self-heals.
   const gmail = google.gmail({ version: "v1", auth: oauth2Client });
-  return new Proxy(gmail, {
-    get(target, prop) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- reason: Proxy over googleapis gmail client; dynamic property access
-      const value = (target as any)[prop];
-      if (typeof value !== "function") return value;
-      return (...args: unknown[]) => {
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- reason: Proxy over googleapis gmail client; dynamic call shape
-          const r = (value as any).apply(target, args);
-          if (r && typeof (r as Promise<unknown>).then === "function") {
-            return (r as Promise<unknown>).catch(async (e) => {
-              if (isInvalidGrantError(e)) {
-                await handleInvalidGrant(coachId);
-                throw new OAuthInvalidGrantError(coachId);
-              }
-              throw e;
-            });
-          }
-          return r;
-        } catch (e) {
-          if (isInvalidGrantError(e)) {
-            handleInvalidGrant(coachId).catch(() => undefined);
-            throw new OAuthInvalidGrantError(coachId);
-          }
-          throw e;
-        }
-      };
-    },
-  });
+  return wrapWithInvalidGrantSelfHeal(gmail, coachId);
 }
