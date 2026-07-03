@@ -12,8 +12,8 @@ applicable) timestamp checks + idempotency-key dedup.
 | 3 | Acuity | `/api/webhooks/calendar/acuity` | HMAC-SHA256 (`x-acuity-signature`) | n/a | `appointmentId` |
 | 4 | Setmore | `/api/webhooks/calendar/setmore` | shared-secret query token | n/a | `event_id` |
 | 5 | Square | `/api/webhooks/calendar/square` | HMAC-SHA256 (`x-square-hmacsha256-signature`) — URL+body | n/a | `event_id` |
-| 6 | MS Bookings | `/api/webhooks/calendar/ms-bookings` | shared-secret header | n/a | `subscriptionId+changeType` |
-| 7 | TidyCal | `/api/webhooks/calendar/tidycal` | shared-secret header | n/a | `booking.id` |
+| 6 | MS Bookings | `/api/webhooks/calendar/ms-bookings` | shared-secret query token | n/a | `subscriptionId+changeType` |
+| 7 | TidyCal | `/api/webhooks/calendar/tidycal` | shared-secret query token | n/a | `booking.id` |
 | 8 | Slack | `/api/webhooks/slack/interactivity` | HMAC-SHA256 (`x-slack-signature` + `x-slack-request-timestamp`) | 5 min | `payload.trigger_id` |
 | 9 | Resend | `/api/webhooks/resend` | Svix (`svix-id` + `svix-timestamp` + `svix-signature`) | 5 min | `svix-id` |
 | 10 | Twilio | `/api/webhooks/twilio/status` | Twilio v1 (`x-twilio-signature`) | n/a | `MessageSid` |

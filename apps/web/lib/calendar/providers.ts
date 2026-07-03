@@ -69,10 +69,29 @@ export interface CalendarProviderConfig {
 // Webhook receiver URL builder — matches apps/web/app/api/webhooks/calendar/*
 // ---------------------------------------------------------------------------
 
-export function buildWebhookReceiverUrl(provider: CalendarProviderId, coachId: string): string {
+/**
+ * Providers with NO HMAC webhook signature. They are authenticated by a
+ * per-coach secret carried in the webhook URL as `?token=` and verified in
+ * lib/calendar/verify-webhook-token.ts (#82). Square is intentionally NOT here:
+ * it is `manual` mode too, but verifies a real HMAC via env SQUARE_WEBHOOK_SECRET.
+ */
+export const URL_TOKEN_PROVIDERS: ReadonlySet<CalendarProviderId> = new Set([
+  "setmore",
+  "ms_bookings",
+  "tidycal",
+]);
+
+export function buildWebhookReceiverUrl(
+  provider: CalendarProviderId,
+  coachId: string,
+  // For URL_TOKEN_PROVIDERS only: the per-coach secret, appended as `token` so
+  // the coach copies a single self-authenticating URL (#82). Ignored otherwise.
+  token?: string | null,
+): string {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const slug = provider === "cal_com" ? "cal-com" : provider === "ms_bookings" ? "ms-bookings" : provider;
-  return `${baseUrl}/api/webhooks/calendar/${slug}?coachId=${coachId}`;
+  const tokenParam = token ? `&token=${encodeURIComponent(token)}` : "";
+  return `${baseUrl}/api/webhooks/calendar/${slug}?coachId=${coachId}${tokenParam}`;
 }
 
 // ---------------------------------------------------------------------------

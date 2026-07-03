@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/supabase/admin";
-import { getCalendarProvider, buildWebhookReceiverUrl } from "@/lib/calendar/providers";
+import {
+  getCalendarProvider,
+  buildWebhookReceiverUrl,
+  URL_TOKEN_PROVIDERS,
+} from "@/lib/calendar/providers";
 
 export const dynamic = "force-dynamic";
 
@@ -24,8 +28,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, error: "unknown_provider" }, { status: 400 });
   }
 
-  const webhookUrl = buildWebhookReceiverUrl(config.id, user.id);
-
   // Auto-mode providers (calendly, cal_com, acuity) verify with env-level secrets
   // and register their webhook automatically on connect. No per-coach secret needed.
   if (config.webhook.mode === "auto") {
@@ -33,7 +35,7 @@ export async function GET(request: Request) {
       ok: true,
       provider: config.id,
       webhookMode: "auto" as const,
-      webhookUrl,
+      webhookUrl: buildWebhookReceiverUrl(config.id, user.id),
       secret: null,
       instructions: null,
     });
@@ -56,7 +58,6 @@ export async function GET(request: Request) {
         p_secret: generated,
       });
       if (error || !vaultId) {
-        // eslint-disable-next-line no-console -- reason: server-side error log; vault store failure in a route handler, not client code
         console.error("[webhook-info] vault store failed:", error);
       } else {
         // Non-destructive: update if the row exists (don't clobber `status`), insert if not.
@@ -84,16 +85,25 @@ export async function GET(request: Request) {
       }
     }
   } catch (err) {
-    // eslint-disable-next-line no-console -- reason: server-side error log; secret retrieval failure in a route handler, not client code
     console.error("[webhook-info] secret retrieval failed:", err);
   }
+
+  // Signature-less providers (setmore/tidycal/ms_bookings) can't HMAC-sign, so
+  // the secret rides in the URL as `token` (#82) — the receiver timing-safe
+  // compares it against the stored Vault secret, and the coach copies one
+  // self-authenticating URL. Square keeps its own env-HMAC scheme, so its secret
+  // stays a separate field the coach pastes back (its own signature key).
+  const usesUrlToken = URL_TOKEN_PROVIDERS.has(config.id);
+  const webhookUrl = buildWebhookReceiverUrl(config.id, user.id, usesUrlToken ? secret : null);
 
   return NextResponse.json({
     ok: true,
     provider: config.id,
     webhookMode: config.webhook.mode,
     webhookUrl,
-    secret,
+    // For URL-token providers the secret is already embedded in webhookUrl —
+    // don't surface it as a separate "paste this" field the provider has no slot for.
+    secret: usesUrlToken ? null : secret,
     instructions: config.webhook.instructions ?? null,
   });
 }

@@ -1,17 +1,22 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
-import { verifySetmoreSignature, normalizeSetmorePayload } from "@/lib/calendar";
+import { normalizeSetmorePayload } from "@/lib/calendar";
+import { verifyCalendarWebhookToken } from "@/lib/calendar/verify-webhook-token";
 import { processCalendarEvent } from "@/lib/calendar/process-event";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   const rawBody = await request.text();
-  const coachId = new URL(request.url).searchParams.get("coachId");
+  const url = new URL(request.url);
+  const coachId = url.searchParams.get("coachId");
   if (!coachId) return new Response("Missing coachId", { status: 400 });
 
-  // TODO: No documented signature verification for this provider — accept all
-  if (!verifySetmoreSignature()) return new Response("Unauthorized", { status: 401 });
+  // Setmore offers no HMAC signature — verify the per-coach URL token instead (#82).
+  const token = url.searchParams.get("token");
+  if (!(await verifyCalendarWebhookToken(coachId, "setmore", token))) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
   // Verify coach exists (T-07-01)
   const { data: coach } = await adminClient.from("coaches").select("id").eq("id", coachId).maybeSingle();

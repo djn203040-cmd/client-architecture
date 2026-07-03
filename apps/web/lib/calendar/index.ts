@@ -64,20 +64,11 @@ export function verifySquareSignature(
   return timingSafeEqual(a, b);
 }
 
-// TODO: No documented signature verification for this provider — accept all
-export function verifySetmoreSignature(): boolean {
-  return true;
-}
-
-// TODO: No documented signature verification for this provider — accept all
-export function verifyMsBookingsSignature(): boolean {
-  return true;
-}
-
-// TODO: No documented signature verification for this provider — accept all
-export function verifyTidyCalSignature(): boolean {
-  return true;
-}
+// Setmore, Microsoft Bookings and TidyCal offer NO HMAC webhook signature. They
+// are verified instead by a per-coach URL token — see
+// lib/calendar/verify-webhook-token.ts and issue #82. (The old accept-all stub
+// verifiers were removed: they made coachId the only gate, which is a locator,
+// not a secret.)
 
 // ---------------------------------------------------------------------------
 // Payload normalizers — return TCalendarEvent | null (null = unknown event type, ignore)
