@@ -1,6 +1,7 @@
 import "server-only";
 import { getTwilioClient } from "@/lib/twilio/client";
 import { adminClient } from "@/lib/supabase/admin";
+import { writeNotificationLog } from "@/lib/notifications/log-write";
 import { buildReviewUrl, generateReviewToken } from "@/lib/review-token";
 import { WHATSAPP_TEMPLATES, type WhatsAppTemplateKey } from "./whatsapp-templates";
 import type { TNotificationEvent, TChannelResult } from "@client/shared";
@@ -30,7 +31,7 @@ export async function sendWhatsApp(
       .single();
 
     if (!coach?.phone) {
-      await adminClient.from("notification_log").insert({
+      await writeNotificationLog({
         coach_id: coachId,
         event_type: eventType,
         channel: "whatsapp",
@@ -47,7 +48,7 @@ export async function sendWhatsApp(
 
     if (eventType !== "draft_ready" && eventType !== "lead_replied") {
       // hard_bounce + integration_broken: no approved WhatsApp template in Phase 4
-      await adminClient.from("notification_log").insert({
+      await writeNotificationLog({
         coach_id: coachId,
         event_type: eventType,
         channel: "whatsapp",
@@ -99,7 +100,7 @@ export async function sendWhatsApp(
     const contentSid = process.env[template.contentSidEnvVar];
 
     if (!contentSid) {
-      await adminClient.from("notification_log").insert({
+      await writeNotificationLog({
         coach_id: coachId,
         event_type: eventType,
         channel: "whatsapp",
@@ -123,7 +124,7 @@ export async function sendWhatsApp(
       statusCallback: `${APP_URL}/api/webhooks/twilio/status`,
     });
 
-    await adminClient.from("notification_log").insert({
+    await writeNotificationLog({
       coach_id: coachId,
       draft_id: payload.draftId ?? null,
       event_type: eventType,
@@ -140,7 +141,7 @@ export async function sendWhatsApp(
     };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "send_failed";
-    await adminClient.from("notification_log").insert({
+    await writeNotificationLog({
       coach_id: coachId,
       event_type: eventType,
       channel: "whatsapp",

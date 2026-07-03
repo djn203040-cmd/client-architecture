@@ -1,6 +1,7 @@
 import "server-only";
 import { getTwilioClient } from "@/lib/twilio/client";
 import { adminClient } from "@/lib/supabase/admin";
+import { writeNotificationLog } from "@/lib/notifications/log-write";
 import { buildShortReviewUrl, generateReviewToken } from "@/lib/review-token";
 import { buildSmsBody, MAX_SMS_LENGTH } from "./sms-body";
 import type { TNotificationEvent, TChannelResult } from "@client/shared";
@@ -20,7 +21,7 @@ export async function sendSMS(
       .single();
 
     if (!coach?.phone) {
-      await adminClient.from("notification_log").insert({
+      await writeNotificationLog({
         coach_id: coachId,
         event_type: eventType,
         channel: "sms",
@@ -73,7 +74,7 @@ export async function sendSMS(
 
     if (body.length > MAX_SMS_LENGTH) {
       const err = `sms_body_too_long:${body.length}`;
-      await adminClient.from("notification_log").insert({
+      await writeNotificationLog({
         coach_id: coachId,
         event_type: eventType,
         channel: "sms",
@@ -85,7 +86,7 @@ export async function sendSMS(
 
     const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
     if (!messagingServiceSid) {
-      await adminClient.from("notification_log").insert({
+      await writeNotificationLog({
         coach_id: coachId,
         event_type: eventType,
         channel: "sms",
@@ -108,7 +109,7 @@ export async function sendSMS(
       statusCallback: `${APP_URL}/api/webhooks/twilio/status`,
     });
 
-    await adminClient.from("notification_log").insert({
+    await writeNotificationLog({
       coach_id: coachId,
       draft_id: payload.draftId ?? null,
       event_type: eventType,
@@ -125,7 +126,7 @@ export async function sendSMS(
     };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "send_failed";
-    await adminClient.from("notification_log").insert({
+    await writeNotificationLog({
       coach_id: coachId,
       event_type: eventType,
       channel: "sms",

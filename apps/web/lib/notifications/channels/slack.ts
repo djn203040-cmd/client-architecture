@@ -1,5 +1,6 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
+import { writeNotificationLog } from "@/lib/notifications/log-write";
 import { getSlackClientForCoach } from "@/lib/slack/client";
 import { isSlackAuthRevokedError, handleSlackIntegrationBroken } from "@/lib/slack/error-handler";
 import { buildDraftReadyBlocks } from "@/lib/slack/blocks";
@@ -28,7 +29,7 @@ export async function postCallOutcomeSlack(args: {
       .maybeSingle();
 
     if (!integration || integration.status !== "connected" || !integration.external_account_id) {
-      await adminClient.from("notification_log").insert({
+      await writeNotificationLog({
         coach_id: coachId,
         event_type: "call_outcome_pending",
         channel: "slack",
@@ -47,7 +48,7 @@ export async function postCallOutcomeSlack(args: {
     });
     if (!res.ok || !res.ts) throw new Error(`slack_post_failed:${res.error ?? "no_ts"}`);
 
-    await adminClient.from("notification_log").insert({
+    await writeNotificationLog({
       coach_id: coachId,
       event_type: "call_outcome_pending",
       channel: "slack",
@@ -64,7 +65,7 @@ export async function postCallOutcomeSlack(args: {
     if (isSlackAuthRevokedError(err)) {
       await handleSlackIntegrationBroken(coachId);
     }
-    await adminClient.from("notification_log").insert({
+    await writeNotificationLog({
       coach_id: coachId,
       event_type: "call_outcome_pending",
       channel: "slack",
@@ -88,7 +89,7 @@ export async function sendSlack(event: TNotificationEvent): Promise<TChannelResu
       .maybeSingle();
 
     if (!integration || integration.status !== "connected" || !integration.external_account_id) {
-      await adminClient.from("notification_log").insert({
+      await writeNotificationLog({
         coach_id: coachId,
         event_type: eventType,
         channel: "slack",
@@ -144,7 +145,7 @@ export async function sendSlack(event: TNotificationEvent): Promise<TChannelResu
     });
     if (!res.ok || !res.ts) throw new Error(`slack_post_failed:${res.error ?? "no_ts"}`);
 
-    await adminClient.from("notification_log").insert({
+    await writeNotificationLog({
       coach_id: coachId,
       draft_id: payload.draftId ?? null,
       event_type: eventType,
@@ -163,7 +164,7 @@ export async function sendSlack(event: TNotificationEvent): Promise<TChannelResu
     if (eventType !== "integration_broken" && isSlackAuthRevokedError(err)) {
       await handleSlackIntegrationBroken(coachId);
     }
-    await adminClient.from("notification_log").insert({
+    await writeNotificationLog({
       coach_id: coachId,
       draft_id: payload.draftId ?? null,
       event_type: eventType,
