@@ -34,11 +34,18 @@ export function DraftQueueScaffold({
   const [justEmptied, setJustEmptied] = useState(false);
   const prevLengthRef = useRef(initialDrafts.length);
 
+  // Queue-scope decision (#41): this queue is for scheduled sequence work
+  // only — standalone drafts (sequence_id=null) are reviewed on their lead's
+  // profile page. sequenceOnly keeps realtime consistent with the server query.
   const { drafts, loading: draftsLoading, rotateCurrent, removeDraft } = useDraftRealtime(coachId, {
     status: "pending",
     initialDrafts,
+    sequenceOnly: true,
   });
-  const { drafts: heldDrafts } = useDraftRealtime(coachId, { status: "held" });
+  const { drafts: heldDrafts } = useDraftRealtime(coachId, {
+    status: "held",
+    sequenceOnly: true,
+  });
 
   // Detect when queue drains via a coach action (not initial empty load)
   const prevLength = prevLengthRef.current;

@@ -178,6 +178,30 @@ describe("PATCH /api/drafts/[id]", () => {
     );
   });
 
+  it("holds a standalone (no-sequence) draft: same path as sequence drafts (#41)", async () => {
+    mockAuth(COACH_ID);
+    mockDraftQuery({ ...fakeDraft, sequence_id: null });
+    mockHold.mockResolvedValue({ ok: true, reason: "held_by:dashboard", new_status: "held" });
+    const { PATCH } = await import("@/app/api/drafts/[id]/route");
+    const res = await PATCH(makeRequest({ status: "held" }), {
+      params: Promise.resolve({ id: DRAFT_ID }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.new_status).toBe("held");
+    expect(mockHold).toHaveBeenCalledWith(DRAFT_ID, "dashboard");
+    // Hold is sequence-agnostic: the timer-cancel signal still fires (harmless
+    // no-op when no timers were armed) so cancelOn consumers exit cleanly.
+    expect(mockInngest).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "draft/held_manually" }),
+    );
+    // Holding never triggers a send
+    expect(mockInngest).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: "draft/send_via_gmail" }),
+    );
+  });
+
   it("returns 409 when CAS contention (approve_draft_atomic returns ok=false)", async () => {
     mockAuth(COACH_ID);
     mockDraftQuery(fakeDraft);

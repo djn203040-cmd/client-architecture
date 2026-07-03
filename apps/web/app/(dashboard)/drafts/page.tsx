@@ -18,10 +18,11 @@ export default async function DraftsPage() {
       .select("*, leads(name)")
       .eq("coach_id", user!.id)
       .eq("status", "pending")
-      // Standalone drafts (sequence_id=null, generated via the lead profile)
-      // are surfaced here too. The PATCH route still rejects approve/hold for
-      // them with a legible "not part of an active sequence yet" toast; full
-      // standalone approval is tracked in #41.
+      // Queue-scope decision (#41): the queue is for scheduled sequence work
+      // only. Standalone drafts (sequence_id=null, generated ad-hoc from a
+      // lead profile) are reviewed on that lead's page (LeadDraftsPanel), not
+      // here — keep the two surfaces from double-presenting the same card.
+      .not("sequence_id", "is", null)
       .order("scheduled_send_at", { ascending: true }),
     supabase
       .from("transcripts")
