@@ -1,6 +1,7 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
 import { getSlackClientForCoach } from "@/lib/slack/client";
+import { resolveSlackDmChannel } from "@/lib/slack/dm-channel";
 import {
   buildApprovedElsewhereBlocks,
   buildApprovedBlocks,
@@ -78,8 +79,15 @@ export async function syncSlackDraftMessage(args: {
 
     const { blocks, text } = blocksFor(state);
     const slack = await getSlackClientForCoach(coachId);
+    // chat.update needs the DM channel id (D…) — the stored external_account_id
+    // is the coach's USER id (U…), which chat.update rejects (#77).
+    const channel = await resolveSlackDmChannel(
+      slack,
+      integration.external_account_id as string,
+    );
+    if (!channel) return;
     await slack.chat.update({
-      channel: integration.external_account_id as string,
+      channel,
       ts: log.external_id as string,
       blocks: blocks as never[],
       text,

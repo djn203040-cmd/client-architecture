@@ -1,6 +1,7 @@
 import "server-only";
 import { getResendClient } from "@/lib/resend/client";
 import { adminClient } from "@/lib/supabase/admin";
+import { writeNotificationLog } from "@/lib/notifications/log-write";
 import { buildReviewUrl, generateReviewToken } from "@/lib/review-token";
 import {
   buildDraftReadyEmail,
@@ -29,7 +30,7 @@ export async function sendEmail(
     .single();
 
   if (!coach?.email) {
-    await adminClient.from("notification_log").insert({
+    await writeNotificationLog({
       coach_id: coachId,
       channel: "email",
       status: "failed",
@@ -122,7 +123,7 @@ export async function sendEmail(
 
     if (error || !data) throw error ?? new Error("resend returned no id");
 
-    await adminClient.from("notification_log").insert({
+    await writeNotificationLog({
       coach_id: coachId,
       draft_id: payload.draftId ?? null,
       channel: "email",
@@ -138,7 +139,7 @@ export async function sendEmail(
     };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "send_failed";
-    await adminClient.from("notification_log").insert({
+    await writeNotificationLog({
       coach_id: coachId,
       draft_id: payload.draftId ?? null,
       channel: "email",
