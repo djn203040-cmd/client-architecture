@@ -16,9 +16,9 @@
     "db:gen-types": "supabase gen types typescript --linked > packages/database/src/types.ts"
   },
   "devDependencies": {
-    "turbo": "2.9.9",
-    "typescript": "5.6.3",
-    "prettier": "3.3.3"
+    "turbo": "2.10.3",
+    "typescript": "6.0.3",
+    "prettier": "3.9.4"
   },
   "pnpm": {
     "overrides": {
