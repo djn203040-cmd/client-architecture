@@ -15,6 +15,11 @@ export function useDraftRealtime(
     // Scope the subscription to a single lead (lead profile panel — #41).
     // When set, INSERT/UPDATE events for other leads are ignored.
     leadId?: string;
+    // Queue-scope decision (#41): the dashboard queue only shows sequence
+    // drafts. When set, standalone rows (sequence_id=null) are excluded from
+    // the initial fetch and ignored by realtime events — they surface on the
+    // lead profile page instead.
+    sequenceOnly?: boolean;
   },
 ): {
   drafts: DraftRow[];
@@ -24,6 +29,7 @@ export function useDraftRealtime(
 } {
   const status = opts?.status ?? "pending";
   const leadId = opts?.leadId;
+  const sequenceOnly = opts?.sequenceOnly ?? false;
   const [drafts, setDrafts] = useState<DraftRow[]>(opts?.initialDrafts ?? []);
   const [loading, setLoading] = useState(!opts?.initialDrafts);
   // When the caller doesn't seed rows server-side (e.g. the Held tab), the hook
@@ -73,6 +79,7 @@ export function useDraftRealtime(
         .eq("coach_id", coachId)
         .eq("status", status);
       if (leadId) query = query.eq("lead_id", leadId);
+      if (sequenceOnly) query = query.not("sequence_id", "is", null);
       void query.then(({ data }) => {
         if (cancelled) return;
         if (data) {
@@ -98,6 +105,7 @@ export function useDraftRealtime(
         (payload) => {
           const row = payload.new as DraftRow;
           if (leadId && row.lead_id !== leadId) return;
+          if (sequenceOnly && row.sequence_id === null) return;
           if (row.status === status) {
             setDrafts((prev) => [...prev, row]);
           }
@@ -114,6 +122,7 @@ export function useDraftRealtime(
         (payload) => {
           const updated = payload.new as DraftRow;
           if (leadId && updated.lead_id !== leadId) return;
+          if (sequenceOnly && updated.sequence_id === null) return;
           const belongsInBucket = updated.status === status;
           setDrafts((prev) => {
             const exists = prev.some((d) => d.id === updated.id);
@@ -144,7 +153,7 @@ export function useDraftRealtime(
       cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [coachId, status, leadId, needsFetch, instanceId]);
+  }, [coachId, status, leadId, sequenceOnly, needsFetch, instanceId]);
 
   const result = useMemo(
     () => ({ drafts, loading, rotateCurrent, removeDraft }),
