@@ -16,3 +16,8 @@ export const DRAFT_REGENERATE = "draft/regenerate";
 export const DRAFT_SCHEDULED_SEND = "draft/scheduled_send";
 export const INTEGRATION_DISCONNECTED = "integration/disconnected";
 export const GMAIL_WATCH_RENEW = "gmail/watch_renew";
+// Reconciliation cron (#83): recovers approved sequence drafts whose fixed send
+// time has passed but which never went out because their Inngest sleepUntil
+// timer was lost (mis-fired cancelOn, failed sync/registry freeze, redeploy edge
+// case). Runs on an Inngest-native cron; the event trigger is a manual fast-path.
+export const CRON_RECONCILE_DUE_SENDS = "cron/reconcile_due_sends";

@@ -1,5 +1,6 @@
 import "server-only";
 import { inngest } from "@/inngest/client";
+import { assertCronAuth } from "@/lib/security/cron-auth";
 
 // NOTE: the live 15-min cadence now runs on Inngest's native cron trigger
 // (call-outcome-poller.ts) because Vercel Hobby rejects sub-daily crons. This
@@ -7,10 +8,8 @@ import { inngest } from "@/inngest/client";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const denied = assertCronAuth(request);
+  if (denied) return denied;
   await inngest.send({ name: "cron/call_outcome_poll", data: {} });
   return new Response("OK");
 }

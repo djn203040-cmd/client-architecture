@@ -49,6 +49,12 @@ export const healthLimiter = make("health", 30, "60 s");
 // GDPR — 1 export per hour per coach (large response, prevents abuse)
 export const gdprExportLimiter = make("gdpr-export", 1, "1 h");
 
+// Open-tracking pixel (#86) — public unauthenticated GET that does up to two DB
+// reads + an insert per hit. Generous per-IP cap: legit email clients may
+// re-fetch the pixel, and the write is idempotent, so this only exists to blunt
+// a scripted flood of DB-write amplification. Throttled hits still serve the GIF.
+export const trackOpenLimiter = make("track-open", 60, "60 s");
+
 export const RATE_LIMIT_REGISTRY = {
   auth: { target: "/api/auth/*", policy: "10 / 60s / IP" },
   draftsGenerate: { target: "/api/drafts/generate", policy: "20 / 1h / coach" },
@@ -59,6 +65,7 @@ export const RATE_LIMIT_REGISTRY = {
   adminInvite: { target: "/api/admin/coaches (invite)", policy: "5 / 60s / admin" },
   leadCreate: { target: "/api/leads", policy: "30 / 60s / coach" },
   gdprExport: { target: "/api/account/export", policy: "1 / 1h / coach" },
+  trackOpen: { target: "/api/track/open", policy: "60 / 60s / IP" },
 } as const;
 
 /**

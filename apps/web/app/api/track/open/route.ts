@@ -1,5 +1,6 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
+import { enforce, ipFromRequest, trackOpenLimiter } from "@/lib/security/ratelimit";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,12 @@ export async function GET(request: Request) {
   // Always return the pixel regardless of processing outcome (GMAIL-007)
   const token = new URL(request.url).searchParams.get("d");
 
-  if (token) {
+  // Rate-limit the DB work per IP (#86). A throttled hit still gets the GIF —
+  // real clients never see an error — but we skip the reads + insert entirely,
+  // so a scripted flood can't amplify into unbounded Supabase writes.
+  const { success } = await enforce(trackOpenLimiter, ipFromRequest(request));
+
+  if (token && success) {
     try {
       const payload = JSON.parse(
         Buffer.from(token, "base64url").toString("utf8")
