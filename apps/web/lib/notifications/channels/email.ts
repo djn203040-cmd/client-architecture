@@ -11,11 +11,12 @@ import {
 import type { TNotificationEvent, TChannelResult } from "@client/shared";
 
 // Coach-notification sender. The domain here MUST be a verified domain in the
-// Resend account, or every send is rejected. Override the whole address via the
-// RESEND_FROM env var (e.g. "Acme Coaching <drafts@acme.com>"); falls back to the
-// default sonorous.com sender when unset.
+// Resend account, or every send is rejected with a 403. Override the whole
+// address via the RESEND_FROM env var (e.g. "Acme Coaching <drafts@acme.com>");
+// falls back to the sonorousdigital.com sender (the verified Resend domain) when
+// unset.
 const FROM_ADDRESS =
-  process.env.RESEND_FROM ?? "Sonorous Drafts <drafts@sonorous.com>";
+  process.env.RESEND_FROM ?? "Sonorous Drafts <drafts@sonorousdigital.com>";
 
 export async function sendEmail(
   event: TNotificationEvent,
@@ -138,7 +139,16 @@ export async function sendEmail(
       error_message: null,
     };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "send_failed";
+    // Resend surfaces failures as a plain { name, message } object (not an Error
+    // instance), so `err.message` alone would be lost and logged as a generic
+    // "send_failed". Narrow both shapes so notification_log captures the real
+    // reason (e.g. "The sonorous.com domain is not verified.").
+    const msg =
+      err instanceof Error
+        ? err.message
+        : typeof err === "object" && err !== null && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "send_failed";
     await writeNotificationLog({
       coach_id: coachId,
       draft_id: payload.draftId ?? null,
