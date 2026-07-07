@@ -92,7 +92,7 @@ describe("email-channel (Phase 4 / NOTIFY-002)", () => {
 
     expect(mockResend.emails.send).toHaveBeenCalledOnce();
     const call = mockResend.emails.send.mock.calls[0]![0] as Record<string, unknown>;
-    expect(call.from).toBe("Sonorous Drafts <drafts@sonorous.com>");
+    expect(call.from).toBe("Sonorous Drafts <drafts@sonorousdigital.com>");
     expect(call.to).toBe("coach@example.com");
     expect(typeof call.html).toBe("string");
     expect(typeof call.text).toBe("string");
