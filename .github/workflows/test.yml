@@ -14,10 +14,9 @@ jobs:
     name: TypeScript type-check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 9.15.4 }
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter web type-check
@@ -26,10 +25,9 @@ jobs:
     name: ESLint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 9.15.4 }
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter web lint
@@ -38,7 +36,7 @@ jobs:
     name: Type-safety audit (no unjustified any / ignore / eslint-disable)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: bash scripts/audit-types.sh
 
   unit:
@@ -46,10 +44,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [typecheck, lint]
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 9.15.4 }
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter web test:unit
@@ -59,10 +56,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [typecheck, lint]
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 9.15.4 }
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
         with: { node-version: 22, cache: pnpm }
       - uses: supabase/setup-cli@v2
         with: { version: 2.108.0 }
@@ -93,10 +89,9 @@ jobs:
           - webkit
           - firefox
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 9.15.4 }
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
         with: { node-version: 22, cache: pnpm }
       - uses: supabase/setup-cli@v2
         with: { version: 2.108.0 }
@@ -143,10 +138,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [typecheck]
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 9.15.4 }
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter web build
@@ -161,7 +155,7 @@ jobs:
     name: Migrations apply + orphan-FK check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: supabase/setup-cli@v2
         with: { version: 2.108.0 }
       - run: supabase start
@@ -188,10 +182,9 @@ jobs:
     needs: [unit]
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 9.15.4 }
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter web build
@@ -207,7 +200,7 @@ jobs:
     name: Security grep checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Block NEXT_PUBLIC_ on service role key (INFRA-002)
         run: |
           if grep -rn "NEXT_PUBLIC_[A-Z_]*SERVICE_ROLE\|NEXT_PUBLIC_[A-Z_]*service_role" \
