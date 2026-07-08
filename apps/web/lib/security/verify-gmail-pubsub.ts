@@ -37,7 +37,7 @@ async function loadJwks(): Promise<JwkKey[]> {
   return data.keys;
 }
 
-function b64urlToBuf(s: string): Uint8Array {
+function b64urlToBuf(s: string): Uint8Array<ArrayBuffer> {
   const pad = s.length % 4 === 0 ? "" : "=".repeat(4 - (s.length % 4));
   const b64 = (s + pad).replace(/-/g, "+").replace(/_/g, "/");
   const bin = atob(b64);
