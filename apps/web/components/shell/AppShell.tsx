@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { SidebarNav, MobileBottomNav } from "./SidebarNav";
 import { ThemeToggle } from "./ThemeToggle";
+import { TourLauncher } from "@/components/tour/TourLauncher";
 import { IntegrationHealthCard } from "@/components/health/IntegrationHealthCard";
+import { TOUR_ANCHOR } from "@/lib/tour/anchors";
 
 export async function AppShell({
   children,
@@ -19,7 +21,10 @@ export async function AppShell({
         Skip to content
       </a>
 
-      <aside className="hidden lg:flex flex-col border-r border-border bg-background">
+      <aside
+        data-tour={TOUR_ANCHOR.sidebar}
+        className="hidden lg:flex flex-col border-r border-border bg-background"
+      >
         <div className="p-6">
           <Link href="/dashboard" className="font-semibold tracking-tight">
             The Client Architecture
@@ -29,6 +34,7 @@ export async function AppShell({
         <SidebarNav />
         <div className="mt-auto p-3 border-t border-border space-y-3">
           <IntegrationHealthCard />
+          <TourLauncher />
           <form action="/api/auth/sign-out" method="post">
             <button
               type="submit"

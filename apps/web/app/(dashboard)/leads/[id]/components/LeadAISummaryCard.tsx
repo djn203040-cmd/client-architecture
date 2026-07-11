@@ -4,6 +4,7 @@ import { AISummaryEditor } from "./AISummaryEditor";
 export function LeadAISummaryCard({ lead }: { lead: TLead }) {
   return (
     <section
+      data-tour="lead-description"
       aria-label="AI lead description"
       className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
     >

@@ -126,7 +126,7 @@ export default async function LeadProfilePage({
       <div className="space-y-6">
         <LeadProfileHeader lead={lead} />
         <LeadAISummaryCard lead={lead} />
-        <div className="flex justify-end">
+        <div data-tour="generate-draft" className="flex justify-end">
           <GenerateDraftButton leadId={lead.id} leadStatus={lead.status as TLeadStatus} />
         </div>
         {user && (

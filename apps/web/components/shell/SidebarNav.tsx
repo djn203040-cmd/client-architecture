@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { House, Users, EnvelopeSimple, PhoneCall, Gear, LockSimple } from "@phosphor-icons/react";
 import type { Route } from "next";
+import { NAV_ANCHOR_BY_HREF } from "@/lib/tour/anchors";
 
 const ITEMS = [
   { href: "/dashboard", label: "Dashboard", Icon: House },
@@ -39,6 +40,7 @@ export function SidebarNav() {
           <Link
             key={href}
             href={href}
+            data-tour={NAV_ANCHOR_BY_HREF[href]}
             aria-current={active ? "page" : undefined}
             className={`flex items-center gap-3 px-3 min-h-[44px] rounded-xl text-sm transition-colors ${
               active
@@ -92,6 +94,7 @@ export function MobileBottomNav() {
           <Link
             key={href}
             href={href}
+            data-tour={NAV_ANCHOR_BY_HREF[href]}
             aria-current={active ? "page" : undefined}
             className={`flex flex-col items-center justify-center flex-1 gap-1 py-2 min-h-[56px] text-[10px] font-medium transition-colors ${
               active ? "text-primary dark:text-primary-soft" : "text-muted-foreground hover:text-foreground"

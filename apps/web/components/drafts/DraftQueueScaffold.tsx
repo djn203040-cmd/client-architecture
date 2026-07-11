@@ -68,7 +68,7 @@ export function DraftQueueScaffold({
   const heldCount = heldDrafts.length;
 
   return (
-    <div className="space-y-4">
+    <div data-tour="drafts-queue" className="space-y-4">
       <div
         role="tablist"
         aria-label="Draft queue sections"

@@ -16,7 +16,10 @@ export function LeadsTable({
   }
 
   return (
-    <div className="rounded-2xl backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] overflow-hidden">
+    <div
+      data-tour="leads-table"
+      className="rounded-2xl backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] overflow-hidden"
+    >
       <table className="w-full">
         <thead className="border-b border-border">
           <tr className="text-left text-sm text-muted-foreground">

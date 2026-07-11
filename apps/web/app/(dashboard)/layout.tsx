@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { cookies, headers } from "next/headers";
 import { AppShell } from "@/components/shell/AppShell";
+import { TourProvider } from "@/components/tour/TourProvider";
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
 import { type OnboardingProgress } from "@client/shared/validators";
 import { nextIncompleteStep } from "@/lib/onboarding/progress";
@@ -50,11 +51,13 @@ export default async function DashboardLayout({
   }
 
   return (
-    <AppShell coachName={coach.name}>
-      {!coach.onboarding_completed_at && (
-        <OnboardingBanner progress={progress} coachCreatedAt={coach.created_at} />
-      )}
-      {children}
-    </AppShell>
+    <TourProvider autoStart={!!coach.onboarding_completed_at}>
+      <AppShell coachName={coach.name}>
+        {!coach.onboarding_completed_at && (
+          <OnboardingBanner progress={progress} coachCreatedAt={coach.created_at} />
+        )}
+        {children}
+      </AppShell>
+    </TourProvider>
   );
 }

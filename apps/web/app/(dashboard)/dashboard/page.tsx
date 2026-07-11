@@ -31,7 +31,7 @@ export default async function DashboardPage() {
       {(pendingCount ?? 0) > 0 && (
         <PendingActionsSection coachId={user!.id} />
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div data-tour="dash-cards" className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Primary metric — leads pipeline */}
         <div className="rounded-2xl backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 p-6 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
           <div className="text-sm text-muted-foreground">Leads</div>

@@ -57,7 +57,7 @@ export function LeadDraftsPanel({
   if (pending.length === 0 && held.length === 0) return null;
 
   return (
-    <section className="space-y-3" aria-label="Drafts awaiting review">
+    <section data-tour="lead-drafts" className="space-y-3" aria-label="Drafts awaiting review">
       <h2 className="text-sm font-medium text-muted-foreground">
         Drafts awaiting review
       </h2>

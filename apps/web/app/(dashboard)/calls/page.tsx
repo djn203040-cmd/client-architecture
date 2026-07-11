@@ -37,7 +37,7 @@ export default async function CallsPage() {
 
   return (
     <section className="space-y-6">
-      <header className="space-y-1">
+      <header data-tour="calls-header" className="space-y-1">
         <h1 className="text-[28px] font-semibold leading-[1.2]">
           How did the call go?
         </h1>
