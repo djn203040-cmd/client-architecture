@@ -14,9 +14,18 @@ import { assembleContext } from './context-assembler';
 import { countTokens } from './token-counter';
 import { isHardBlocked, scanNeverSayList, assertCoachIdScope, stripDashes } from './guardrails';
 import { traceGeneration } from './tracing';
+import { recordUsage } from './usage';
 import { buildReviewPrompt } from './prompts/review';
 import type { VoiceAnalysisParams, DraftGenerationParams } from './types';
 import type { TVoiceProfile } from '@client/shared/validators';
+
+// Model routing. Draft generation and voice analysis are voice/quality-critical
+// and stay on Sonnet; the review pass is a mechanical native-language proofread,
+// so it runs on Haiku (~3x cheaper) — see reviewDraft.
+const DRAFT_MODEL = 'claude-sonnet-4-6';
+const REVIEW_MODEL = 'claude-haiku-4-5';
+const VOICE_MODEL = 'claude-sonnet-4-6';
+const DESCRIPTION_MODEL = 'claude-sonnet-4-6';
 
 export { isHardBlocked, scanNeverSayList, assertCoachIdScope, stripDashes } from './guardrails';
 export type { DraftGenerationParams, VoiceAnalysisParams, VoiceAnalysisResult } from './types';
@@ -48,10 +57,16 @@ export async function analyzeVoiceCorpus(params: VoiceAnalysisParams): Promise<T
   const attempt = async (extraInstruction?: string): Promise<TVoiceProfile> => {
     const userContent = extraInstruction ? `${user}\n\n${extraInstruction}` : user;
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: VOICE_MODEL,
       max_tokens: 1500,
       system,
       messages: [{ role: 'user', content: userContent }],
+    });
+    await recordUsage({
+      coachId: params.coachId,
+      operation: 'voice_analysis',
+      model: VOICE_MODEL,
+      usage: message.usage,
     });
 
     const block = message.content[0];
@@ -118,6 +133,7 @@ export function parseSubjectAndBody(raw: string): { subject: string | null; body
  * usable (the caller then keeps the original draft).
  */
 async function reviewDraft(
+  coachId: string,
   voiceModel: DraftGenerationParams['voiceModel'],
   coachName: string,
   subject: string | null,
@@ -127,10 +143,16 @@ async function reviewDraft(
   try {
     const { system, user } = buildReviewPrompt(voiceModel, coachName, subject, body);
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: REVIEW_MODEL,
       max_tokens: 800,
       system,
       messages: [{ role: 'user', content: user }],
+    });
+    await recordUsage({
+      coachId,
+      operation: 'draft_review',
+      model: REVIEW_MODEL,
+      usage: message.usage,
     });
     const block = message.content[0];
     if (!block || block.type !== 'text') return null;
@@ -163,10 +185,16 @@ export async function generateDraft(
 
   const attemptGeneration = async (): Promise<string> => {
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: DRAFT_MODEL,
       max_tokens: 600,
       system: ctx.systemPrompt,
       messages: [{ role: 'user', content: ctx.userPrompt }],
+    });
+    await recordUsage({
+      coachId: params.coachId,
+      operation: 'draft_generate',
+      model: DRAFT_MODEL,
+      usage: message.usage,
     });
     const block = message.content[0];
     if (!block || block.type !== 'text') throw new Error('Unexpected content block type from Anthropic');
@@ -192,7 +220,7 @@ export async function generateDraft(
   // fluency in the examples' language (no stray foreign words, no calques, no
   // grammar errors) while preserving the voice, meaning, and URL. Best-effort:
   // if it fails or returns nothing usable, keep the original draft.
-  const reviewed = await reviewDraft(params.voiceModel, coachName, parsed.subject, parsed.body);
+  const reviewed = await reviewDraft(params.coachId, params.voiceModel, coachName, parsed.subject, parsed.body);
   if (reviewed) {
     parsed = reviewed;
     // Re-scan after the rewrite so a reintroduced banned phrase is still flagged.
@@ -249,10 +277,16 @@ export async function updateLeadDescription(params: {
   });
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: DESCRIPTION_MODEL,
     max_tokens: 300,
     system,
     messages: [{ role: 'user', content: user }],
+  });
+  await recordUsage({
+    coachId: params.coachId,
+    operation: 'lead_description',
+    model: DESCRIPTION_MODEL,
+    usage: message.usage,
   });
 
   const block = message.content[0];

@@ -27,6 +27,7 @@ export function CoachRosterTable({ rows }: { rows: CoachRosterRow[] }) {
             <th scope="col" className="px-4 py-3 font-normal">Gmail</th>
             <th scope="col" className="px-4 py-3 font-normal">Leads</th>
             <th scope="col" className="px-4 py-3 font-normal">Active sequences</th>
+            <th scope="col" className="px-4 py-3 font-normal">AI cost (mo)</th>
             <th scope="col" className="px-4 py-3 font-normal">Onboarding</th>
             <th scope="col" className="px-4 py-3 font-normal">Created</th>
           </tr>
@@ -48,6 +49,10 @@ export function CoachRosterTable({ rows }: { rows: CoachRosterRow[] }) {
               </td>
               <td className="px-4 py-3 font-mono text-sm">{c.lead_count}</td>
               <td className="px-4 py-3 font-mono text-sm">{c.active_sequence_count}</td>
+              <td className="px-4 py-3 font-mono text-sm">
+                <div>{usd(c.ai_cost_month)}</div>
+                <div className="text-xs text-muted-foreground">{usd(c.ai_cost_total)} total</div>
+              </td>
               <td className="px-4 py-3 text-sm text-muted-foreground">
                 <OnboardingCell
                   completedAt={c.onboarding_completed_at}
@@ -64,6 +69,12 @@ export function CoachRosterTable({ rows }: { rows: CoachRosterRow[] }) {
       </table>
     </div>
   );
+}
+
+// Sub-cent precision so a coach with only a few drafts doesn't read as "$0.00".
+function usd(amount: number): string {
+  if (amount > 0 && amount < 0.01) return "<$0.01";
+  return `$${amount.toFixed(2)}`;
 }
 
 function daysAgo(isoDate: string): number {

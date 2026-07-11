@@ -13,6 +13,20 @@ export type CoachRosterRow = TCoach & {
   active_sequence_count: number;
   onboarding_completed_at: string | null;
   onboarding_progress: Record<string, string | null> | null;
+  // Pay-per-use AI cost, in USD, from the ai_usage ledger (coach_ai_usage_summary).
+  ai_cost_month: number;
+  ai_cost_total: number;
+};
+
+// Shape of one coach_ai_usage_summary() row. adminClient is untyped (no Database
+// generic), so the RPC result is cast to this at the boundary.
+type UsageSummaryRow = {
+  coach_id: string;
+  month_cost: number | string;
+  month_input: number | string;
+  month_output: number | string;
+  total_cost: number | string;
+  event_count: number | string;
 };
 
 // ADMIN-005: adminClient bypasses RLS — used ONLY in this server-only module.
@@ -26,17 +40,24 @@ export async function fetchCoachRoster(): Promise<CoachRosterRow[]> {
 
   const ids = coaches.map((c) => c.id);
 
-  const [{ data: integs }, { data: leadCounts }, { data: seqCounts }] = await Promise.all([
-    adminClient
-      .from("integrations")
-      .select("coach_id, status, watch_expiry_at, provider")
-      .in("coach_id", ids)
-      .eq("provider", "gmail"),
-    adminClient.from("leads").select("coach_id").in("coach_id", ids),
-    adminClient.from("sequences").select("coach_id, status").in("coach_id", ids),
-  ]);
+  const [{ data: integs }, { data: leadCounts }, { data: seqCounts }, { data: usageRows }] =
+    await Promise.all([
+      adminClient
+        .from("integrations")
+        .select("coach_id, status, watch_expiry_at, provider")
+        .in("coach_id", ids)
+        .eq("provider", "gmail"),
+      adminClient.from("leads").select("coach_id").in("coach_id", ids),
+      adminClient.from("sequences").select("coach_id, status").in("coach_id", ids),
+      adminClient.rpc("coach_ai_usage_summary"),
+    ]);
+
+  const usageByCoach = new Map<string, UsageSummaryRow>(
+    ((usageRows as UsageSummaryRow[] | null) ?? []).map((u) => [u.coach_id, u]),
+  );
 
   return coaches.map((c) => {
+    const usage = usageByCoach.get(c.id);
     const raw = c as typeof c & {
       onboarding_completed_at?: string | null;
       onboarding_progress?: Record<string, string | null> | null;
@@ -51,6 +72,8 @@ export async function fetchCoachRoster(): Promise<CoachRosterRow[]> {
         seqCounts?.filter((s) => s.coach_id === c.id && s.status === "active").length ?? 0,
       onboarding_completed_at: raw.onboarding_completed_at ?? null,
       onboarding_progress: raw.onboarding_progress ?? null,
+      ai_cost_month: Number(usage?.month_cost ?? 0),
+      ai_cost_total: Number(usage?.total_cost ?? 0),
     };
   });
 }
