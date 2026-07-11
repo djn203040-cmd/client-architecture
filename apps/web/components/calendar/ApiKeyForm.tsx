@@ -34,7 +34,7 @@ export function ApiKeyForm({ provider, onConnected }: Props) {
       });
       const body = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; detail?: string };
       if (!res.ok || !body.ok) {
-        const msg = body.error === "invalid_api_key" ? "That key didn't work — double-check it and try again." : body.error ?? "Connection failed.";
+        const msg = body.error === "invalid_api_key" ? "That key didn't work, double-check it and try again." : body.error ?? "Connection failed.";
         toast.error(msg);
         setTested(true);
         setTestOk(false);

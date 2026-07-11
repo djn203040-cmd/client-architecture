@@ -66,8 +66,8 @@ export function SequenceStatusPanel({
           ? "Stopped"
           : sequence.status === "held"
             ? "On hold"
-            : (sequence.nextSendLabel ?? "—")
-    : "—";
+            : (sequence.nextSendLabel ?? "-")
+    : "-";
 
   return (
     <section data-tour="sequence-panel" className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-4">

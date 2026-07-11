@@ -1,4 +1,4 @@
-// 06-02 Task 6 — Sentry server config with PII-redacting beforeSend.
+// 06-02 Task 6, Sentry server config with PII-redacting beforeSend.
 //
 // Mirrors sentry.client.config.ts but for the server runtime. Both routes
 // share the redactor in lib/logging/redact.ts so client + server events have

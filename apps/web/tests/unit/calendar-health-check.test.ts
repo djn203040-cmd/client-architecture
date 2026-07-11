@@ -100,7 +100,7 @@ describe("isCalendarAuthDeadError", () => {
   it("does NOT flag transient noise or our-side misconfig as a dead grant", () => {
     expect(isCalendarAuthDeadError(new OAuthRefreshError("calendly", 500))).toBe(false);
     expect(isCalendarAuthDeadError(new OAuthRefreshError("calendly", 429))).toBe(false);
-    // invalid_client = OUR OAuth app credentials are wrong — not the coach's grant.
+    // invalid_client = OUR OAuth app credentials are wrong, not the coach's grant.
     expect(isCalendarAuthDeadError(new OAuthRefreshError("square", 400, "invalid_client"))).toBe(
       false,
     );
@@ -109,7 +109,7 @@ describe("isCalendarAuthDeadError", () => {
   });
 });
 
-describe("handleCalendarIntegrationBroken — integration_broken emission", () => {
+describe("handleCalendarIntegrationBroken, integration_broken emission", () => {
   it("marks the integration disconnected and emits notification/integration_broken once", async () => {
     await handleCalendarIntegrationBroken("coach-1", "calendly");
 
@@ -185,7 +185,7 @@ describe("refreshAccessToken", () => {
   });
 });
 
-describe("checkCalendarIntegration — detect → mark disconnected → emit once", () => {
+describe("checkCalendarIntegration, detect → mark disconnected → emit once", () => {
   it("skips integrations without a refresh token (Acuity-style non-expiring tokens)", async () => {
     mockState.vaultTokens = { access_token: "at-only" };
     await expect(checkCalendarIntegration("coach-1", "acuity")).resolves.toBe("skipped");
@@ -234,7 +234,7 @@ describe("checkCalendarIntegration — detect → mark disconnected → emit onc
 
   it("on invalid_grant: marks disconnected, emits integration_broken once, dedups on repeat", async () => {
     mockState.vaultTokens = { refresh_token: "dead-rt", expires_in: 7200 };
-    // Fresh Response per call — a Response body can only be read once.
+    // Fresh Response per call, a Response body can only be read once.
     mockFetch.mockImplementation(async () =>
       new Response(JSON.stringify({ error: "invalid_grant" }), { status: 400 }),
     );
@@ -275,7 +275,7 @@ describe("checkCalendarIntegration — detect → mark disconnected → emit onc
   });
 });
 
-describe("computeExpiresAt — provider expiry shapes", () => {
+describe("computeExpiresAt, provider expiry shapes", () => {
   it("reads epoch-seconds, ISO strings, and created_at+expires_in; null when unknown", () => {
     expect(computeExpiresAt({ expires_at: 1_800_000_000 })).toBe(1_800_000_000);
     expect(computeExpiresAt({ expires_at: "2026-08-01T00:00:00Z" })).toBe(

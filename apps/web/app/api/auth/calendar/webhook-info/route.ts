@@ -89,7 +89,7 @@ export async function GET(request: Request) {
   }
 
   // Signature-less providers (setmore/tidycal/ms_bookings) can't HMAC-sign, so
-  // the secret rides in the URL as `token` (#82) — the receiver timing-safe
+  // the secret rides in the URL as `token` (#82), the receiver timing-safe
   // compares it against the stored Vault secret, and the coach copies one
   // self-authenticating URL. Square keeps its own env-HMAC scheme, so its secret
   // stays a separate field the coach pastes back (its own signature key).
@@ -101,7 +101,7 @@ export async function GET(request: Request) {
     provider: config.id,
     webhookMode: config.webhook.mode,
     webhookUrl,
-    // For URL-token providers the secret is already embedded in webhookUrl —
+    // For URL-token providers the secret is already embedded in webhookUrl, 
     // don't surface it as a separate "paste this" field the provider has no slot for.
     secret: usesUrlToken ? null : secret,
     instructions: config.webhook.instructions ?? null,

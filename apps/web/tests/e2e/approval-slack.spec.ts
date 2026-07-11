@@ -4,7 +4,7 @@ import { createDraft } from "../fixtures/createDraft";
 import { admin } from "../fixtures/createCoach";
 import crypto from "node:crypto";
 
-// 06-PLAN.md §1.4 — approval-slack: Block Kit button click → atomic approve → message updated.
+// 06-PLAN.md §1.4, approval-slack: Block Kit button click → atomic approve → message updated.
 // Slack interactivity payloads are signed with the Slack signing secret (v0 scheme).
 
 const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET ?? "test-slack-secret";

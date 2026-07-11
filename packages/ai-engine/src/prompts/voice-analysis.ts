@@ -6,7 +6,7 @@ export function buildVoiceAnalysisPrompt(params: VoiceAnalysisParams): { system:
 Rules:
 - Analyze ONLY the corpus provided. Never invent tone adjectives, phrases, or never-say words not evidenced in the corpus.
 - Base all selections on patterns you observe in the actual text.
-- Select the 10–15 message examples that best represent the coach's authentic voice for use as few-shot context in future AI drafts.
+- Select the 10-15 message examples that best represent the coach's authentic voice for use as few-shot context in future AI drafts.
 - Output exactly one JSON object wrapped in <voice_profile>...</voice_profile> tags matching the requested schema. No additional commentary.`;
 
   const channelBlocks: string[] = [];
@@ -30,14 +30,14 @@ Rules:
 Analyze the writing corpus above and produce a structured voice profile. Return your output as a single JSON object wrapped in <voice_profile>...</voice_profile> tags with exactly these fields:
 
 {
-  "tone_adjectives": string[],        // 3–8 adjectives that describe the writer's tone (e.g. "warm", "direct", "encouraging")
+  "tone_adjectives": string[],        // 3-8 adjectives that describe the writer's tone (e.g. "warm", "direct", "encouraging")
   "formality_level": "casual" | "conversational" | "professional" | "formal",
   "sentence_length": "short" | "medium" | "long" | "varied",
   "emoji_usage": "none" | "rare" | "occasional" | "frequent",
-  "opener_phrases": string[],         // 2–5 phrases the writer commonly uses to start messages
-  "closer_phrases": string[],         // 2–5 phrases the writer commonly uses to end messages
+  "opener_phrases": string[],         // 2-5 phrases the writer commonly uses to start messages
+  "closer_phrases": string[],         // 2-5 phrases the writer commonly uses to end messages
   "never_say_list": string[],         // words or phrases that feel out of character (can be empty)
-  "selected_examples": string[]       // 10–15 complete messages from the corpus that best represent the voice
+  "selected_examples": string[]       // 10-15 complete messages from the corpus that best represent the voice
 }
 
 All values must be grounded in the corpus. Do not invent anything.

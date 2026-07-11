@@ -19,7 +19,7 @@ export function ForgotForm() {
         process.env["NEXT_PUBLIC_APP_URL"] ?? window.location.origin;
       // Browser-side call so the PKCE code_verifier is stored in localStorage
       // and is available when the user returns from the reset email.
-      // Privacy: ignore the result — never leak whether the email is registered.
+      // Privacy: ignore the result, never leak whether the email is registered.
       await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${appUrl}/reset-password`,
       });

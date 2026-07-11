@@ -19,7 +19,7 @@ const PAD = 8; // breathing room around the spotlighted element
 const TIP_W = 360;
 const MARGIN = 20; // min distance from viewport edge
 
-/** Picks the first *rendered* match — several anchors (nav items) exist in both
+/** Picks the first *rendered* match, several anchors (nav items) exist in both
  *  the desktop sidebar and the mobile bar; only one is visible at a time. */
 function findVisible(anchor: string): HTMLElement | null {
   const els = document.querySelectorAll<HTMLElement>(`[data-tour="${anchor}"]`);

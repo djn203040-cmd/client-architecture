@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 
 // Load .env.test for local runs without dotenv dependency.
-// CI APPENDS the live keys: supabase status -o env >> apps/web/.env.test — so
+// CI APPENDS the live keys: supabase status -o env >> apps/web/.env.test, so
 // each Supabase key appears twice (committed placeholder, then the real value).
 // Real shell/CI process-env exports always win; within the file the LAST
 // occurrence wins, so the appended real key overrides the placeholder.
@@ -39,7 +39,7 @@ export default defineConfig({
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    // 06-PLAN.md §1.7 — cross-browser matrix. webkit + firefox run when
+    // 06-PLAN.md §1.7, cross-browser matrix. webkit + firefox run when
     // CROSS_BROWSER=1 (keeps default PR cycle short).
     ...(process.env.CROSS_BROWSER === "1"
       ? [
@@ -60,7 +60,7 @@ export default defineConfig({
       // which the chromium-only standalone E2E workflow doesn't install).
       use: { ...devices["Desktop Chrome"], viewport: { width: 768, height: 1024 } },
     },
-    // 06-PLAN.md §1.6 — dual-mode axe scan: dark + light. Dark variant runs the
+    // 06-PLAN.md §1.6, dual-mode axe scan: dark + light. Dark variant runs the
     // critical visual surfaces in colorScheme: 'dark' for contrast violations.
     {
       name: "chromium-dark",

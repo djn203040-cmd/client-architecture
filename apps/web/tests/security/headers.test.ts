@@ -3,7 +3,7 @@
  *
  * Validates that the middleware helpers + CSP builder emit every required
  * browser security header with the right policy. Hitting a live `next start`
- * is left to the playwright e2e suite — this test asserts the contract.
+ * is left to the playwright e2e suite, this test asserts the contract.
  */
 import { describe, expect, it } from "vitest";
 import { buildCsp, generateCspNonce, STATIC_SECURITY_HEADERS } from "../../lib/security/csp";

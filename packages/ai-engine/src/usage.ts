@@ -10,21 +10,21 @@ export type AiOperation =
 
 // Lazily-constructed, untyped admin client. Untyped on purpose: the generated
 // Database types don't include `ai_usage`, and typing this without them would
-// force a full type regen — the loose client mirrors apps/web/lib/supabase/admin.ts.
+// force a full type regen, the loose client mirrors apps/web/lib/supabase/admin.ts.
 let _client: SupabaseClient | null | undefined;
 
 function getClient(): SupabaseClient | null {
   if (_client !== undefined) return _client;
   const url = process.env['NEXT_PUBLIC_SUPABASE_URL'];
   const key = process.env['SUPABASE_SERVICE_ROLE_KEY'];
-  // Absent in eval/CI contexts (e.g. promptfoo) — metering just no-ops there.
+  // Absent in eval/CI contexts (e.g. promptfoo), metering just no-ops there.
   _client = url && key ? createClient(url, key) : null;
   return _client;
 }
 
 /**
  * Records one Anthropic call's token usage + computed cost against a coach.
- * Best-effort and fire-safe: mirrors traceGeneration — metering must never
+ * Best-effort and fire-safe: mirrors traceGeneration, metering must never
  * break or slow generation, so every failure is swallowed. Awaited so the row
  * is flushed before a serverless function freezes.
  */

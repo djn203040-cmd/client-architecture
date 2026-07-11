@@ -15,7 +15,7 @@ interface PubSubMessage {
 }
 
 /**
- * Expected JWT audience — set when creating the push subscription. Falls back
+ * Expected JWT audience, set when creating the push subscription. Falls back
  * to the full endpoint URL when not configured explicitly.
  */
 function expectedAudience(req: Request): string {
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     },
   );
   if (!verification.ok) {
-    // 401 for forged JWTs. We don't return 200 here — only Google-signed
+    // 401 for forged JWTs. We don't return 200 here, only Google-signed
     // pushes should reach us; a forged push is not a real Pub/Sub retry.
     return new Response("Unauthorized", { status: 401 });
   }
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as PubSubMessage;
 
-    // Validate structure — ACK malformed messages to prevent GCP retry storms (T-03-13)
+    // Validate structure, ACK malformed messages to prevent GCP retry storms (T-03-13)
     if (!body?.message?.data || !body.message.messageId) {
       return new Response("OK", { status: 200 });
     }
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
       .eq("email", emailAddress)
       .maybeSingle();
 
-    // Always ACK even if coach not found — prevents retry storms (T-03-11)
+    // Always ACK even if coach not found, prevents retry storms (T-03-11)
     if (!coach) {
       return new Response("OK", { status: 200 });
     }

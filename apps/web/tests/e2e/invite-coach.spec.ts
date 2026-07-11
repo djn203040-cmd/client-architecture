@@ -21,6 +21,6 @@ test("ADMIN-004: POST without admin JWT returns 401 or redirect", async ({ baseU
 });
 
 test("ADMIN-004: invalid body returns 400 (when authenticated as admin)", () => {
-  // Marked fixme — needs admin auth fixture
+  // Marked fixme, needs admin auth fixture
   test.fixme();
 });

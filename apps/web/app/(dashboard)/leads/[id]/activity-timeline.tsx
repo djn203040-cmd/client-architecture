@@ -9,7 +9,7 @@ export function ActivityTimeline({ events }: { events: Event[] }) {
       <div className="text-center py-12 text-muted-foreground">
         <p className="font-medium">No activity yet</p>
         <p className="text-sm mt-1">
-          Events will appear here as the sequence progresses — emails sent, replies received, state
+          Events will appear here as the sequence progresses, emails sent, replies received, state
           changes.
         </p>
       </div>

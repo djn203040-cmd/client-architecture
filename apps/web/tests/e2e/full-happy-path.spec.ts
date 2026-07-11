@@ -4,7 +4,7 @@ import { createDraft } from "../fixtures/createDraft";
 import { mockOauthCallback } from "../fixtures/mockOauthCallback";
 import { admin } from "../fixtures/createCoach";
 
-// 06-PLAN.md §1.4 — Full happy path: invite coach → connect Gmail → add lead → AI draft → approve → sent.
+// 06-PLAN.md §1.4, Full happy path: invite coach → connect Gmail → add lead → AI draft → approve → sent.
 // Each previous spec covers a stage in isolation; this consolidates the journey.
 
 test("full happy path: invited coach completes draft approval end-to-end", async ({ coach, page }) => {

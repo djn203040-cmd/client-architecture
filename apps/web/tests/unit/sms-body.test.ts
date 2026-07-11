@@ -29,7 +29,7 @@ describe("sms-body (Phase 4 / NOTIFY-005 + Pitfall-5)", () => {
       shortLink: "https://app.sonorous.com/r/" + "a".repeat(22),
     });
     expect(result.length).toBeLessThanOrEqual(MAX_SMS_LENGTH);
-    // Lead name must be truncated — the "x" run should be ≤ 29 chars + ellipsis
+    // Lead name must be truncated, the "x" run should be ≤ 29 chars + ellipsis
     const leadPart = result.replace("Sonorous: Draft for ", "").split(" ready.")[0] ?? "";
     expect(leadPart.length).toBeLessThanOrEqual(30);
   });

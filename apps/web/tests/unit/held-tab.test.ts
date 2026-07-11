@@ -9,7 +9,7 @@ const src = readFileSync(
   "utf8",
 );
 
-describe("HeldTab — structural contracts", () => {
+describe("HeldTab, structural contracts", () => {
   it("uses useDraftRealtime with status=held", () => {
     expect(src).toContain('status: "held"');
   });
@@ -28,20 +28,20 @@ describe("HeldTab — structural contracts", () => {
   });
 
   it("badge section only renders when count > 0 (via parent DraftQueueScaffold)", () => {
-    // HeldTab itself doesn't render a badge — that's DraftQueueScaffold's job
+    // HeldTab itself doesn't render a badge, that's DraftQueueScaffold's job
     // Verify HeldTab does not duplicate badge logic
     expect(src).not.toContain("heldCount");
   });
 });
 
-describe("HeldTab — component under 60 lines", () => {
+describe("HeldTab, component under 60 lines", () => {
   it("stays within line budget", () => {
     const lines = src.split("\n").length;
     expect(lines).toBeLessThanOrEqual(60);
   });
 });
 
-describe("DraftQueueScaffold — tab contract", () => {
+describe("DraftQueueScaffold, tab contract", () => {
   const scaffoldSrc = readFileSync(
     path.resolve(__dirname, "../../components/drafts/DraftQueueScaffold.tsx"),
     "utf8",

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-// 06-PLAN.md §1.6 — Reduced-motion preference honored (Framer Motion useReducedMotion).
+// 06-PLAN.md §1.6, Reduced-motion preference honored (Framer Motion useReducedMotion).
 // When prefers-reduced-motion: reduce is set, Framer should skip entrance animations.
 
 test.use({ colorScheme: "light" });

@@ -24,7 +24,7 @@ export default async function DashboardLayout({
     .eq("id", user.id)
     .maybeSingle();
   if (!coach) {
-    // Authenticated but no coaches row — orphan auth user (e.g. created directly
+    // Authenticated but no coaches row, orphan auth user (e.g. created directly
     // in Supabase dashboard, skipping the invite flow that provisions the coach
     // record). Sign them out so /login doesn't bounce them right back here.
     await supabase.auth.signOut();
@@ -38,7 +38,7 @@ export default async function DashboardLayout({
   // First-visit redirect gate: send incomplete coaches to the wizard once per session.
   // Cookie must be set in a Route Handler (not a Server Component), so we redirect
   // through /api/onboarding-gate which sets the cookie then forwards to the wizard.
-  // Settings is always accessible — coaches need it to fix integrations mid-onboarding.
+  // Settings is always accessible, coaches need it to fix integrations mid-onboarding.
   if (!coach.onboarding_completed_at && !isSettingsRoute) {
     const nextStep = nextIncompleteStep(progress);
     if (nextStep) {

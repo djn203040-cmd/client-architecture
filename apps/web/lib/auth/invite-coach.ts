@@ -12,7 +12,7 @@ export async function inviteCoach({ email, name }: TInviteCoachInput) {
     throw new Error(error?.message ?? "Invite failed");
   }
 
-  // Create coach profile (RLS bypass via service role — ADMIN-005)
+  // Create coach profile (RLS bypass via service role, ADMIN-005)
   const { error: insertError } = await adminClient.from("coaches").insert({
     id: data.user.id,
     email,
@@ -20,7 +20,7 @@ export async function inviteCoach({ email, name }: TInviteCoachInput) {
     role: "coach",
   });
   if (insertError) {
-    // Roll back the auth user — invite without profile is broken
+    // Roll back the auth user, invite without profile is broken
     await adminClient.auth.admin.deleteUser(data.user.id);
     throw new Error(`Failed to create coach profile: ${insertError.message}`);
   }

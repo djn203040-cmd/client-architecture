@@ -44,13 +44,13 @@ export async function checkReengageEligible(
 
   // Only a lead still sitting in "replied" is a re-engagement candidate. Any
   // other status means they moved on (converted/lost/booked/unsubscribed) or
-  // re-entered a fresh sequence — stop nudging.
+  // re-entered a fresh sequence, stop nudging.
   if (!lead) return { eligible: false, reason: "lead_missing" };
   if (lead.status !== "replied") return { eligible: false, reason: `status:${lead.status}` };
 
   // If a standalone draft is still pending, the ball is in the coach's court
   // (they haven't sent their reply / the previous nudge yet). Don't pile another
-  // message on top — stop until they act.
+  // message on top, stop until they act.
   const { count: pendingCount } = await adminClient
     .from("drafts")
     .select("id", { count: "exact", head: true })
@@ -80,7 +80,7 @@ type ReengageEvent = {
 /**
  * Silence-gated re-engagement. Armed by every lead reply; a newer reply cancels
  * and re-arms this run (cancelOn LEAD_REPLIED), so a back-and-forth never
- * thrashes — it just keeps resetting the silence timer. Once the thread has been
+ * thrashes, it just keeps resetting the silence timer. Once the thread has been
  * quiet for the configured window AND the coach has cleared their queue, it
  * sends up to N conversation-aware nudges, then closes the lead out.
  */
@@ -113,7 +113,7 @@ export async function sequenceReengageHandler({
 
   for (let attempt = 1; attempt <= cfg.maxAttempts; attempt++) {
     // Wait out the silence window. If the lead replies during it, cancelOn kills
-    // this run and a fresh one starts from the new reply — so reaching the line
+    // this run and a fresh one starts from the new reply, so reaching the line
     // below proves the thread stayed quiet for the whole window.
     await step.sleep(`silence-${attempt}`, `${cfg.silenceDays}d`);
 
@@ -133,7 +133,7 @@ export async function sequenceReengageHandler({
       }),
     );
     if (!generated.ok) {
-      // Couldn't generate (e.g. no voice model) — don't keep retrying blindly.
+      // Couldn't generate (e.g. no voice model), don't keep retrying blindly.
       return { stopped: true, attempt, reason: `generate_failed:${generated.reason}` };
     }
 
@@ -161,7 +161,7 @@ export async function sequenceReengageHandler({
     }
   }
 
-  // All attempts met silence — close the lead and finish the paused sequence.
+  // All attempts met silence, close the lead and finish the paused sequence.
   await step.run("close-lead-reengage-exhausted", async () => {
     const { data: lead } = await adminClient
       .from("leads")
@@ -203,20 +203,20 @@ export const sequenceReengage = inngest.createFunction(
     // Inngest caps cancelOn at 5 events per function. All of these transitions
     // are already backstopped by the post-sleep eligibility re-check
     // (checkReengageEligible stops on any lead status != "replied"), so cancelOn
-    // is an instant-teardown optimization, not a correctness requirement — a
+    // is an instant-teardown optimization, not a correctness requirement, a
     // stale run that isn't cancelled here still self-terminates (and never sends)
     // at its next silence-window wake. LEAD_CALL_COMPLETED is deliberately
     // omitted to stay within the cap: a call can't complete without first being
     // booked, and LEAD_CALL_BOOKED below already cancels the run at booking time.
     cancelOn: [
-      // A newer reply supersedes this watcher — cancel so a fresh run re-arms the
+      // A newer reply supersedes this watcher, cancel so a fresh run re-arms the
       // silence timer from the latest message. This is what makes a rapid
       // back-and-forth pause-stay-paused instead of thrashing.
       {
         event: LEAD_REPLIED,
         if: "async.data.leadId == event.data.leadId && async.data.coachId == event.data.coachId",
       },
-      // Lead changed course or re-entered a fresh sequence — stop re-engaging.
+      // Lead changed course or re-entered a fresh sequence, stop re-engaging.
       {
         event: LEAD_CALL_BOOKED,
         if: "async.data.leadId == event.data.leadId && async.data.coachId == event.data.coachId",

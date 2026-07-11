@@ -6,9 +6,9 @@ const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
 // Only run live tests when we have valid Supabase credentials with service role access.
-// Default mock values set in tests/setup.ts contain "test" — skip when those are active.
+// Default mock values set in tests/setup.ts contain "test", skip when those are active.
 // Live postgres_changes delivery is unreliable on an ephemeral CI Supabase
-// Realtime container — the WAL stream frequently misses an INSERT fired right
+// Realtime container, the WAL stream frequently misses an INSERT fired right
 // after the channel reaches SUBSCRIBED. Skip the live-delivery assertion in CI;
 // the structural contract (our hook subscribes correctly) is covered below and
 // this test still runs locally against a warm stack.
@@ -78,7 +78,7 @@ describe.skipIf(skipIf)(
           );
 
         // Wait for the channel to actually reach SUBSCRIBED before inserting.
-        // A fixed sleep is unreliable on a cold CI Realtime container — the WS
+        // A fixed sleep is unreliable on a cold CI Realtime container, the WS
         // handshake + publication snapshot can take several seconds.
         await new Promise<void>((resolve, reject) => {
           const timer = setTimeout(
@@ -97,7 +97,7 @@ describe.skipIf(skipIf)(
         });
 
         // SUBSCRIBED means the channel joined, but on a cold CI Realtime
-        // container the WAL replication stream can still be catching up — an
+        // container the WAL replication stream can still be catching up, an
         // INSERT fired in that window is missed. Let the stream go live first.
         await new Promise((r) => setTimeout(r, 2000));
 

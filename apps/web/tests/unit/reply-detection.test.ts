@@ -155,7 +155,7 @@ beforeEach(() => {
   });
 });
 
-describe("processHistoryUpdate — reply detection", () => {
+describe("processHistoryUpdate, reply detection", () => {
   it("fires LEAD_REPLIED + records inbound when In-Reply-To matches and From is the lead", async () => {
     mockMessagesGet.mockResolvedValue(
       gmailMsg({
@@ -185,7 +185,7 @@ describe("processHistoryUpdate — reply detection", () => {
   it("re-baselines and fires nothing when history.list 404s on a stale historyId", async () => {
     // Gmail purges history older than ~1 week: a stale stored baseline makes
     // history.list 404 forever. The monitor must NOT throw (which would strand
-    // it — the throw is before the baseline advances); it must reset the
+    // it, the throw is before the baseline advances); it must reset the
     // baseline to this push's current historyId and skip the lost delta.
     mockHistoryList.mockRejectedValue(
       Object.assign(new Error("Requested entity was not found."), {

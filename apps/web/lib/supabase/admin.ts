@@ -4,7 +4,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 // Lazily constructed singleton. The real client is built on FIRST USE, not at
-// module load — so `next build` page-data collection (which imports every route
+// module load, so `next build` page-data collection (which imports every route
 // that pulls in `adminClient`) no longer throws `supabaseUrl is required` when
 // the Supabase env vars are absent (e.g. Preview deploys without prod secrets).
 // Construction still happens at request time, where the env is present.
@@ -14,7 +14,7 @@ function getAdminClient(): SupabaseClient {
   if (!_client) {
     _client = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY! // NO NEXT_PUBLIC_ prefix — enforced by CI
+      process.env.SUPABASE_SERVICE_ROLE_KEY! // NO NEXT_PUBLIC_ prefix, enforced by CI
     );
   }
   return _client;

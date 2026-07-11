@@ -13,7 +13,7 @@ export const CalendarProviderEnum = z.enum([
 ]);
 export type TCalendarProvider = z.infer<typeof CalendarProviderEnum>;
 
-// API-key paste payload — used by /api/auth/calendar/[provider]/api-key.
+// API-key paste payload, used by /api/auth/calendar/[provider]/api-key.
 // Max 512 chars protects against accidental file paste; real keys are well under this.
 export const CalendarApiKeyPayloadSchema = z.object({
   apiKey: z.string().trim().min(1, "API key is required").max(512, "That's too long for an API key"),
@@ -21,11 +21,11 @@ export const CalendarApiKeyPayloadSchema = z.object({
 });
 export type TCalendarApiKeyPayload = z.infer<typeof CalendarApiKeyPayloadSchema>;
 
-// Disconnect payload — empty body, but kept for shape parity / future fields.
+// Disconnect payload, empty body, but kept for shape parity / future fields.
 export const CalendarDisconnectPayloadSchema = z.object({}).strict();
 export type TCalendarDisconnectPayload = z.infer<typeof CalendarDisconnectPayloadSchema>;
 
-// Webhook-info query — used by GET /api/auth/calendar/webhook-info.
+// Webhook-info query, used by GET /api/auth/calendar/webhook-info.
 export const CalendarWebhookInfoQuerySchema = z.object({
   provider: CalendarProviderEnum,
 });

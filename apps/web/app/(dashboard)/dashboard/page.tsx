@@ -32,7 +32,7 @@ export default async function DashboardPage() {
         <PendingActionsSection coachId={user!.id} />
       )}
       <div data-tour="dash-cards" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Primary metric — leads pipeline */}
+        {/* Primary metric, leads pipeline */}
         <div className="rounded-2xl backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 p-6 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
           <div className="text-sm text-muted-foreground">Leads</div>
           <div className="text-[32px] font-semibold mt-2 font-mono text-foreground">{leadCount ?? 0}</div>
@@ -43,7 +43,7 @@ export default async function DashboardPage() {
             View leads
           </Link>
         </div>
-        {/* Secondary metric — drafts action queue */}
+        {/* Secondary metric, drafts action queue */}
         <div className="rounded-2xl backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 p-6 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
           <div className="text-sm text-muted-foreground">Drafts pending review</div>
           <div className="text-[28px] font-semibold mt-2 font-mono">{draftCount ?? 0}</div>

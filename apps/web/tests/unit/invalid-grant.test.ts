@@ -38,7 +38,7 @@ describe("HEALTH-004: handleInvalidGrant marks disconnected + halts sequences", 
     vi.doMock("@/lib/supabase/admin", () => ({ adminClient: { from: fromMock } }));
     const { handleInvalidGrant } = await import("@/lib/gmail/error-handler");
     await handleInvalidGrant("coach-uuid-test");
-    // The coach notice is no longer a direct notification_log row — handleInvalidGrant
+    // The coach notice is no longer a direct notification_log row, handleInvalidGrant
     // now emits notification/integration_broken (covered by gmail-error-handler.test.ts).
     // This test owns the disconnect + sequence-halt side effects.
     expect(fromMock).toHaveBeenCalledWith("integrations");

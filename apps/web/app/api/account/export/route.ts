@@ -9,10 +9,10 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /**
- * GDPR §3.9 — full data export.
+ * GDPR §3.9, full data export.
  *
  * Returns a JSON archive containing every entity the coach owns. OAuth tokens
- * are NEVER included unwrapped — only the vault reference IDs ship.
+ * are NEVER included unwrapped, only the vault reference IDs ship.
  *
  * Rate-limited to 1 export per hour per coach (large response).
  */
@@ -82,7 +82,7 @@ export async function GET(req: Request) {
     coach: coach.data,
     leads: leads.data ?? [],
     drafts: drafts.data ?? [],
-    integrations: integrations.data ?? [], // vault_secret_id only — no raw tokens
+    integrations: integrations.data ?? [], // vault_secret_id only, no raw tokens
     sequences: sequences.data ?? [],
     notification_preferences: notificationPrefs.data ?? [],
     voice_corpus: voiceCorpus ?? null,

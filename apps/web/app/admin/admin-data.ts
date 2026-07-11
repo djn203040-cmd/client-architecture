@@ -29,7 +29,7 @@ type UsageSummaryRow = {
   event_count: number | string;
 };
 
-// ADMIN-005: adminClient bypasses RLS — used ONLY in this server-only module.
+// ADMIN-005: adminClient bypasses RLS, used ONLY in this server-only module.
 export async function fetchCoachRoster(): Promise<CoachRosterRow[]> {
   const { data: coaches } = await adminClient
     .from("coaches")

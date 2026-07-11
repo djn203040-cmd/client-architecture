@@ -9,11 +9,11 @@ export function HeldTab({
   timeZone,
 }: {
   coachId: string;
-  /** Coach's IANA timezone — renders draft send times in their local clock. */
+  /** Coach's IANA timezone, renders draft send times in their local clock. */
   timeZone?: string | null;
 }) {
   // Queue-scope decision (#41): held standalone drafts live on their lead's
-  // profile page, not in the dashboard queue — mirror the pending tab's filter.
+  // profile page, not in the dashboard queue, mirror the pending tab's filter.
   const { drafts, loading, removeDraft } = useDraftRealtime(coachId, { status: "held", sequenceOnly: true });
 
   const sorted = useMemo(

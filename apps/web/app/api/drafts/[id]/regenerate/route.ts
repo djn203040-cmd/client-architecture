@@ -27,7 +27,7 @@ export async function POST(
   const { lead_id: leadId, touchpoint_index: touchpointIndex } = draft;
   const coachId = user.id;
 
-  // Load lead fresh (AI-011 — regenerate with current state, not cached snapshot)
+  // Load lead fresh (AI-011, regenerate with current state, not cached snapshot)
   const { data: lead } = await supabase
     .from('leads')
     .select('id, name, status, ai_summary, ai_summary_protected, coach_notes')
@@ -65,7 +65,7 @@ export async function POST(
   // D-23: Mark generating in place (no new row)
   await supabase.from('drafts').update({ status: 'generating' }).eq('id', id);
 
-  // Background regeneration. MUST use after() — a plain fire-and-forget IIFE is
+  // Background regeneration. MUST use after(), a plain fire-and-forget IIFE is
   // killed when the 202 response returns on Vercel (same fix as drafts/generate),
   // which left repeat regenerations completing unreliably / out of order so the
   // draft appeared not to change after the first regen.

@@ -10,7 +10,7 @@ import { timingSafeEqual } from "crypto";
  *     `authHeader !== \`Bearer ${process.env.CRON_SECRET}\``. If CRON_SECRET is
  *     ever unset/empty (config drift, a new environment), that template literal
  *     becomes the literal `"Bearer undefined"` / `"Bearer "`, and anyone sending
- *     that exact header passes. Misconfiguration must fail *closed*, not open —
+ *     that exact header passes. Misconfiguration must fail *closed*, not open, 
  *     so a falsy secret always rejects, regardless of the incoming header.
  *
  *  2. **Non-timing-safe compare.** `!==` short-circuits on the first differing
@@ -25,9 +25,9 @@ import { timingSafeEqual } from "crypto";
 export function assertCronAuth(request: Request): Response | null {
   const secret = process.env.CRON_SECRET;
 
-  // Fail closed on misconfiguration — never let a missing secret open the route.
+  // Fail closed on misconfiguration, never let a missing secret open the route.
   if (!secret) {
-    console.error("[cron-auth] CRON_SECRET is not set — rejecting all cron requests");
+    console.error("[cron-auth] CRON_SECRET is not set, rejecting all cron requests");
     return new Response("Server misconfigured", { status: 500 });
   }
 

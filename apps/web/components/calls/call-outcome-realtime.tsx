@@ -12,7 +12,7 @@ type CallOutcomeStatus = Database["public"]["Enums"]["call_outcome_status"];
 /**
  * Live call-outcome queue, cloned from {@link useDraftRealtime}. Subscribes to
  * postgres_changes on `call_outcomes` scoped to the coach (RLS confines the
- * stream to their own rows — T-07-19) and keeps the bucket for one lifecycle
+ * stream to their own rows, T-07-19) and keeps the bucket for one lifecycle
  * `status` in sync. Optionally narrowed to a single lead for the lead-profile
  * panel (D-20): events for other leads are ignored.
  *
@@ -24,7 +24,7 @@ export function useCallOutcomeRealtime(
   opts?: {
     status?: CallOutcomeStatus;
     initialOutcomes?: CallOutcomeRow[];
-    // Scope the subscription to a single lead (lead-profile panel — D-20).
+    // Scope the subscription to a single lead (lead-profile panel, D-20).
     leadId?: string;
   },
 ): { outcomes: CallOutcomeRow[]; loading: boolean } {

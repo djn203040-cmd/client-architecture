@@ -82,7 +82,7 @@ describe('AI-007: confidence_level threshold', () => {
 });
 
 describe('D-16: hard-block gate', () => {
-  it('returns null for unsubscribed lead — no API call made', async () => {
+  it('returns null for unsubscribed lead, no API call made', async () => {
     const result = await generateDraft(makeParams({ leadStatus: 'unsubscribed' }), 'Coach');
     expect(result).toBeNull();
     expect(mockCreate).not.toHaveBeenCalled();

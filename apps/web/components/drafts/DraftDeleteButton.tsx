@@ -11,7 +11,7 @@ interface Props {
 }
 
 /**
- * Deliberately low-emphasis, two-step delete — the operator's escape hatch for
+ * Deliberately low-emphasis, two-step delete, the operator's escape hatch for
  * junk drafts (e.g. a reply draft generated with no inbound to answer). Delete
  * is NOT a primary action: muted styling, tucked in a corner, no keyboard
  * shortcut, and gated behind an explicit confirm so it can't be hit by accident

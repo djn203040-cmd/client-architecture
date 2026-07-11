@@ -41,7 +41,7 @@ export type GenerateReplyResult =
  * approval → draft/send_via_gmail path, NOT a scheduled timer.
  *
  * Called directly from the reply-handler Inngest function. There is no
- * "draft/generate" Inngest consumer — every generation path calls a function
+ * "draft/generate" Inngest consumer, every generation path calls a function
  * like this one synchronously inside a step.
  */
 export async function generateReplyDraft(
@@ -90,21 +90,21 @@ export async function generateReplyDraft(
   const conversationHistory =
     sentDrafts && sentDrafts.length > 0 ? sentDrafts.map((d) => d.body).join("\n\n") : null;
 
-  // The lead's ACTUAL inbound message(s) — the ground truth the reply must
+  // The lead's ACTUAL inbound message(s), the ground truth the reply must
   // answer. The prompt's "replied" framing reads from <lead_reply>; without this
   // the draft is written blind. Resolved in layers, most-authoritative first, so
   // a flaky Gmail call or a stale thread can't make us answer the wrong message:
   //   1. The `received` rows monitor.ts already persisted for this lead since our
-  //      last outbound — durable, body-captured, burst-coalesced, no live call.
+  //      last outbound, durable, body-captured, burst-coalesced, no live call.
   //   2. The exact triggering message fetched by id (covers replies recorded
   //      before this row existed, or a layer-1 storage hiccup).
   //   3. A scan of the Gmail thread (legacy best-effort).
   // If all layers are empty the draft is written blind, but the prompt's
   // no-inbound framing keeps it sane and we never auto-send it (status forced
-  // to pending below) — so a missed inbound is reviewable, never a phantom send.
+  // to pending below), so a missed inbound is reviewable, never a phantom send.
   let inboundMessages: string | null = null;
 
-  // Layer 1 — stored inbound after our most recent outbound.
+  // Layer 1, stored inbound after our most recent outbound.
   try {
     const { data: lastSent } = await adminClient
       .from("email_events")
@@ -139,13 +139,13 @@ export async function generateReplyDraft(
     console.error("[generateReplyDraft] stored-inbound read failed", { leadId });
   }
 
-  // Layer 2 — the exact message that triggered this reply, by id.
+  // Layer 2, the exact message that triggered this reply, by id.
   if (!inboundMessages && messageId) {
     const msg = await fetchMessageById(coachId, messageId);
     if (msg) inboundMessages = formatInboundMessages([msg.body || msg.snippet]);
   }
 
-  // Layer 3 — legacy thread scan.
+  // Layer 3, legacy thread scan.
   if (!inboundMessages) {
     try {
       let scanThreadId = threadId ?? null;
@@ -210,7 +210,7 @@ export async function generateReplyDraft(
 
   // Mirror generateTouchpointDraft: only Send-without-review (mode_a) auto-approves.
   // Exception: when we couldn't read the lead's actual inbound, the draft is a
-  // best-effort blind continuation — never auto-send that. Force it to pending so
+  // best-effort blind continuation, never auto-send that. Force it to pending so
   // the coach reviews it even in mode_a.
   const status: "pending" | "approved" =
     coach.autonomous_mode === "mode_a" && inboundMessages ? "approved" : "pending";

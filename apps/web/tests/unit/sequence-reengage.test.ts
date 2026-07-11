@@ -74,7 +74,7 @@ beforeEach(() => {
   vi.mocked(adminClient.from).mockClear();
 });
 
-describe("sequenceReengageHandler — silence-gated re-engagement", () => {
+describe("sequenceReengageHandler, silence-gated re-engagement", () => {
   it("waits the silence window, nudges each attempt, then closes the lead", async () => {
     mockGen.mockResolvedValue({
       ok: true,

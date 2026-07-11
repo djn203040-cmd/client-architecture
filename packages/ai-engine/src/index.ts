@@ -21,7 +21,7 @@ import type { TVoiceProfile } from '@client/shared/validators';
 
 // Model routing. Draft generation and voice analysis are voice/quality-critical
 // and stay on Sonnet; the review pass is a mechanical native-language proofread,
-// so it runs on Haiku (~3x cheaper) — see reviewDraft.
+// so it runs on Haiku (~3x cheaper), see reviewDraft.
 const DRAFT_MODEL = 'claude-sonnet-4-6';
 const REVIEW_MODEL = 'claude-haiku-4-5';
 const VOICE_MODEL = 'claude-sonnet-4-6';
@@ -43,7 +43,7 @@ function extractVoiceProfile(text: string): unknown {
   try {
     return JSON.parse(match[1].trim());
   } catch (err) {
-    // Malformed JSON (e.g. an unescaped quote) — surface as a VoiceParseError
+    // Malformed JSON (e.g. an unescaped quote), surface as a VoiceParseError
     // so analyzeVoiceCorpus retries with a corrective instruction instead of
     // failing outright.
     const reason = err instanceof Error ? err.message : 'unknown parse error';
@@ -103,7 +103,7 @@ export async function analyzeVoiceCorpus(params: VoiceAnalysisParams): Promise<T
 export interface GenerateDraftResult {
   body: string;
   // Subject line the model produced for this draft. null when the model
-  // omitted the <subject> tag — the send path falls back (Re:<thread> when
+  // omitted the <subject> tag, the send path falls back (Re:<thread> when
   // threading, otherwise a neutral default).
   subject: string | null;
   confidenceLevel: 'high' | 'low';
@@ -168,7 +168,7 @@ export async function generateDraft(
   params: DraftGenerationParams,
   coachName: string,
 ): Promise<GenerateDraftResult | null> {
-  // T-02-13: Hard-block gate — must run before any API call
+  // T-02-13: Hard-block gate, must run before any API call
   if (isHardBlocked(params.leadStatus)) return null;
 
   if (!params.voiceModel) {
@@ -205,7 +205,7 @@ export async function generateDraft(
   const qualityFlags: string[] = [];
 
   // AI-003: Never-say scan with one auto-regen attempt. The scan only looks at
-  // the body — the subject is short and shares the same voice constraints.
+  // the body, the subject is short and shares the same voice constraints.
   const violations = scanNeverSayList(parsed.body, params.voiceModel.never_say_list);
   if (violations.length > 0) {
     parsed = parseSubjectAndBody(await attemptGeneration());
@@ -265,7 +265,7 @@ export async function updateLeadDescription(params: {
   isProtected: boolean;
   coachNotes?: string;
 }): Promise<string | null> {
-  // D-22: Coach edits win — never overwrite a protected summary
+  // D-22: Coach edits win, never overwrite a protected summary
   if (params.isProtected) return null;
 
   const { system, user } = buildLeadDescriptionPrompt({
@@ -297,5 +297,7 @@ export async function updateLeadDescription(params: {
     coachId: params.coachId,
   });
 
-  return block.text.trim();
+  // Hard guarantee: no em-dash / en-dash ever reaches a coach, regardless of
+  // whether the model honored the prompt rule.
+  return stripDashes(block.text.trim());
 }

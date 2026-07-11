@@ -56,7 +56,7 @@ type ScheduledSendEvent = {
 };
 
 /**
- * Extracted handler — exported so integration tests can drive it without the
+ * Extracted handler, exported so integration tests can drive it without the
  * Inngest dev server.
  */
 export async function sequenceScheduledSendHandler({
@@ -68,7 +68,7 @@ export async function sequenceScheduledSendHandler({
 }) {
   const { draftId, coachId, leadId, sequenceId, scheduledSendAt } = event.data;
 
-  // Hold until the fixed cadence time — independent of when the coach approved.
+  // Hold until the fixed cadence time, independent of when the coach approved.
   await step.sleepUntil("sleep-until-send", new Date(scheduledSendAt));
 
   const blocked = await step.run("safety-check", () =>
@@ -120,7 +120,7 @@ export const sequenceScheduledSend = inngest.createFunction(
       // Coach pulled the draft from the queue.
       { event: "draft/cancelled", if: "async.data.draftId == event.data.draftId" },
       { event: "draft/held_manually", if: "async.data.draftId == event.data.draftId" },
-      // Lead changed course — abandon any pending scheduled touchpoints.
+      // Lead changed course, abandon any pending scheduled touchpoints.
       { event: LEAD_REPLIED, if: "async.data.leadId == event.data.leadId" },
       { event: LEAD_CALL_BOOKED, if: "async.data.leadId == event.data.leadId" },
       { event: LEAD_UNSUBSCRIBED, if: "async.data.leadId == event.data.leadId" },

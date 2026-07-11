@@ -59,7 +59,7 @@ export async function assembleContext(
     return estimateTokens(sys) + estimateTokens(usr);
   }
 
-  // Fast pre-sizing — apply truncations if over budget
+  // Fast pre-sizing, apply truncations if over budget
   if (estimate() > TOKEN_BUDGET) {
     // 1. Transcript body
     if (mutableParams.transcript) {
@@ -72,7 +72,7 @@ export async function assembleContext(
   }
 
   if (estimate() > TOKEN_BUDGET) {
-    // 2. Conversation history — keep most recent 3 messages
+    // 2. Conversation history, keep most recent 3 messages
     if (mutableParams.conversationHistory) {
       const trimmed = keepRecentMessages(mutableParams.conversationHistory, 3);
       if (trimmed !== mutableParams.conversationHistory) {
@@ -83,7 +83,7 @@ export async function assembleContext(
   }
 
   if (estimate() > TOKEN_BUDGET) {
-    // 3. Coach notes — keep most recent note only (last paragraph)
+    // 3. Coach notes, keep most recent note only (last paragraph)
     if (mutableParams.coachNotes) {
       const notes = mutableParams.coachNotes.split(/\n{2,}/).filter(Boolean);
       if (notes.length > 1) {
@@ -94,7 +94,7 @@ export async function assembleContext(
   }
 
   if (estimate() > TOKEN_BUDGET) {
-    // 4. Layer 2 examples — drop from the end, never below MIN_EXAMPLES
+    // 4. Layer 2 examples, drop from the end, never below MIN_EXAMPLES
     let targetCount = currentVoiceModel.selected_examples.length - 1;
     while (targetCount >= MIN_EXAMPLES && estimate() > TOKEN_BUDGET) {
       currentVoiceModel = trimExamples(

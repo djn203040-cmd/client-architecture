@@ -34,7 +34,7 @@ export type TSequenceStepTone =
   | "hold" // coach put it on hold
   | "error" // generation failed
   | "overdue" // send time passed but it never went out
-  | "paused" // sequence halted (lead replied / cancelled / on hold) — no send pending
+  | "paused" // sequence halted (lead replied / cancelled / on hold), no send pending
   | "scheduled"; // not generated yet / future
 
 export type TSequenceStep = {
@@ -112,7 +112,7 @@ export function buildSequenceView(
   const start = new Date(sequence.created_at);
   const finished = sequence.status === "completed";
   // The sequence is stopped: a reply paused it, the coach cancelled it, or it's
-  // on hold. No touchpoint is pending, so don't project a "next send" — that was
+  // on hold. No touchpoint is pending, so don't project a "next send", that was
   // the bug where a paused (lead-replied) sequence still read "Sends tomorrow".
   const halted =
     sequence.status === "paused" ||
@@ -123,7 +123,7 @@ export function buildSequenceView(
       ? "Sequence stopped"
       : sequence.status === "held"
         ? "On hold"
-        : "Paused — lead replied";
+        : "Paused, lead replied";
 
   // Index real drafts by touchpoint. When a touchpoint has more than one draft
   // (e.g. regenerated), keep the most-advanced by status rank.
@@ -193,7 +193,7 @@ export function buildSequenceView(
         detail = dateLabel;
       }
     } else if (i === firstPendingIdx && halted) {
-      // Sequence is stopped at this step — show why, and don't advertise a send.
+      // Sequence is stopped at this step, show why, and don't advertise a send.
       state = "next";
       tone = "paused";
       detail = haltedDetail;
@@ -202,7 +202,7 @@ export function buildSequenceView(
       nextSendAt = s.scheduledAt;
       nextSendLabel = sendWhen;
       // The send time has come and gone but nothing was delivered. With draft
-      // data this means the scheduled send never fired (e.g. a dropped timer) —
+      // data this means the scheduled send never fired (e.g. a dropped timer), 
       // surface it instead of pretending it's still "sends <past time>".
       const overdue = hasDraftData && new Date(s.scheduledAt).getTime() < now.getTime();
       switch (draftStatus) {
@@ -237,7 +237,7 @@ export function buildSequenceView(
           break;
         case "error":
           tone = "error";
-          detail = "Couldn't generate — needs a retry";
+          detail = "Couldn't generate, needs a retry";
           break;
         default:
           if (overdue) {
@@ -251,7 +251,7 @@ export function buildSequenceView(
     } else {
       state = "upcoming";
       if (halted) {
-        // Downstream steps won't fire while the sequence is stopped — don't
+        // Downstream steps won't fire while the sequence is stopped, don't
         // imply a future send date that isn't coming.
         tone = "paused";
         detail = sequence.status === "cancelled" ? "Won't send" : "Paused";

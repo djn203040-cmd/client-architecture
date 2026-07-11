@@ -136,7 +136,7 @@ export const sequenceNoShow = inngest.createFunction(
           data: { draftId: generated.draftId, coachId, leadId, sequenceId, scheduledSendAt },
         });
 
-        // Notify the coach there's a draft to review — skipped in Send-without-
+        // Notify the coach there's a draft to review, skipped in Send-without-
         // review mode (mode_a), where the draft is already approved.
         if (generated.status === "pending") {
           await step.sendEvent(`notify-${i}`, {
@@ -157,7 +157,7 @@ export const sequenceNoShow = inngest.createFunction(
 
     // The final touchpoint sends ~24h after it was generated, via its own
     // scheduled-send timer. Wait until that send has settled before closing the
-    // lead — otherwise we'd mark it terminal while the last message is pending,
+    // lead, otherwise we'd mark it terminal while the last message is pending,
     // and the safety check would block that send.
     if (delays.length > 0) {
       const lastSendAt = new Date(sequenceStart);

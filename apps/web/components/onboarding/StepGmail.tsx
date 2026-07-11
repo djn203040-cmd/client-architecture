@@ -58,7 +58,7 @@ export function StepGmail() {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground leading-relaxed">
-        We send follow-up emails as you — from your Gmail address, not a generic system address.
+        We send follow-up emails as you, from your Gmail address, not a generic system address.
         This keeps deliverability high and trust intact.
       </p>
 

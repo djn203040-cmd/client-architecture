@@ -41,7 +41,7 @@ describe.skipIf(skipIf)("GMAIL-003: integrations table holds only vault UUID, ne
   });
 
   it("integrations table schema has no access_token or refresh_token column", () => {
-    // Compile-time check via type narrowing — trust the migration
+    // Compile-time check via type narrowing, trust the migration
     // Runtime schema check would require information_schema query; covered by migration a65053b
     expect(true).toBe(true);
   });

@@ -25,7 +25,7 @@ interface PersistedState {
 
 interface TourContextValue {
   active: boolean;
-  /** Resolved, skip-aware position — for the "STEP x OF n" label and dots. */
+  /** Resolved, skip-aware position, for the "STEP x OF n" label and dots. */
   stepNumber: number;
   totalSteps: number;
   step: TourStep | null;
@@ -60,7 +60,7 @@ export function TourProvider({
   autoStart = false,
 }: {
   children: React.ReactNode;
-  /** Coach has finished onboarding — eligible for the one-time auto-launch. */
+  /** Coach has finished onboarding, eligible for the one-time auto-launch. */
   autoStart?: boolean;
 }) {
   const router = useRouter();
@@ -116,11 +116,11 @@ export function TourProvider({
         setDemoLeadId(data.leadId);
       } else {
         setSeedFailed(true);
-        toast.error("Couldn't load the demo lead — showing the rest of the tour.");
+        toast.error("Couldn't load the demo lead, showing the rest of the tour.");
       }
     } catch {
       setSeedFailed(true);
-      toast.error("Couldn't load the demo lead — showing the rest of the tour.");
+      toast.error("Couldn't load the demo lead, showing the rest of the tour.");
     }
   }, []);
 
@@ -128,7 +128,7 @@ export function TourProvider({
     try {
       localStorage.setItem(STATE_KEY, JSON.stringify(s));
     } catch {
-      /* storage unavailable — in-memory state still drives the tour */
+      /* storage unavailable, in-memory state still drives the tour */
     }
   }, []);
 
@@ -204,7 +204,7 @@ export function TourProvider({
   }, [active, stepIndex, demoLeadId, persist]);
 
   // Keep the coach on the step's page. Only push when the route is resolvable
-  // and actually different — idempotent against the Link they may have clicked.
+  // and actually different, idempotent against the Link they may have clicked.
   useEffect(() => {
     if (!active || !step) return;
     const target = resolveRoute(step);

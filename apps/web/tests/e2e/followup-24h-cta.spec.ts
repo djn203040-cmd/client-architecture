@@ -3,7 +3,7 @@ import { createLead } from "../fixtures/createLead";
 import { createDraft } from "../fixtures/createDraft";
 import { admin } from "../fixtures/createCoach";
 
-// 06-PLAN.md §1.4 — 24h follow-up CTA fires if coach inactive.
+// 06-PLAN.md §1.4-24h follow-up CTA fires if coach inactive.
 // Asserts the data marker that the follow-up Inngest function key uses to schedule.
 
 test("draft remains pending for 24h+: scheduled_send_at and follow-up state present", async ({ coach }) => {

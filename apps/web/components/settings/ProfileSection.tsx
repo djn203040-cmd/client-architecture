@@ -24,7 +24,7 @@ export function ProfileSection({ coach }: Props) {
       <div className="space-y-1">
         <h2 className="text-xl font-semibold">Profile</h2>
         <p className="text-sm text-muted-foreground max-w-[65ch]">
-          Your identity on Sonorous — saved automatically as you type.
+          Your identity on Sonorous, saved automatically as you type.
         </p>
       </div>
       <ProfileForm

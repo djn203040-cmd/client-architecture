@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   const rl = await enforce(draftsGenerateLimiter, `coach:${user.id}`);
   if (!rl.success) {
     return NextResponse.json(
-      { error: 'Rate limit exceeded — try again in an hour.' },
+      { error: 'Rate limit exceeded, try again in an hour.' },
       { status: 429, headers: { 'Retry-After': '3600' } },
     );
   }
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
   const { leadId } = parsed.data;
 
-  // Load lead — verify ownership
+  // Load lead, verify ownership
   const { data: lead, error: leadError } = await supabase
     .from('leads')
     .select('id, name, status, coach_id, ai_summary, ai_summary_protected, coach_notes')
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
 
   const touchpointIndex = (draftCount ?? 0) + 1;
 
-  // Insert a 'generating' draft row — client subscribes to this ID
+  // Insert a 'generating' draft row, client subscribes to this ID
   const { data: draft, error: insertError } = await supabase
     .from('drafts')
     .insert({
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
   const coachId = user.id;
   const autonomousMode = coach.autonomous_mode as string | null;
 
-  // Background generation — `after()` keeps the lambda alive on Vercel until
+  // Background generation, `after()` keeps the lambda alive on Vercel until
   // this work finishes. Plain fire-and-forget (`void (async () => …)()`) was
   // killed when the 202 response returned, leaving the draft row stuck at
   // status='generating' and the client spinner spinning forever.
@@ -125,7 +125,7 @@ export async function POST(request: Request) {
     let conversationHistory: string | null = null;
     let generated: Awaited<ReturnType<typeof import('@client/ai-engine').generateDraft>> = null;
 
-    // PHASE 1: AI generation — failure here means the draft is unusable, flip to 'error'
+    // PHASE 1: AI generation, failure here means the draft is unusable, flip to 'error'
     try {
       const { generateDraft } = await import('@client/ai-engine');
 
@@ -181,7 +181,7 @@ export async function POST(request: Request) {
       return;
     }
 
-    // PHASE 2: persist successful draft — once this lands the draft is "ready"
+    // PHASE 2: persist successful draft, once this lands the draft is "ready"
     const now = new Date().toISOString();
     const outcome = buildDraftOutcome(
       autonomousMode,
@@ -214,7 +214,7 @@ export async function POST(request: Request) {
       return;
     }
 
-    // PHASE 3: side-effects — failures here MUST NOT flip the draft to 'error'.
+    // PHASE 3: side-effects, failures here MUST NOT flip the draft to 'error'.
     // The draft is already valid and visible to the coach.
     try {
       await Promise.all(
@@ -229,7 +229,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // D-19: Update ai_summary if not protected — best-effort, never poisons the draft
+    // D-19: Update ai_summary if not protected, best-effort, never poisons the draft
     if (!lead.ai_summary_protected) {
       try {
         const { updateLeadDescription } = await import('@client/ai-engine');

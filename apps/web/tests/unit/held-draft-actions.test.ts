@@ -44,7 +44,7 @@ const fakeDraft = {
   updated_at: new Date().toISOString(),
 };
 
-describe("HeldDraftActions — approve path (R shortcut)", () => {
+describe("HeldDraftActions, approve path (R shortcut)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetch.mockResolvedValue(
@@ -113,8 +113,8 @@ describe("HeldDraftActions — approve path (R shortcut)", () => {
   });
 });
 
-describe("HeldDraftActions — cancel two-step (no modal)", () => {
-  it("does not import Dialog — no modal used for cancel", async () => {
+describe("HeldDraftActions, cancel two-step (no modal)", () => {
+  it("does not import Dialog, no modal used for cancel", async () => {
     // Verify the file content does not reference Dialog component
     const src = readFileSync(
       path.resolve(__dirname, "../../components/drafts/HeldDraftActions.tsx"),

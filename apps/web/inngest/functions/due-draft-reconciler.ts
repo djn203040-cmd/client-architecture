@@ -14,11 +14,11 @@ type StepTools = {
 };
 
 /**
- * Due-draft reconciler (#83) — the safety net under `sequence-scheduled-send`.
+ * Due-draft reconciler (#83), the safety net under `sequence-scheduled-send`.
  *
  * Scheduled sequence sends are driven ONLY by an Inngest `sleepUntil` timer. If
- * that timer is ever lost — a mis-fired `cancelOn`, a failed sync / registry
- * freeze (cf. #75), or a redeploy edge case — the coach-approved draft sits in
+ * that timer is ever lost, a mis-fired `cancelOn`, a failed sync / registry
+ * freeze (cf. #75), or a redeploy edge case, the coach-approved draft sits in
  * `approved`/`edited` forever and the lead silently stops progressing. This ran
  * once already as a whole-app freeze.
  *
@@ -30,7 +30,7 @@ type StepTools = {
  * `source: 'sequence_scheduled'` bypasses the cadence gate (the time has already
  * passed) and keeps the correct send semantics.
  *
- * Finding a stranded draft means a timer was genuinely lost — that's worth
+ * Finding a stranded draft means a timer was genuinely lost, that's worth
  * visibility, so we log a count (IDs only, no PII per CALL-016).
  *
  * Exported handler so integration tests can drive it without an Inngest dev server.
@@ -55,7 +55,7 @@ export async function dueDraftReconcilerHandler({
   });
 
   if (stranded.length > 0) {
-    // A lost timer is an operational signal, not routine — surface it. IDs only.
+    // A lost timer is an operational signal, not routine, surface it. IDs only.
     console.warn(
       `[due-draft-reconciler] recovering ${stranded.length} stranded approved draft(s):`,
       stranded.map((d) => d.id),

@@ -8,7 +8,7 @@ const isRealSupabase =
   !url.includes("test.supabase.co") &&
   !serviceKey.startsWith("test-");
 
-// 06-PLAN.md §1.3 — gmail-watch + gmail-monitor triggered correctly by Pub/Sub push.
+// 06-PLAN.md §1.3, gmail-watch + gmail-monitor triggered correctly by Pub/Sub push.
 describe.skipIf(!isRealSupabase)("GMAIL-006: gmail-watch + monitor wiring", () => {
   const client = createTestClient();
   let coachId: string;

@@ -24,7 +24,7 @@ export function OnboardingBanner({ progress, coachCreatedAt }: Props) {
   return (
     <div className="sticky top-0 z-20 flex items-center justify-between gap-4 px-4 py-2.5 bg-card/80 backdrop-blur-md border-b border-border dark:bg-white/5 dark:border-white/10">
       <p className="text-sm font-medium">
-        Finish setup —{" "}
+        Finish setup, {" "}
         <span className="text-muted-foreground font-normal">
           {remaining} of 4 step{remaining !== 1 ? "s" : ""} remaining
         </span>

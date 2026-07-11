@@ -71,7 +71,7 @@ function makeStep(): StepRunner {
       return (await runSpy(id, fn as () => unknown)) as T;
     }) as StepRunner["run"],
     sleepUntil: vi.fn(async (_id: string, _when: Date | string | number): Promise<void> => {
-      // Resolve immediately — tests don't actually sleep.
+      // Resolve immediately, tests don't actually sleep.
     }),
     sleep: vi.fn(async (_id: string, _duration: string | number): Promise<void> => {
       // Resolve immediately.

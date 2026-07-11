@@ -2,7 +2,7 @@
 //
 // Multi-party exports (WhatsApp, IG DMs, LinkedIn messages, mbox-style Gmail)
 // contain both sides of the conversation, and span months or years of history.
-// The voice analyzer wants only the coach's own *recent* messages — older
+// The voice analyzer wants only the coach's own *recent* messages, older
 // writing reflects a stale voice, and the other party's messages dilute the
 // profile entirely. These pure-function parsers let the importer surface
 // "which speaker is you? + how far back?" and filter before analysis.
@@ -26,7 +26,7 @@ function stripFileHeaders(text: string): string {
 // iOS:     [24/03/2024, 14:32:11] Daniel: hej
 // Android: 24/03/2024, 14:32 - Daniel: hej
 // Time separator may be `:` (most locales) or `.` (Danish, German, Norwegian
-// iOS exports — `[03/04/2026, 10.07.55]`).
+// iOS exports, `[03/04/2026, 10.07.55]`).
 const WHATSAPP_LINE =
   /^‎?(?:\[([^\]]+)\]|([0-9]{1,2}[./-][0-9]{1,2}[./-][0-9]{2,4},?\s+[0-9]{1,2}[:.][0-9]{2}(?:[:.][0-9]{2})?(?:\s*[AP]M)?)\s*-)\s+([^:]+?):\s?(.*)$/;
 
@@ -35,8 +35,8 @@ function parseWhatsApp(text: string): ParsedMessage[] {
   const lines = cleaned.split(/\r?\n/);
 
   // Auto-detect date order (dd/mm vs mm/dd) by scanning every timestamp in
-  // the corpus — a first-position value > 12 locks dd/mm; a second-position
-  // value > 12 locks mm/dd. If ambiguous, default to dd/mm (European norm —
+  // the corpus, a first-position value > 12 locks dd/mm; a second-position
+  // value > 12 locks mm/dd. If ambiguous, default to dd/mm (European norm, 
   // the app is built for that audience).
   const order = detectDateOrder(lines);
 

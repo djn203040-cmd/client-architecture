@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 
-// 06-PLAN.md §1.4 — Autonomous Mode A: type-to-confirm "send without review".
+// 06-PLAN.md §1.4, Autonomous Mode A: type-to-confirm "send without review".
 // Wrong phrase keeps Save disabled; exact phrase enables it; new drafts auto-send.
 
 test("Mode A type-to-confirm: wrong phrase disables save, exact phrase enables it", async ({ coach, page }) => {

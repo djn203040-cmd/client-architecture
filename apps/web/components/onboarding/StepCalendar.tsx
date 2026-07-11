@@ -44,7 +44,7 @@ export function StepCalendar({ activeProvider, oauthConfigured }: Props) {
         return;
       }
       if (skip) {
-        toast.message("Skipped — you can connect a calendar later from Settings.");
+        toast.message("Skipped, you can connect a calendar later from Settings.");
       }
       router.refresh();
       router.push("/onboarding/voice" as never);
@@ -56,7 +56,7 @@ export function StepCalendar({ activeProvider, oauthConfigured }: Props) {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground leading-relaxed">
-        Connect your calendar so we can pick up no-shows, post-call completions, and new bookings —
+        Connect your calendar so we can pick up no-shows, post-call completions, and new bookings, 
         and start the right follow-up automatically. Pick the tool you actually use; you can switch
         later from Settings.
       </p>
@@ -98,7 +98,7 @@ export function StepCalendar({ activeProvider, oauthConfigured }: Props) {
       {selectedConfig && isConnected && (
         <div className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-4">
           <div>
-            <h3 className="text-sm font-semibold">{selectedConfig.label} — connected</h3>
+            <h3 className="text-sm font-semibold">{selectedConfig.label}, connected</h3>
             <p className="text-xs text-muted-foreground mt-1">
               {selectedConfig.webhook.mode === "auto"
                 ? "We'll start receiving bookings + no-shows automatically."

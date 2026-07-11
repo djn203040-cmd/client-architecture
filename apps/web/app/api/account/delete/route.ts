@@ -14,15 +14,15 @@ const BodySchema = z.object({
 });
 
 /**
- * GDPR §3.9 — account deletion.
+ * GDPR §3.9, account deletion.
  *
  * Type-to-confirm: the request body MUST contain
  *   `DELETE MY ACCOUNT <email>`
  * compared in constant time. On success we:
  *   1. Write the gdpr_delete audit_log entry BEFORE deleting the coach row
- *      (so the action is preserved even after cascade — audit_log will be
+ *      (so the action is preserved even after cascade, audit_log will be
  *      cascaded too, but we keep a separate INFO-level audit handle in metadata).
- *   2. Delete the coaches row via service-role — FKs cascade through every
+ *   2. Delete the coaches row via service-role, FKs cascade through every
  *      coach-scoped table (migration 20260521000001 asserts ON DELETE CASCADE).
  *   3. Revoke the Supabase Auth user.
  */
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
   const ipAddress = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
   const userAgent = req.headers.get("user-agent");
 
-  // 1. Audit BEFORE cascade (audit_log will cascade too — we accept that).
+  // 1. Audit BEFORE cascade (audit_log will cascade too, we accept that).
   await writeAuditLog(
     {
       coachId: coach.id,
@@ -93,7 +93,7 @@ export async function POST(req: Request) {
   try {
     await adminClient.auth.admin.deleteUser(coach.id);
   } catch {
-    // Swallow — the row is already gone from public.coaches; the auth.users
+    // Swallow, the row is already gone from public.coaches; the auth.users
     // record will linger but produces no further access (RLS on every table
     // requires a matching coaches row).
   }

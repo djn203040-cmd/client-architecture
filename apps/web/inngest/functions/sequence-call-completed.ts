@@ -43,7 +43,7 @@ export const sequenceCallCompleted = inngest.createFunction(
 
     // D-15: the coach's decision IS the Call Outcomes feature now. LEAD_CALL_COMPLETED
     // only fires AFTER the coach picks "Call completed" (via fireCallOutcomeDownstream),
-    // so the old pending-action card + coach-decision wait are gone — we enroll
+    // so the old pending-action card + coach-decision wait are gone, we enroll
     // directly into the follow-up track.
     const sequenceId = await step.run("create-sequence", async () => {
       await adminClient

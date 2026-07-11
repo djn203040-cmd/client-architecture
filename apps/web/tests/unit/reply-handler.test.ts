@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Fully replace the draft generator — the handler's job is to call it and route
+// Fully replace the draft generator, the handler's job is to call it and route
 // the result, not to run real AI/DB. vi.mock is hoisted, so this also keeps
 // generate-reply's `server-only` + adminClient imports from ever executing.
 vi.mock("@/lib/drafts/generate-reply", () => ({
   generateReplyDraft: vi.fn(),
 }));
 
-// adminClient is hit directly by steps 1–3 (update lead, pause sequence, cancel
+// adminClient is hit directly by steps 1-3 (update lead, pause sequence, cancel
 // drafts). A chainable stub is enough: every builder method returns the same
 // object, terminal reads resolve to benign data, and the builder is awaitable so
 // `await adminClient.from(...).update(...).eq(...)` resolves. Inlined in the
@@ -55,7 +55,7 @@ beforeEach(() => {
   mockGen.mockReset();
 });
 
-describe("replyHandlerFn — STATE-005 reply pipeline", () => {
+describe("replyHandlerFn, STATE-005 reply pipeline", () => {
   it("generates a reply draft and emits notification/lead_replied when pending (manual)", async () => {
     mockGen.mockResolvedValue({
       ok: true,

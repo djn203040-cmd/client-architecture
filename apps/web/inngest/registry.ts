@@ -18,8 +18,8 @@ import { calendarHealthCheck } from "@/inngest/functions/calendar-health-check";
 /**
  * The single source of truth for every Inngest function served at /api/inngest.
  *
- * ⚠️ GUARDRAIL — Inngest caps `cancelOn` at 5 events PER FUNCTION. Exceeding it
- * fails the whole-app sync and *silently freezes the entire registry* — every
+ * ⚠️ GUARDRAIL, Inngest caps `cancelOn` at 5 events PER FUNCTION. Exceeding it
+ * fails the whole-app sync and *silently freezes the entire registry*, every
  * newly-added function stops registering on prod (this was outage #75). Keep
  * every function's `cancelOn` array at ≤ 5. `tests/unit/inngest-registry.test.ts`
  * enforces this (and unique ids) so a violation is a red CI check, not a silent

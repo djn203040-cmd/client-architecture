@@ -17,7 +17,7 @@ export function createDraftForCoach(
 /**
  * Pure helper: validate an autonomous-mode change request.
  * Mode A requires the exact confirmation phrase (case-sensitive, trimmed).
- * Returns { ok, reason } — caller is responsible for DB write.
+ * Returns { ok, reason }, caller is responsible for DB write.
  */
 export function setAutonomousMode(
   mode: ApiMode | string,

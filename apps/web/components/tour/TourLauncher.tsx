@@ -5,7 +5,7 @@ import { useTour } from "./TourProvider";
 
 /**
  * "Take the tour" affordance for the sidebar footer. Replays the guided
- * walkthrough on demand — the same one that auto-launches once after onboarding.
+ * walkthrough on demand, the same one that auto-launches once after onboarding.
  */
 export function TourLauncher() {
   const { start, active } = useTour();

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Webhook } from "svix";
 
-// 06-PLAN.md §1.3 — Resend webhook Svix signature verification rejects unsigned payloads.
+// 06-PLAN.md §1.3, Resend webhook Svix signature verification rejects unsigned payloads.
 
 // Svix secret format: whsec_<base64 of HMAC key>
 const SECRET = "whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw";

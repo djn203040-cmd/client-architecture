@@ -62,7 +62,7 @@ test("danger zone disconnect-gmail rejects wrong confirm phrase", async ({ coach
   await withOnboardingComplete(coach.id);
   await page.context().addCookies(coach.cookies);
 
-  // Wrong case — should be rejected
+  // Wrong case, should be rejected
   const badRes = await page.request.post(`/api/settings/danger/disconnect-gmail`, {
     data: { confirmPhrase: "Disconnect Gmail" },
   });

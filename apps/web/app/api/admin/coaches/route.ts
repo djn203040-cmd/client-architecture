@@ -5,7 +5,7 @@ import { inviteCoach } from "@/lib/auth/invite-coach";
 import { adminInviteLimiter } from "@/lib/security/ratelimit";
 
 export async function POST(request: Request) {
-  // Auth gate: must be admin (defense-in-depth — middleware already enforces, T-1-04)
+  // Auth gate: must be admin (defense-in-depth, middleware already enforces, T-1-04)
   const supabase = await createClient();
   const {
     data: { user },
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     const { success, limit, remaining } = await adminInviteLimiter.limit(user.id);
     if (!success) {
       return NextResponse.json(
-        { error: "Rate limit exceeded — wait a minute" },
+        { error: "Rate limit exceeded, wait a minute" },
         {
           status: 429,
           headers: {

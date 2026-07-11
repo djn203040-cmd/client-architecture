@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (!integration) {
-    // Coach has not connected Zoom — return 200 so Zoom stops retrying
+    // Coach has not connected Zoom, return 200 so Zoom stops retrying
     return new Response("OK", { status: 200 });
   }
 
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     }) as { data: { decrypted_secret: string } | null };
     zoomAccessToken = secret?.decrypted_secret ?? null;
   } catch {
-    // Vault lookup failed — store empty-content transcript and return
+    // Vault lookup failed, store empty-content transcript and return
     await adminClient.from("transcripts").insert({
       coach_id: coachId,
       lead_id: null,

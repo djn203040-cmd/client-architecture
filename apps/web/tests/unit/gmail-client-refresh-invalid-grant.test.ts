@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // rejects with a raw `Error: invalid_grant`. The `on("tokens")` event never
 // fires (it only fires on successful refresh), and the old Proxy in
 // getGmailClientForCoach only wrapped direct function properties of the ROOT
-// client — `gmail.users` is an object, so nested calls like
+// client, `gmail.users` is an object, so nested calls like
 // `gmail.users.messages.send(...)` escaped the wrapper and handleInvalidGrant
 // never ran. These tests drive the REAL error-handler (mocked adminClient +
 // inngest, mirroring gmail-error-handler.test.ts) through the wrapped client
@@ -38,13 +38,13 @@ vi.mock("@/lib/supabase/admin", () => {
   };
 });
 
-// handleInvalidGrant must EMIT notification/integration_broken — stub Inngest
+// handleInvalidGrant must EMIT notification/integration_broken, stub Inngest
 // so we can assert the notify half of the self-heal.
 vi.mock("@/inngest/client", () => ({
   inngest: { send: vi.fn(async () => undefined) },
 }));
 
-// OAuth2 client stub — credentials/token-refresh behavior is simulated at the
+// OAuth2 client stub, credentials/token-refresh behavior is simulated at the
 // gmail-call level below, where the failure actually surfaces.
 vi.mock("@/lib/gmail/auth", () => ({
   createOAuth2Client: vi.fn(() => ({ setCredentials: vi.fn(), on: vi.fn() })),
@@ -77,7 +77,7 @@ beforeEach(() => {
   mockFrom.mockClear();
 });
 
-describe("getGmailClientForCoach — refresh-path invalid_grant self-heal (#55)", () => {
+describe("getGmailClientForCoach, refresh-path invalid_grant self-heal (#55)", () => {
   it("routes a raw refresh-path invalid_grant on a NESTED call through handleInvalidGrant", async () => {
     // Exactly what google-auth-library's refreshTokenNoCache throws when the
     // refresh token is revoked: a bare Error whose message is "invalid_grant".

@@ -15,7 +15,7 @@ const STEP_HEADINGS: Record<OnboardingStep, string> = {
 interface Props {
   currentStep: OnboardingStep;
   progress: Record<string, string | null | undefined>;
-  /** When null, the coach has no saved zone yet — capture it client-side. */
+  /** When null, the coach has no saved zone yet, capture it client-side. */
   coachTimezone: string | null;
   children: ReactNode;
 }
@@ -44,7 +44,7 @@ export function WizardShell({ currentStep, progress, coachTimezone, children }: 
         {/* Dev-only skip link */}
         {process.env.NODE_ENV !== "production" && (
           <p className="text-center text-xs text-muted-foreground">
-            <span className="opacity-50">Dev only — </span>
+            <span className="opacity-50">Dev only, </span>
             <a href="/dashboard" className="underline underline-offset-2 hover:text-foreground">
               Skip onboarding
             </a>

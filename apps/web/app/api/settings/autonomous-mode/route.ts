@@ -46,7 +46,7 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
-  // Audit log on Mode A toggle — best-effort, activity_log table may not exist (T-04-06-04)
+  // Audit log on Mode A toggle, best-effort, activity_log table may not exist (T-04-06-04)
   if (mode === "mode_a") {
     try {
       await adminClient
@@ -58,7 +58,7 @@ export async function PATCH(req: NextRequest) {
           payload: { source: "settings_ui" },
         });
     } catch {
-      // Non-fatal — table may not exist in schema
+      // Non-fatal, table may not exist in schema
     }
   }
 

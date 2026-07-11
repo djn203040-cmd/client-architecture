@@ -13,7 +13,7 @@ test("full approval flow: pending → approved via dashboard", async ({ coach, p
 
   await page.context().addCookies(coach.cookies);
 
-  // Mock Gmail send — intercept before approval so any dispatched Inngest
+  // Mock Gmail send, intercept before approval so any dispatched Inngest
   // event can't reach the real Gmail API
   await page.route("**/gmail.googleapis.com/**", (route) =>
     route.fulfill({

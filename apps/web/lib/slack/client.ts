@@ -9,7 +9,7 @@ export async function getSlackClientForCoach(coachId: string): Promise<WebClient
   if (cached) return cached;
 
   // Read the bot token via the SECURITY DEFINER RPC. A direct
-  // schema("vault").from("decrypted_secrets") query fails with PGRST106 — the
+  // schema("vault").from("decrypted_secrets") query fails with PGRST106, the
   // vault schema is not exposed to PostgREST (only public, graphql_public,
   // private are). Mirrors the gmail token-read pattern (private.get_gmail_tokens).
   const { data: token, error } = await adminClient

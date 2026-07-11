@@ -19,7 +19,7 @@ const CALENDAR_CANCELLED = "calendar/cancelled";
  * Inserts the calendar_events row (existing dedup on
  * provider+external_event_id+event_type), then branches on event.eventType.
  * Because a booking always resolves to a lead now, LEAD_CALL_BOOKED always
- * fires — closing the standing no-lead gap (D-12).
+ * fires, closing the standing no-lead gap (D-12).
  *
  * Server-only: uses the service-role admin client; coach_id always comes from
  * the verified webhook coachId.

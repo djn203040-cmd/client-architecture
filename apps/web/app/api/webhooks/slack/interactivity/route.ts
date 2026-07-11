@@ -90,7 +90,7 @@ function formatTime(d: Date): string {
 }
 
 export async function POST(req: Request) {
-  // RAW body FIRST — Pitfall 2: body must be read before any parsing
+  // RAW body FIRST, Pitfall 2: body must be read before any parsing
   const rawBody = await req.text();
 
   const valid = verifySlackSignature({
@@ -124,7 +124,7 @@ export async function POST(req: Request) {
       if (lookup.reason === "multi_coach") {
         await respondViaResponseUrl(payload.response_url, {
           response_type: "ephemeral",
-          text: "This workspace has multiple coaches — please reinstall Sonorous for your account.",
+          text: "This workspace has multiple coaches, please reinstall Sonorous for your account.",
         });
       }
       return NextResponse.json({ ok: false, error: lookup.reason }, { status: 200 });
@@ -140,7 +140,7 @@ export async function POST(req: Request) {
       const callOutcomeId = action.value;
 
       // Ownership: the resolved coach (from the signed team_id) MUST own this
-      // outcome row — a forged/cross-team click can't resolve someone else's call
+      // outcome row, a forged/cross-team click can't resolve someone else's call
       // (T-07-15). On mismatch / missing row we 200-ack with no action.
       const { data: row } = await adminClient
         .from("call_outcomes")
@@ -219,7 +219,7 @@ export async function POST(req: Request) {
 
       // B-1: emit manual-approved event so sleeping Inngest timers cancel
       await inngest.send({ name: "draft/approved_manually", data: { draftId, coachId } });
-      // Defer Gmail send to Inngest — Pitfall 3: keep handler under 3s
+      // Defer Gmail send to Inngest, Pitfall 3: keep handler under 3s
       await inngest.send({
         name: "draft/send_via_gmail",
         data: { draftId, coachId, source: "slack" },
@@ -271,7 +271,7 @@ export async function POST(req: Request) {
           }) as never,
         });
       } catch {
-        // views.open failure is non-fatal — 3s budget already preserved
+        // views.open failure is non-fatal, 3s budget already preserved
       }
       return NextResponse.json({ ok: true });
     }
@@ -291,7 +291,7 @@ export async function POST(req: Request) {
     if (!lookup.ok) {
       const message =
         lookup.reason === "multi_coach"
-          ? "This workspace has multiple coaches — please reinstall Sonorous for your account."
+          ? "This workspace has multiple coaches, please reinstall Sonorous for your account."
           : "Could not find your coach account.";
       return NextResponse.json({
         response_action: "errors",

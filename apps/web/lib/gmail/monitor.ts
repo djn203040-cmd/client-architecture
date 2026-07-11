@@ -4,14 +4,14 @@ import { getGmailClientForCoach } from "./client";
 import { extractHeader, extractBody } from "./thread";
 import { isBounceMessage } from "./bounce-detector";
 import { LEAD_REPLIED, LEAD_BOUNCED } from "@client/shared/constants/events";
-// NO Inngest import — this module has no side effects beyond DB writes
+// NO Inngest import, this module has no side effects beyond DB writes
 
 /**
  * Gmail's history.list returns 404 (`notFound`) when startHistoryId is older
  * than Gmail's history retention window (~1 week). Local + dependency-free so
  * this module stays Inngest-free and unit-testable (unlike error-handler.ts,
  * which imports the Inngest client). Once the stored baseline ages out, every
- * push replays the same doomed query — detecting it lets us re-baseline.
+ * push replays the same doomed query, detecting it lets us re-baseline.
  */
 function isHistoryNotFoundError(e: unknown): boolean {
   if (typeof e !== "object" || e === null) return false;
@@ -38,7 +38,7 @@ function senderEmailOf(fromHeader: string): string {
  * has a durable ground truth instead of re-scraping the thread live.
  *
  * Returns isNew=false only for a confirmed duplicate. A non-dedup write error is
- * logged and treated as new (fire anyway) — a storage hiccup must never swallow
+ * logged and treated as new (fire anyway), a storage hiccup must never swallow
  * a real reply; generate-reply degrades to fetching the message by id.
  */
 async function recordInbound(args: {
@@ -100,7 +100,7 @@ export async function setupGmailWatch(coachId: string): Promise<void> {
 
 /**
  * Processes Gmail history since last known historyId for a coach.
- * Returns eventsToFire — caller (Inngest function) fires them via step.sendEvent().
+ * Returns eventsToFire, caller (Inngest function) fires them via step.sendEvent().
  * GMAIL-008, COMPLY-005, SEQ-004
  *
  * Pure: no Inngest import, no inngest.send() calls, unit-testable.
@@ -139,7 +139,7 @@ export async function processHistoryUpdate(
 
   if (historyResponse === null) {
     // Re-baseline to this push's current historyId so future pushes query from a
-    // valid point, and skip this delta (it's unrecoverable — Gmail no longer has
+    // valid point, and skip this delta (it's unrecoverable, Gmail no longer has
     // it). Without this the 404 strands the monitor: the baseline never advances,
     // so every subsequent push replays the same doomed query.
     await adminClient
@@ -156,7 +156,7 @@ export async function processHistoryUpdate(
   for (const { message } of messages) {
     if (!message?.id) continue;
 
-    // format:full so we capture the inbound body + threadId once, here — the
+    // format:full so we capture the inbound body + threadId once, here, the
     // reply generator reads it back from email_events instead of re-scraping.
     const msg = await gmail.users.messages.get({
       userId: "me",
@@ -204,7 +204,7 @@ export async function processHistoryUpdate(
         // Guard against false triggers: a reply only counts if it actually came
         // FROM the lead. Our own threaded sends (coach is the sender) and any
         // third-party participant land in the same thread and carry In-Reply-To
-        // too — without this they spawn phantom reply drafts answering nothing.
+        // too, without this they spawn phantom reply drafts answering nothing.
         const { data: lead } = await adminClient
           .from("leads")
           .select("email")

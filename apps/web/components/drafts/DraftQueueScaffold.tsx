@@ -27,7 +27,7 @@ export function DraftQueueScaffold({
   initialDrafts: DraftRow[];
   initialUnmatched?: TranscriptRow[];
   leads?: LeadRow[];
-  /** Coach's IANA timezone — renders draft send times in their local clock. */
+  /** Coach's IANA timezone, renders draft send times in their local clock. */
   timeZone?: string | null;
 }) {
   const [activeTab, setActiveTab] = useState<Tab>("drafts");
@@ -35,7 +35,7 @@ export function DraftQueueScaffold({
   const prevLengthRef = useRef(initialDrafts.length);
 
   // Queue-scope decision (#41): this queue is for scheduled sequence work
-  // only — standalone drafts (sequence_id=null) are reviewed on their lead's
+  // only, standalone drafts (sequence_id=null) are reviewed on their lead's
   // profile page. sequenceOnly keeps realtime consistent with the server query.
   const { drafts, loading: draftsLoading, rotateCurrent, removeDraft } = useDraftRealtime(coachId, {
     status: "pending",
@@ -57,7 +57,7 @@ export function DraftQueueScaffold({
   }
   prevLengthRef.current = drafts.length;
 
-  // Called after Approve/Hold — realtime removes the draft from the bucket
+  // Called after Approve/Hold, realtime removes the draft from the bucket
   // automatically, so the queue advances on its own. Skip uses rotateCurrent
   // (client-side rotation) instead since the draft's status doesn't change.
   const advance = useCallback(() => {

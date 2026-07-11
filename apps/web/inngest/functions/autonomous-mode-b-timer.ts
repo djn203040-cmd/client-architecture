@@ -19,7 +19,7 @@ type StepTools = {
 };
 
 /**
- * Extracted handler — exported separately so integration tests can invoke it
+ * Extracted handler, exported separately so integration tests can invoke it
  * without spinning up the Inngest dev server.
  */
 export async function autonomousModeBTimerHandler({
@@ -33,7 +33,7 @@ export async function autonomousModeBTimerHandler({
 
   await step.sleepUntil("sleep-until-send", new Date(scheduledSendAt));
 
-  // Belt-and-suspenders: re-read status after wake — cancelOn handles most cases
+  // Belt-and-suspenders: re-read status after wake, cancelOn handles most cases
   // but doesn't prevent the step from running if it started before the cancel signal.
   const draft = await step.run("verify-still-pending", async () => {
     const { data } = await adminClient
@@ -70,7 +70,7 @@ export async function autonomousModeBTimerHandler({
 export const autonomousModeBTimer = inngest.createFunction(
   {
     id: "autonomous-mode-b-timer",
-    name: "Autonomous Mode B — auto-send at scheduled time",
+    name: "Autonomous Mode B, auto-send at scheduled time",
     triggers: [{ event: "draft/created_mode_b" }],
     cancelOn: [
       {

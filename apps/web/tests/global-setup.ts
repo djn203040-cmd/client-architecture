@@ -1,6 +1,6 @@
 // E2E global setup. playwright.config.ts has already loaded apps/web/.env.test
 // (populated in CI from `supabase status -o env`) into process.env. We validate
-// those vars and confirm the local stack actually answers — rather than parsing
+// those vars and confirm the local stack actually answers, rather than parsing
 // the human-readable `supabase status` output, whose labels shift between CLI
 // versions and broke this check.
 export default async function globalSetup() {

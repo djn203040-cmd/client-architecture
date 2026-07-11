@@ -59,7 +59,7 @@ export async function postCallOutcomeSlack(args: {
     return { channel: "slack", status: "sent", external_id: res.ts, error_message: null };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "send_failed";
-    // A revoked bot token means the Slack integration is broken — flag it and
+    // A revoked bot token means the Slack integration is broken, flag it and
     // notify the coach on their other channels (no recursion risk here: this
     // path only ever runs for call_outcome_pending, never integration_broken).
     if (isSlackAuthRevokedError(err)) {
@@ -128,12 +128,12 @@ export async function sendSlack(event: TNotificationEvent): Promise<TChannelResu
       });
       fallbackText = `Draft ready for ${payload.leadName ?? "your lead"}`;
     } else {
-      // hard_bounce / integration_broken — simple text message
+      // hard_bounce / integration_broken, simple text message
       fallbackText =
         eventType === "hard_bounce"
           ? `Email to ${payload.leadEmail ?? "your lead"} bounced. Check integrations.`
           : payload.provider
-            ? `Your ${payload.provider} connection needs attention — reconnect it from your dashboard.`
+            ? `Your ${payload.provider} connection needs attention, reconnect it from your dashboard.`
             : "An integration needs attention.";
       blocks = [{ type: "section", text: { type: "mrkdwn", text: fallbackText } }];
     }
@@ -156,7 +156,7 @@ export async function sendSlack(event: TNotificationEvent): Promise<TChannelResu
     return { channel: "slack", status: "sent", external_id: res.ts, error_message: null };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "send_failed";
-    // A revoked bot token means the Slack integration is broken — flag it and
+    // A revoked bot token means the Slack integration is broken, flag it and
     // notify the coach. Guard against eventType === "integration_broken": that
     // notice is itself fanned out over Slack, so re-detecting here would have
     // the dispatcher emit integration_broken forever. The coach still gets the

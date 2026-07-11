@@ -51,7 +51,7 @@ export default async function LeadProfilePage({
         .select("id, content, created_at")
         .eq("lead_id", id)
         .order("created_at", { ascending: false }),
-      // Reviewable drafts for this lead — surfaces ad-hoc standalone drafts that
+      // Reviewable drafts for this lead, surfaces ad-hoc standalone drafts that
       // never enter the dashboard queue's sequence flow (#41).
       supabase
         .from("drafts")
@@ -59,7 +59,7 @@ export default async function LeadProfilePage({
         .eq("lead_id", id)
         .in("status", ["pending", "held"])
         .order("created_at", { ascending: false }),
-      // Most recent sequence for this lead — drives the follow-along stepper.
+      // Most recent sequence for this lead, drives the follow-along stepper.
       supabase
         .from("sequences")
         .select("id, track, status, created_at")
@@ -67,20 +67,20 @@ export default async function LeadProfilePage({
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      // Coach cadence config + timezone — cadence defines how many touchpoints
+      // Coach cadence config + timezone, cadence defines how many touchpoints
       // and their timing; timezone renders send times in the coach's local clock.
       supabase
         .from("coaches")
         .select("sequence_config, timezone")
         .eq("id", lead.coach_id)
         .maybeSingle(),
-      // Sequence-linked drafts — let the stepper reflect real send progress.
+      // Sequence-linked drafts, let the stepper reflect real send progress.
       supabase
         .from("drafts")
         .select("sequence_id, touchpoint_index, status, sent_at, scheduled_send_at")
         .eq("lead_id", id)
         .not("sequence_id", "is", null),
-      // Calls awaiting an outcome for this lead — surfaced inline with the
+      // Calls awaiting an outcome for this lead, surfaced inline with the
       // three outcome buttons (D-20). RLS scopes the read to the coach.
       supabase
         .from("call_outcomes")

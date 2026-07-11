@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { inngestFunctions } from "@/inngest/registry";
 
 /**
- * #85 — registry guardrail. Issue #75 was a prod outage: `sequence-reengage`
+ * #85, registry guardrail. Issue #75 was a prod outage: `sequence-reengage`
  * had 6 events in `cancelOn`, exceeding Inngest's hard cap of 5. That single
  * over-limit function failed the whole-app sync and SILENTLY FROZE the entire
  * function registry, so every newly-added function stopped registering on prod.

@@ -44,7 +44,7 @@ function providerToSource(provider: TCalendarEvent["provider"]): TLeadSource {
 export async function upsertLeadFromBooking(event: TCalendarEvent): Promise<string> {
   const coachId = event.coachId;
 
-  // 1) Find an existing lead — by email if we have one, else by phone.
+  // 1) Find an existing lead, by email if we have one, else by phone.
   let existing: { id: string; status: TLeadStatus; do_not_contact: boolean } | null = null;
 
   if (event.leadEmail) {
@@ -83,9 +83,9 @@ export async function upsertLeadFromBooking(event: TCalendarEvent): Promise<stri
     return existing.id;
   }
 
-  // 2) No existing lead — create one. Never fabricate an email.
+  // 2) No existing lead, create one. Never fabricate an email.
   const placeholderName =
-    event.leadName ?? `Lead — ${event.provider} booking`;
+    event.leadName ?? `Lead, ${event.provider} booking`;
 
   const externalIds: Record<string, unknown> = {};
   if (!event.leadEmail) externalIds.email_pending = true;

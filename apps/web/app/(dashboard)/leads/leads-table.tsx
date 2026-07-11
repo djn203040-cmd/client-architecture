@@ -50,7 +50,7 @@ export function LeadsTable({
               <td className="px-4 py-3 text-sm text-muted-foreground font-mono" suppressHydrationWarning>
                 {lead.last_activity_at
                   ? new Date(lead.last_activity_at).toLocaleDateString()
-                  : "—"}
+                  : "-"}
               </td>
             </motion.tr>
           ))}

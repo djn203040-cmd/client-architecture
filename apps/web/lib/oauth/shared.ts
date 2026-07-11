@@ -7,7 +7,7 @@ import {
 } from "@/lib/calendar/providers";
 
 // ---------------------------------------------------------------------------
-// State signing — CSRF-safe OAuth state param.
+// State signing, CSRF-safe OAuth state param.
 // Pattern mirrors apps/web/lib/slack/oauth.ts; 10-minute install window.
 // ---------------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ export function verifyOAuthState(state: string): OAuthState | null {
 }
 
 // ---------------------------------------------------------------------------
-// Authorize URL builder — works for any provider in the registry.
+// Authorize URL builder, works for any provider in the registry.
 // ---------------------------------------------------------------------------
 
 export interface AuthorizeUrlArgs {
@@ -93,7 +93,7 @@ export function buildAuthorizeUrl({ provider, coachId, returnTo }: AuthorizeUrlA
 }
 
 // ---------------------------------------------------------------------------
-// Token exchange — generic OAuth2 authorization_code grant.
+// Token exchange, generic OAuth2 authorization_code grant.
 // ---------------------------------------------------------------------------
 
 export interface ExchangedTokens {
@@ -160,12 +160,12 @@ export async function exchangeAuthorizationCode(args: {
 }
 
 // ---------------------------------------------------------------------------
-// Token refresh — generic OAuth2 refresh_token grant (#64).
+// Token refresh, generic OAuth2 refresh_token grant (#64).
 // Works for the calendar providers that issue refresh tokens (Calendly, Acuity,
 // Square, MS Bookings). Setmore/TidyCal/Cal.com are API-key integrations and
 // never reach this path. A rejection from the TOKEN endpoint is the only
 // authenticated, unambiguous "this grant is dead" signal calendar integrations
-// have — webhook-signature 401s are public-URL noise and must never be used.
+// have, webhook-signature 401s are public-URL noise and must never be used.
 // ---------------------------------------------------------------------------
 
 export class OAuthRefreshError extends Error {
@@ -174,7 +174,7 @@ export class OAuthRefreshError extends Error {
     public readonly status: number,
     // OAuth2 error code from the provider's JSON error body (RFC 6749 §5.2),
     // e.g. "invalid_grant" (grant revoked/expired) vs "invalid_client" (our
-    // credentials misconfigured — NOT the coach's fault).
+    // credentials misconfigured, NOT the coach's fault).
     public readonly oauthErrorCode?: string,
   ) {
     super(
@@ -222,7 +222,7 @@ export async function refreshAccessToken(args: {
       const errJson = (await res.json()) as { error?: unknown };
       if (typeof errJson.error === "string") oauthErrorCode = errJson.error;
     } catch {
-      // Non-JSON error body — the HTTP status alone will have to do.
+      // Non-JSON error body, the HTTP status alone will have to do.
     }
     throw new OAuthRefreshError(provider.id, res.status, oauthErrorCode);
   }

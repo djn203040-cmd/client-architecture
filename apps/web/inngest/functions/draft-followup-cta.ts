@@ -22,7 +22,7 @@ export async function draftFollowupCtaHandler({
 }) {
   const { draftId, coachId, createdAt } = event.data;
 
-  // First sleep — 24h after draft created
+  // First sleep, 24h after draft created
   const firstWakeAt = new Date(new Date(createdAt).getTime() + 24 * 60 * 60 * 1000);
   await step.sleepUntil("sleep-24h-followup", firstWakeAt);
 
@@ -39,7 +39,7 @@ export async function draftFollowupCtaHandler({
     return { cancelled: true, stage: "24h", reason: `not_pending:${firstCheck?.status ?? "missing"}` };
   }
 
-  // Increment followup_count — read-then-write is safe; Inngest step handles retries
+  // Increment followup_count, read-then-write is safe; Inngest step handles retries
   await step.run("increment-followup-count", async () => {
     const { data: current } = await adminClient
       .from("drafts")
@@ -77,7 +77,7 @@ export async function draftFollowupCtaHandler({
     });
   });
 
-  // Second sleep — another 24h (48h total from creation)
+  // Second sleep, another 24h (48h total from creation)
   const secondWakeAt = new Date(firstWakeAt.getTime() + 24 * 60 * 60 * 1000);
   await step.sleepUntil("sleep-48h-cascade", secondWakeAt);
 

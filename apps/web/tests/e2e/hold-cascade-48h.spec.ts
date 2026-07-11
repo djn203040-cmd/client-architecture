@@ -3,7 +3,7 @@ import { createLead } from "../fixtures/createLead";
 import { createDraft } from "../fixtures/createDraft";
 import { admin } from "../fixtures/createCoach";
 
-// 06-PLAN.md §1.4 — 48h HOLD cascade: draft moves to held state, surfaces in Held tab.
+// 06-PLAN.md §1.4-48h HOLD cascade: draft moves to held state, surfaces in Held tab.
 
 test("HOLD cascade: 48h-stale draft routed to held status surfaces in Held tab", async ({ coach, page }) => {
   const lead = await createLead(coach.id);

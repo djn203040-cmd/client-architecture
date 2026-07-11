@@ -6,7 +6,7 @@ import { createDraft } from "../fixtures/createDraft";
 // runPreSendSafetyCheck is called by PATCH /api/drafts/[id] when approving.
 // It blocks sends to leads in terminal states or with DNC/bounced flags.
 
-// "converted" is intentionally ABSENT — D-01 / SEND_BLOCK_STATES deliberately
+// "converted" is intentionally ABSENT, D-01 / SEND_BLOCK_STATES deliberately
 // excludes it so reply-driven or approved drafts to a converted client still
 // send (see lib/state-machine.ts, inngest/functions/sequence-step.ts).
 const TERMINAL_STATUS_CASES = [

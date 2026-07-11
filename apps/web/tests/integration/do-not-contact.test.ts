@@ -57,7 +57,7 @@ describe.skipIf(skipIf)("STATE-007: do_not_contact flag persists and blocks send
     expect(lead?.do_not_contact).toBe(true);
   });
 
-  it("do_not_contact is a hard gate — flag stays true regardless of subsequent status reads", async () => {
+  it("do_not_contact is a hard gate, flag stays true regardless of subsequent status reads", async () => {
     const { data: lead } = await admin.from("leads").select("*").eq("id", leadId).single();
     expect(lead?.do_not_contact).toBe(true);
   });

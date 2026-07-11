@@ -8,7 +8,7 @@ const isRealSupabase =
   !url.includes("test.supabase.co") &&
   !serviceKey.startsWith("test-");
 
-// 06-PLAN.md §1.3 — Inngest sequence-no-show end-to-end with mocked Gmail send.
+// 06-PLAN.md §1.3, Inngest sequence-no-show end-to-end with mocked Gmail send.
 describe.skipIf(!isRealSupabase)("SEQ-001: sequence-no-show happy path", () => {
   const client = createTestClient();
   let coachId: string;
@@ -48,7 +48,7 @@ describe.skipIf(!isRealSupabase)("SEQ-001: sequence-no-show happy path", () => {
   });
 
   it("starts sequence, generates first touchpoint draft, status enrolled", async () => {
-    // Direct call to handler via Inngest function invoke — the function under test
+    // Direct call to handler via Inngest function invoke, the function under test
     // is `sequenceNoShow`. We exercise the side effects: a draft is created or a
     // draft/generate event is fired.
     const { data: drafts } = await client

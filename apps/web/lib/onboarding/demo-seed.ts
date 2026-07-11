@@ -8,13 +8,13 @@ type AdminClient = SupabaseClient<Database>;
 const DEMO_TRANSCRIPT = `
 Coach: Thanks for making time today. Tell me a bit about where you're at right now.
 
-Alex: Honestly, I feel like I've been running in place for two years. I'm doing all the "right" things — working out, journaling, good job — but I still feel stuck. Like something's missing and I can't name it.
+Alex: Honestly, I feel like I've been running in place for two years. I'm doing all the "right" things, working out, journaling, good job, but I still feel stuck. Like something's missing and I can't name it.
 
-Coach: That feeling of doing the work but still not moving — what does that cost you day to day?
+Coach: That feeling of doing the work but still not moving, what does that cost you day to day?
 
 Alex: It's subtle but it's there. I second-guess decisions way more than I used to. I'll spend a week overthinking something that should take an hour. And then I feel bad about the overthinking, which makes everything slower.
 
-Coach: What would it look like for you to trust yourself again — what's the first decision you'd make differently?
+Coach: What would it look like for you to trust yourself again, what's the first decision you'd make differently?
 
 Alex: I'd probably stop waiting for the "perfect moment" to apply for that senior role I've been eyeing for eight months. I keep telling myself I'm not ready, but I know that's not really true.
 
@@ -29,14 +29,14 @@ const DEMO_GENERATION_CONTEXT = { demo: true };
 // The AI-written lead description shown on the profile. Kept in sync with the
 // aiSummary passed to generateDraft so the demo reads coherently.
 const DEMO_SUMMARY =
-  "Alex feels stuck despite doing everything 'right' — training, journaling, a good job — and can't name what's missing. Over-thinks and second-guesses decisions. The real block: they've wanted a senior role for eight months but keep waiting for the 'perfect moment' and external permission. The opening is helping Alex give themselves that permission.";
+  "Alex feels stuck despite doing everything 'right', training, journaling, a good job, and can't name what's missing. Over-thinks and second-guesses decisions. The real block: they've wanted a senior role for eight months but keep waiting for the 'perfect moment' and external permission. The opening is helping Alex give themselves that permission.";
 
 interface SeedOptions {
   /**
    * Tour mode. Produces a fuller, always-fresh demo: sets the AI lead
    * description, enrolls a demo sequence, and (re)sets the demo draft to a
    * pending, sequence-linked message so it appears both on the lead profile
-   * and in the Drafts queue — ready to approve during the walkthrough.
+   * and in the Drafts queue, ready to approve during the walkthrough.
    */
   rich?: boolean;
 }
@@ -72,7 +72,7 @@ export async function seedDemoLeadForCoach(
       .from("leads")
       .insert({
         coach_id: coachId,
-        name: "Demo Lead — Alex Rivera",
+        name: "Demo Lead, Alex Rivera",
         email: `demo+${coachId}@sonorous.test`,
         source: "manual",
         status: rich ? "in_sequence" : "call_completed",
@@ -139,7 +139,7 @@ export async function seedDemoLeadForCoach(
         );
         if (result) draftBody = result.body;
       } catch {
-        // Voice model may not be complete yet — use fallback body
+        // Voice model may not be complete yet, use fallback body
       }
     }
 

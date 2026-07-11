@@ -50,7 +50,7 @@ export async function PATCH(
   }
   const { status, body } = parsed.data;
 
-  // Apply body edit BEFORE consuming nonce — edits are coach-trusted
+  // Apply body edit BEFORE consuming nonce, edits are coach-trusted
   if (body !== undefined) {
     const { data: draft } = await adminClient
       .from("drafts")

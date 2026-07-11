@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   const coachId = new URL(request.url).searchParams.get("coachId");
   if (!coachId) return new Response("Missing coachId", { status: 400 });
 
-  // Signature verification — timing-safe (CAL-004, T-07-01)
+  // Signature verification, timing-safe (CAL-004, T-07-01)
   const valid = verifyCalendlySignature(
     rawBody,
     request.headers.get("calendly-webhook-signature"),

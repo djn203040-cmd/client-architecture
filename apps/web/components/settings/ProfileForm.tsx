@@ -53,7 +53,7 @@ export function ProfileForm({ coach }: Props) {
 
   // First-load backstop: onboarding (WizardShell → TimezoneCapture) already
   // captures the browser zone on the coach's first step. This covers the edge
-  // case of a coach whose zone is still null by the time they reach Settings —
+  // case of a coach whose zone is still null by the time they reach Settings, 
   // the autosave hook skips the picker's pre-filled value on initial render, so
   // persist it once here rather than leaving them on the launch-default zone.
   useEffect(() => {

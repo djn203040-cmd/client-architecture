@@ -56,7 +56,7 @@ export async function PATCH(
 
   const { status, body, subject } = parsed.data;
 
-  // Body / subject edits — record to draft_edits (VOICE-006) then update draft
+  // Body / subject edits, record to draft_edits (VOICE-006) then update draft
   if (body !== undefined || subject !== undefined) {
     await adminClient.from("draft_edits").insert({
       coach_id: draft.coach_id,
@@ -77,7 +77,7 @@ export async function PATCH(
   if (status === "approved") {
     // Sequence-driven drafts run the pre-send safety check (terminal lead / DNC /
     // inactive sequence). Standalone drafts (sequence_id=null, generated ad-hoc
-    // from the lead profile — #41) have no sequence to gate against; the lead's
+    // from the lead profile, #41) have no sequence to gate against; the lead's
     // own hard-block states are already enforced upstream at generation time.
     if (draft.sequence_id) {
       const blocked = await runPreSendSafetyCheck(draft.lead_id, draft.sequence_id);
@@ -95,7 +95,7 @@ export async function PATCH(
       );
     }
     // B-1: cancel sleeping Inngest timers (Mode B / follow-up / hold cascade).
-    // Only sequence-driven drafts arm those timers — skip the signal for
+    // Only sequence-driven drafts arm those timers, skip the signal for
     // standalone drafts so we don't emit no-op cancellations.
     if (draft.sequence_id) {
       await inngest.send({
@@ -131,7 +131,7 @@ export async function PATCH(
   }
 
   if (status === "cancelled") {
-    // Terminal cleanup — no advisory lock needed
+    // Terminal cleanup, no advisory lock needed
     await adminClient.from("drafts").update({ status: "cancelled" }).eq("id", id);
     // B-1: emit cancellation so cancelOn consumers exit cleanly
     await inngest.send({

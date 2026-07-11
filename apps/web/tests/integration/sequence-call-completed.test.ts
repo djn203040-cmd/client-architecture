@@ -8,7 +8,7 @@ const isRealSupabase =
   !url.includes("test.supabase.co") &&
   !serviceKey.startsWith("test-");
 
-// 06-PLAN.md §1.3 — Post-call track (call_completed) is distinct from no_show.
+// 06-PLAN.md §1.3, Post-call track (call_completed) is distinct from no_show.
 describe.skipIf(!isRealSupabase)("SEQ-002: sequence-call-completed distinct from no-show", () => {
   const client = createTestClient();
   let coachId: string;

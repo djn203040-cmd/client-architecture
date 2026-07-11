@@ -3,7 +3,7 @@ import { inngest } from "@/inngest/client";
 import { evictSlackClientCache } from "@/lib/slack/client";
 
 // Slack Web API error codes that mean the bot token is dead and the coach must
-// reconnect — the Slack analogue of Gmail's invalid_grant. Transient codes
+// reconnect, the Slack analogue of Gmail's invalid_grant. Transient codes
 // (rate_limited, internal_error, channel_not_found, …) are deliberately excluded
 // so a momentary blip never cries wolf and flips a healthy integration to broken.
 const REVOKED_CODES = new Set([
@@ -33,10 +33,10 @@ export function isSlackAuthRevokedError(e: unknown): boolean {
 export async function handleSlackIntegrationBroken(coachId: string): Promise<void> {
   // 1. Flag the integration so the dashboard shows it broken and the next send
   //    short-circuits on the status check instead of hammering the dead token.
-  //    Unlike Gmail (a send channel), Slack is only a notification channel — we
+  //    Unlike Gmail (a send channel), Slack is only a notification channel, we
   //    do NOT pause sequences here; the coach's email keeps working.
   await adminClient.from("integrations")
-    .update({ status: "disconnected", error_message: "Slack token revoked — reconnect required" })
+    .update({ status: "disconnected", error_message: "Slack token revoked, reconnect required" })
     .eq("coach_id", coachId)
     .eq("provider", "slack");
 
@@ -44,7 +44,7 @@ export async function handleSlackIntegrationBroken(coachId: string): Promise<voi
   evictSlackClientCache(coachId);
 
   // 3. Tell the coach their Slack connection broke so they can reconnect. Fires
-  //    notification/integration_broken — the same matrix-driven fan-out Gmail
+  //    notification/integration_broken, the same matrix-driven fan-out Gmail
   //    uses (dashboard + email stay enabled, so the notice still lands even
   //    though Slack itself is down). Best-effort: a notification failure must
   //    not mask or re-throw inside the send error path that called us.
@@ -58,7 +58,7 @@ export async function handleSlackIntegrationBroken(coachId: string): Promise<voi
       },
     });
   } catch {
-    // Swallow — the integration is already marked disconnected; the coach will
+    // Swallow, the integration is already marked disconnected; the coach will
     // also see the broken state in the dashboard.
   }
 }

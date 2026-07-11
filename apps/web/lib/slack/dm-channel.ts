@@ -6,7 +6,7 @@ const cache = new Map<string, string>();
 /**
  * Resolve the DM channel id (D…) for a coach's Slack user id (U…).
  *
- * chat.update requires the channel that actually contains the message — passing
+ * chat.update requires the channel that actually contains the message, passing
  * the user id (the shape chat.postMessage happily accepts) fails with
  * message_not_found, which is why dashboard-side button retirement never worked
  * (#77). conversations.open is idempotent for an existing DM and only needs the

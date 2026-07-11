@@ -61,7 +61,7 @@ export function PendingActionCard({ id, type, leadName, leadEmail }: Props) {
       <div className="rounded-2xl backdrop-blur-md bg-accent/5 dark:bg-accent/10 border border-accent/20 p-6 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <p className="text-sm font-medium mb-1">{leadName}</p>
         <p className="text-xs text-muted-foreground mb-4">
-          {leadEmail} emailed you — start their intake sequence?
+          {leadEmail} emailed you, start their intake sequence?
         </p>
         <div className="flex gap-2">
           <Button size="sm" onClick={() => act("enroll")} disabled={!!loading}>

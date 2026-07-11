@@ -22,7 +22,7 @@ for (const { path, header } of ENDPOINTS) {
       headers: { "content-type": "application/json", [header]: "bogus-invalid-signature" },
       data: { event: "test" },
     });
-    // The forged request must be rejected with a 4xx before any side effects —
+    // The forged request must be rejected with a 4xx before any side effects, 
     // never accepted (2xx) and never a server error (5xx). Slack/Twilio reject
     // at the signature check (401); the calendar routes validate the payload
     // shape first, so a stub body surfaces as 400. Both are valid rejections.

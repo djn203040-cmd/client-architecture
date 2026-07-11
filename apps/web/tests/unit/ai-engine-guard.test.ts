@@ -8,7 +8,7 @@ describe('INFRA-008: ai-engine window guard', () => {
 
     // The ai-engine must not load in a browser. Our guard at the top of index.ts
     // throws first, but the Anthropic SDK also independently guards against browser
-    // usage — both serve the same protection. Either error message is acceptable.
+    // usage, both serve the same protection. Either error message is acceptable.
     await expect(import('@client/ai-engine')).rejects.toThrow();
   });
 

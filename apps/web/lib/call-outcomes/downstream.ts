@@ -25,11 +25,11 @@ export interface FireCallOutcomeDownstreamArgs {
  * - completed  -> LEAD_CALL_COMPLETED (simplified follow-up track).
  * - converted  -> cancel active sequences, set status='converted', emit
  *                 LEAD_CONVERTED. The call_converted timeline event is written by
- *                 the resolve surface (API PATCH / Slack handler) — NOT here — so
+ *                 the resolve surface (API PATCH / Slack handler), NOT here, so
  *                 conversion produces exactly one timeline entry (#76).
  *
  * CONVERTED is live-not-nurtured (D-01): see packages/shared/src/lib/state-machine.ts
- * — converted is ABSENT from SEND_BLOCK_STATES (reply-driven / approved drafts to
+ *, converted is ABSENT from SEND_BLOCK_STATES (reply-driven / approved drafts to
  * a converted client still send) and present only in NURTURE_BLOCK_STATES
  * (auto-enrollment / re-engagement skip it). Never set do_not_contact here.
  */
@@ -48,7 +48,7 @@ export async function fireCallOutcomeDownstream({
     return;
   }
 
-  // converted — idempotent inline (D-15, Claude's discretion allows inline).
+  // converted, idempotent inline (D-15, Claude's discretion allows inline).
   // (a) Cancel any active intake / follow-up / no-show sequences for the lead.
   await adminClient
     .from("sequences")
@@ -57,7 +57,7 @@ export async function fireCallOutcomeDownstream({
     .eq("lead_id", leadId)
     .eq("status", "active");
 
-  // (b) Mark the lead converted — but NEVER regress a lost / do_not_contact lead,
+  // (b) Mark the lead converted, but NEVER regress a lost / do_not_contact lead,
   // and NEVER set do_not_contact / touch contactability (D-01). The guard makes
   // a double-call a no-op once the lead is already converted/terminal.
   await adminClient

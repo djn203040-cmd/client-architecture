@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// #82 — the three signature-less providers (setmore/tidycal/ms_bookings) are
+// #82, the three signature-less providers (setmore/tidycal/ms_bookings) are
 // gated by a per-coach URL token verified against the Vault-stored secret.
 
 const rpc = vi.fn();

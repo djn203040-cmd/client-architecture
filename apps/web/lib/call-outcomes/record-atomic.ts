@@ -27,7 +27,7 @@ function rowToResult(row: unknown): TRecordCallOutcomeResult {
 /**
  * Atomically resolve a call_outcomes row to a chosen outcome. Mirrors
  * approveDraftAtomic: delegates to the advisory-lock CAS RPC, which only
- * succeeds when status='awaiting_outcome' — double calls / late provider
+ * succeeds when status='awaiting_outcome', double calls / late provider
  * no_show webhooks no-op.
  */
 export async function recordCallOutcomeAtomic(

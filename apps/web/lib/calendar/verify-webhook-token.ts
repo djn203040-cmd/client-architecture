@@ -5,7 +5,7 @@ import type { CalendarProviderId } from "@/lib/calendar/providers";
 
 /**
  * Token verification for the three "manual" calendar providers that offer NO
- * HMAC webhook signature — Setmore, TidyCal, Microsoft Bookings (#82).
+ * HMAC webhook signature, Setmore, TidyCal, Microsoft Bookings (#82).
  *
  * These providers can't sign their payloads, so the previous stub verifiers
  * returned `true` and the *only* gate was a `coachId` query param. But coachId

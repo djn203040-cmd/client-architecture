@@ -7,8 +7,8 @@ import { isInvalidGrantError, OAuthInvalidGrantError, handleInvalidGrant } from 
  * Recursively wrap the gmail client so ANY API call routes invalid_grant
  * through handleInvalidGrant (mark disconnected + pause sequences + notify).
  *
- * Why recursive (#55): every real Gmail call is nested —
- * `gmail.users.messages.send(...)`, `gmail.users.history.list(...)` — but the
+ * Why recursive (#55): every real Gmail call is nested, 
+ * `gmail.users.messages.send(...)`, `gmail.users.history.list(...)`, but the
  * previous Proxy only intercepted direct function properties of the ROOT
  * client. `gmail.users` is a plain object, so it was returned unwrapped and
  * every nested call escaped the invalid_grant handling. When a refresh token
@@ -91,7 +91,7 @@ export async function getGmailClientForCoach(coachId: string) {
     }
   });
 
-  // Wrap the gmail client (recursively — see wrapWithInvalidGrantSelfHeal) so
+  // Wrap the gmail client (recursively, see wrapWithInvalidGrantSelfHeal) so
   // any API call, including nested ones, catches invalid_grant and self-heals.
   const gmail = google.gmail({ version: "v1", auth: oauth2Client });
   return wrapWithInvalidGrantSelfHeal(gmail, coachId);

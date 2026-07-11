@@ -123,7 +123,7 @@ beforeEach(() => {
 });
 
 describe("review-token (Phase 4 / Pitfall-6)", () => {
-  it("read-only does not consume nonce — token remains valid after N views", async () => {
+  it("read-only does not consume nonce, token remains valid after N views", async () => {
     // Call the data route (GET) 3 times
     const { GET } = await import("@/app/api/review/[token]/data/route");
 
@@ -148,16 +148,16 @@ describe("review-token (Phase 4 / Pitfall-6)", () => {
     expect(mockConsumeToken).toHaveBeenCalledOnce();
   });
 
-  it("approve action consumes nonce — second use is rejected", async () => {
+  it("approve action consumes nonce, second use is rejected", async () => {
     const { PATCH } = await import("@/app/api/review/[token]/route");
 
-    // First PATCH — succeeds
+    // First PATCH, succeeds
     const res1 = await PATCH(makeRequest("PATCH", { status: "approved" }), {
       params: Promise.resolve({ token: TOKEN }),
     });
     expect(res1.status).toBe(200);
 
-    // Second PATCH — already consumed
+    // Second PATCH, already consumed
     mockConsumeToken.mockResolvedValueOnce({
       ok: false,
       reason: "already_consumed",

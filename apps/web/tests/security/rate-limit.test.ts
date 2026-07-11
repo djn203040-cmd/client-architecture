@@ -2,7 +2,7 @@
  * Rate-limit policy contract.
  *
  * In unit-mode (no Redis env), `enforce(null, key)` short-circuits to allow.
- * In CI we run a second integration job with Upstash credentials provisioned —
+ * In CI we run a second integration job with Upstash credentials provisioned, 
  * see .github/workflows/security.yml. The asserts below cover the contract +
  * the registry that the deployment audits against.
  */

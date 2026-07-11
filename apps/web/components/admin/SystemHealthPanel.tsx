@@ -8,7 +8,7 @@ export function SystemHealthPanel({ health }: { health: SystemHealth }) {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span>Queue depth</span>
-            <span className="font-mono">{health.inngest.queue_depth ?? "—"}</span>
+            <span className="font-mono">{health.inngest.queue_depth ?? "-"}</span>
           </div>
         </div>
       </div>
@@ -18,7 +18,7 @@ export function SystemHealthPanel({ health }: { health: SystemHealth }) {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span>Last run</span>
-            <span className="font-mono">{health.cron.last_run_at ?? "—"}</span>
+            <span className="font-mono">{health.cron.last_run_at ?? "-"}</span>
           </div>
         </div>
       </div>
@@ -49,7 +49,7 @@ export function SystemHealthPanel({ health }: { health: SystemHealth }) {
                 </td>
                 <td className="px-4 py-2 font-mono">{c.gmail_status}</td>
                 <td className="px-4 py-2 font-mono text-muted-foreground">
-                  {c.watch_expiry_at ? new Date(c.watch_expiry_at).toLocaleString() : "—"}
+                  {c.watch_expiry_at ? new Date(c.watch_expiry_at).toLocaleString() : "-"}
                 </td>
               </tr>
             ))}

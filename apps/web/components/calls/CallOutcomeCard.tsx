@@ -22,7 +22,7 @@ interface Props {
   /** "awaiting" renders the three action buttons; "readonly" shows the
    *  resolved outcome (or the upcoming call window) with no actions. */
   variant?: "awaiting" | "readonly";
-  /** Coach's IANA timezone — renders the call window in their local clock. */
+  /** Coach's IANA timezone, renders the call window in their local clock. */
   timeZone?: string | null;
 }
 
@@ -54,7 +54,7 @@ export function CallOutcomeCard({
         // 409 = already resolved elsewhere (Slack, another tab). Realtime will
         // drop the card; surface the real reason so the coach isn't confused.
         const message = data.reason
-          ? `Couldn't record — ${data.reason}.`
+          ? `Couldn't record, ${data.reason}.`
           : "This call was already recorded. The card will update shortly.";
         toast.error(message);
         setPending(null);

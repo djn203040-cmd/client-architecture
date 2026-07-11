@@ -15,8 +15,8 @@ import type { TCallOutcomeValue } from "@client/shared";
  * The ts lives in notification_log with event_type='call_outcome_pending' and
  * payload.callOutcomeId (written by postCallOutcomeSlack in 07-02). Best-effort:
  * every failure path (never notified on Slack, disconnected, chat.update error)
- * is swallowed — a stale button is never worth failing the resolve that ran. IDs
- * only in logs (CALL-016) — no lead name/email.
+ * is swallowed, a stale button is never worth failing the resolve that ran. IDs
+ * only in logs (CALL-016), no lead name/email.
  */
 export async function syncSlackCallOutcomeMessage(args: {
   id: string;
@@ -54,7 +54,7 @@ export async function syncSlackCallOutcomeMessage(args: {
     }
 
     const slack = await getSlackClientForCoach(coachId);
-    // chat.update needs the DM channel id (D…) — the stored external_account_id
+    // chat.update needs the DM channel id (D…), the stored external_account_id
     // is the coach's USER id (U…), which chat.update rejects (#77).
     const channel = await resolveSlackDmChannel(
       slack,

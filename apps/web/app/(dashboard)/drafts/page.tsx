@@ -21,7 +21,7 @@ export default async function DraftsPage() {
       // Queue-scope decision (#41): the queue is for scheduled sequence work
       // only. Standalone drafts (sequence_id=null, generated ad-hoc from a
       // lead profile) are reviewed on that lead's page (LeadDraftsPanel), not
-      // here — keep the two surfaces from double-presenting the same card.
+      // here, keep the two surfaces from double-presenting the same card.
       .not("sequence_id", "is", null)
       .order("scheduled_send_at", { ascending: true }),
     supabase

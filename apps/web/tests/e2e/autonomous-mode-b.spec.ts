@@ -3,7 +3,7 @@ import { createLead } from "../fixtures/createLead";
 import { createDraft } from "../fixtures/createDraft";
 import { admin } from "../fixtures/createCoach";
 
-// 06-PLAN.md §1.4 — Autonomous Mode B: 24h Inngest timer auto-sends draft if no action.
+// 06-PLAN.md §1.4, Autonomous Mode B: 24h Inngest timer auto-sends draft if no action.
 // We assert the data-layer prerequisite (mode_b enabled + draft pending) and that
 // the timer Inngest function is registered. Time-travel through Inngest dev is
 // exercised in integration tests; this E2E confirms the wiring.

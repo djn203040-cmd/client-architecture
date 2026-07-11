@@ -14,7 +14,7 @@ const PRICES: Record<string, ModelPrice> = {
 };
 
 // Fallback keeps cost non-zero (and conservative) if a model id ever changes
-// before this table is updated — better to over-report than silently log $0.
+// before this table is updated, better to over-report than silently log $0.
 const FALLBACK: ModelPrice = { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 };
 
 export interface TokenUsage {

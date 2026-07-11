@@ -9,9 +9,9 @@ const src = readFileSync(
   "utf8",
 );
 
-describe("CelebrationEmptyState — copy contract", () => {
+describe("CelebrationEmptyState, copy contract", () => {
   it("contains exact heading: You're all caught up.", () => {
-    // The component uses &apos; for the apostrophe — accept either form
+    // The component uses &apos; for the apostrophe, accept either form
     const hasExactCopy =
       src.includes("You’re all caught up.") ||
       src.includes("You&apos;re all caught up.") ||
@@ -39,7 +39,7 @@ describe("CelebrationEmptyState — copy contract", () => {
   });
 });
 
-describe("CelebrationEmptyState — component under 150 lines", () => {
+describe("CelebrationEmptyState, component under 150 lines", () => {
   it("stays within line budget", () => {
     const lines = src.split("\n").length;
     expect(lines).toBeLessThanOrEqual(150);

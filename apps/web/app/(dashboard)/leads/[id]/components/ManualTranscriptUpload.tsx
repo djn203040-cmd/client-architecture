@@ -133,7 +133,7 @@ export function ManualTranscriptUpload({
                     ? "The next-most-recent call will become the latest and drive future drafts."
                     : isDeletingLatest
                       ? "No transcripts will remain on this lead."
-                      : "Drafts will not be affected — they already use the latest call."
+                      : "Drafts will not be affected, they already use the latest call."
                 } This cannot be undone.`
               : ""}
           </DialogDescription>
