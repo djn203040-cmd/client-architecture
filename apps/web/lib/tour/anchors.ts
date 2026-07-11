@@ -15,6 +15,8 @@ export const TOUR_ANCHOR = {
   leadDescription: "lead-description",
   generateDraft: "generate-draft",
   leadDrafts: "lead-drafts",
+  sequencePanel: "sequence-panel",
+  leadTabs: "lead-tabs",
   draftsQueue: "drafts-queue",
   callsHeader: "calls-header",
   settingsNav: "settings-nav",

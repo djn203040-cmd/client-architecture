@@ -16,8 +16,8 @@ interface Rect {
 
 const GAP = 14; // distance between spotlight and tooltip
 const PAD = 8; // breathing room around the spotlighted element
-const TIP_W = 340;
-const MARGIN = 16; // min distance from viewport edge
+const TIP_W = 360;
+const MARGIN = 20; // min distance from viewport edge
 
 /** Picks the first *rendered* match — several anchors (nav items) exist in both
  *  the desktop sidebar and the mobile bar; only one is visible at a time. */
@@ -167,11 +167,11 @@ export function TourOverlay() {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
           transition={{ duration: 0.18 }}
-          className="pointer-events-auto absolute w-[min(340px,calc(100vw-32px))] rounded-2xl border border-black/5 bg-white text-neutral-900 shadow-[0_12px_40px_rgba(0,0,0,0.22)] dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-50"
+          className="pointer-events-auto absolute w-[min(360px,calc(100vw-40px))] rounded-2xl border border-black/5 bg-white text-neutral-900 shadow-[0_12px_40px_rgba(0,0,0,0.22)] dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-50"
           style={{ top: pos.top, left: pos.left }}
         >
           {pos.placement !== "center" && <Caret placement={pos.placement} />}
-          <div className="p-5">
+          <div className="p-6">
             {waiting ? (
               <div className="flex items-center gap-3 py-2">
                 <CircleNotch className="size-5 animate-spin text-neutral-400" />
@@ -200,19 +200,31 @@ export function TourOverlay() {
                   {step.body}
                 </p>
 
-                <div className="mt-5 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-1.5" aria-hidden>
-                    {Array.from({ length: totalSteps }).map((_, i) => (
-                      <span
-                        key={i}
-                        className={`h-1.5 rounded-full transition-all ${
-                          i === stepNumber - 1
-                            ? "w-4 bg-[var(--color-primary,#1E3A2E)]"
-                            : "w-1.5 bg-neutral-300 dark:bg-neutral-600"
-                        }`}
-                      />
-                    ))}
-                  </div>
+                <div className="mt-6 flex flex-wrap items-center gap-1.5" aria-hidden>
+                  {Array.from({ length: totalSteps }).map((_, i) => (
+                    <span
+                      key={i}
+                      className={`h-1.5 rounded-full transition-all ${
+                        i === stepNumber - 1
+                          ? "w-4 bg-[var(--color-primary,#1E3A2E)]"
+                          : "w-1.5 bg-neutral-300 dark:bg-neutral-600"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  {!isLast ? (
+                    <button
+                      type="button"
+                      onClick={stop}
+                      className="text-sm text-neutral-400 transition-colors hover:text-neutral-600 dark:hover:text-neutral-200"
+                    >
+                      Skip tour
+                    </button>
+                  ) : (
+                    <span />
+                  )}
                   <div className="flex items-center gap-2">
                     {!isFirst && (
                       <button
@@ -228,20 +240,10 @@ export function TourOverlay() {
                       onClick={next}
                       className="rounded-lg bg-[var(--color-primary,#1E3A2E)] px-4 py-1.5 text-sm font-semibold text-[var(--color-primary-foreground,#F5F0E5)] transition-opacity hover:opacity-90"
                     >
-                      {isLast ? "Finish" : step.clickToAdvance ? "Skip ahead" : "Next"}
+                      {isLast ? "Finish" : step.clickToAdvance ? "Next chapter →" : "Next"}
                     </button>
                   </div>
                 </div>
-
-                {!isFirst && !isLast && (
-                  <button
-                    type="button"
-                    onClick={stop}
-                    className="mt-3 text-xs text-neutral-400 transition-colors hover:text-neutral-600 dark:hover:text-neutral-200"
-                  >
-                    Skip tour
-                  </button>
-                )}
               </>
             )}
           </div>

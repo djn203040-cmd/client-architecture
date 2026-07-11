@@ -149,7 +149,7 @@ export default async function LeadProfilePage({
             timeZone={coachResult.data?.timezone}
           />
         )}
-        <Tabs defaultValue="thread">
+        <Tabs defaultValue="thread" data-tour="lead-tabs">
           <TabsList>
             <TabsTrigger value="thread">Thread</TabsTrigger>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>

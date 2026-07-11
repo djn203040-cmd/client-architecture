@@ -26,10 +26,28 @@ Alex: [pause] That hits harder than I expected. I think I've been waiting for ex
 // Demo marker stored in generation_context since drafts table doesn't have external_ids
 const DEMO_GENERATION_CONTEXT = { demo: true };
 
+// The AI-written lead description shown on the profile. Kept in sync with the
+// aiSummary passed to generateDraft so the demo reads coherently.
+const DEMO_SUMMARY =
+  "Alex feels stuck despite doing everything 'right' — training, journaling, a good job — and can't name what's missing. Over-thinks and second-guesses decisions. The real block: they've wanted a senior role for eight months but keep waiting for the 'perfect moment' and external permission. The opening is helping Alex give themselves that permission.";
+
+interface SeedOptions {
+  /**
+   * Tour mode. Produces a fuller, always-fresh demo: sets the AI lead
+   * description, enrolls a demo sequence, and (re)sets the demo draft to a
+   * pending, sequence-linked message so it appears both on the lead profile
+   * and in the Drafts queue — ready to approve during the walkthrough.
+   */
+  rich?: boolean;
+}
+
 export async function seedDemoLeadForCoach(
   coachId: string,
   adminClient: AdminClient,
+  opts: SeedOptions = {},
 ): Promise<{ leadId: string; draftId: string }> {
+  const rich = opts.rich ?? false;
+
   // Idempotency: check for existing demo lead (leads table has external_ids)
   const { data: existing } = await adminClient
     .from("leads")
@@ -42,6 +60,13 @@ export async function seedDemoLeadForCoach(
 
   if (existing) {
     leadId = existing.id;
+    if (rich) {
+      // Refresh the demo to a clean, coherent state each time the tour runs.
+      await adminClient
+        .from("leads")
+        .update({ ai_summary: DEMO_SUMMARY, status: "in_sequence" })
+        .eq("id", leadId);
+    }
   } else {
     const { data: lead, error: leadErr } = await adminClient
       .from("leads")
@@ -50,7 +75,8 @@ export async function seedDemoLeadForCoach(
         name: "Demo Lead — Alex Rivera",
         email: `demo+${coachId}@sonorous.test`,
         source: "manual",
-        status: "call_completed",
+        status: rich ? "in_sequence" : "call_completed",
+        ai_summary: DEMO_SUMMARY,
         external_ids: { demo: true },
       })
       .select("id")
@@ -78,58 +104,98 @@ export async function seedDemoLeadForCoach(
     .eq("generation_context->>demo" as never, "true")
     .maybeSingle();
 
+  let draftId: string;
+
   if (existingDraft) {
-    return { leadId, draftId: existingDraft.id };
+    draftId = existingDraft.id;
+  } else {
+    // Fetch coach voice model + name for generation
+    const { data: coach } = await adminClient
+      .from("coaches")
+      .select("name, voice_model")
+      .eq("id", coachId)
+      .single();
+
+    let draftBody =
+      "Thank you for our conversation today, Alex. I appreciated your honesty and self-awareness. I'd love to continue exploring what's possible for you. Shall we schedule a follow-up?";
+
+    if (coach?.voice_model) {
+      try {
+        const result = await generateDraft(
+          {
+            coachId,
+            leadId,
+            leadStatus: "call_completed",
+            leadName: "Alex Rivera",
+            aiSummary: DEMO_SUMMARY,
+            transcript: DEMO_TRANSCRIPT,
+            conversationHistory: null,
+            coachNotes: null,
+            bookingUrl: null,
+            touchpointIndex: 1,
+            voiceModel: coach.voice_model as never,
+          },
+          coach.name,
+        );
+        if (result) draftBody = result.body;
+      } catch {
+        // Voice model may not be complete yet — use fallback body
+      }
+    }
+
+    const { data: draft, error: draftErr } = await adminClient
+      .from("drafts")
+      .insert({
+        coach_id: coachId,
+        lead_id: leadId,
+        body: draftBody,
+        status: "pending",
+        generation_context: DEMO_GENERATION_CONTEXT,
+      })
+      .select("id")
+      .single();
+
+    if (draftErr || !draft) throw new Error(`Failed to create demo draft: ${draftErr?.message}`);
+    draftId = draft.id;
   }
 
-  // Fetch coach voice model + name for generation
-  const { data: coach } = await adminClient
-    .from("coaches")
-    .select("name, voice_model")
-    .eq("id", coachId)
-    .single();
+  if (rich) {
+    // Enroll a demo sequence so the profile's Sequence panel and the Drafts
+    // queue both have real content. Idempotent: reuse any sequence on the lead.
+    const { data: seq } = await adminClient
+      .from("sequences")
+      .select("id")
+      .eq("lead_id", leadId)
+      .limit(1)
+      .maybeSingle();
 
-  let draftBody =
-    "Thank you for our conversation today, Alex. I appreciated your honesty and self-awareness. I'd love to continue exploring what's possible for you. Shall we schedule a follow-up?";
+    let sequenceId = seq?.id ?? null;
+    if (!sequenceId) {
+      const { data: newSeq } = await adminClient
+        .from("sequences")
+        .insert({ coach_id: coachId, lead_id: leadId, track: "call_completed", status: "active" })
+        .select("id")
+        .single();
+      sequenceId = newSeq?.id ?? null;
+    }
 
-  if (coach?.voice_model) {
-    try {
-      const result = await generateDraft(
-        {
-          coachId,
-          leadId,
-          leadStatus: "call_completed",
-          leadName: "Alex Rivera",
-          aiSummary:
-            "Lead feels stuck despite doing 'the right things'. Identifies pattern of waiting for external validation. Key insight: knows what they want (senior role application) but seeks permission.",
-          transcript: DEMO_TRANSCRIPT,
-          conversationHistory: null,
-          coachNotes: null,
-    bookingUrl: null,
-          touchpointIndex: 1,
-          voiceModel: coach.voice_model as never,
-        },
-        coach.name,
-      );
-      if (result) draftBody = result.body;
-    } catch {
-      // Voice model may not be complete yet — use fallback body
+    // Reset the demo draft to a fresh, sequence-linked pending message. This is
+    // what the coach reviews on the profile and finds waiting in the queue.
+    if (sequenceId) {
+      const scheduledSendAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      await adminClient
+        .from("drafts")
+        .update({
+          sequence_id: sequenceId,
+          touchpoint_index: 2,
+          total_touchpoints: 3,
+          scheduled_send_at: scheduledSendAt,
+          subject: "Following up on our conversation",
+          status: "pending",
+        })
+        .eq("id", draftId);
     }
   }
 
-  const { data: draft, error: draftErr } = await adminClient
-    .from("drafts")
-    .insert({
-      coach_id: coachId,
-      lead_id: leadId,
-      body: draftBody,
-      status: "pending",
-      generation_context: DEMO_GENERATION_CONTEXT,
-    })
-    .select("id")
-    .single();
-
-  if (draftErr || !draft) throw new Error(`Failed to create demo draft: ${draftErr?.message}`);
-
-  return { leadId, draftId: draft.id };
+  return { leadId, draftId };
 }

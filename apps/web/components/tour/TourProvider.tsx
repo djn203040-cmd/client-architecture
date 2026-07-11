@@ -105,7 +105,11 @@ export function TourProvider({
     if (seedStarted.current) return;
     seedStarted.current = true;
     try {
-      const res = await fetch("/api/onboarding/seed-demo", { method: "POST" });
+      const res = await fetch("/api/onboarding/seed-demo", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ rich: true }),
+      });
       if (!res.ok) throw new Error("seed failed");
       const data = (await res.json()) as { leadId?: string };
       if (data.leadId) {

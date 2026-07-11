@@ -70,7 +70,7 @@ export function SequenceStatusPanel({
     : "—";
 
   return (
-    <section className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-4">
+    <section data-tour="sequence-panel" className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-4">
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-xl font-semibold">Sequence</h2>
         {sequence && (
