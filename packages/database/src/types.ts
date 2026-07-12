@@ -306,6 +306,7 @@ export type Database = {
           email: string
           email_signature: string | null
           id: string
+          language: string
           name: string
           notification_settings: Json
           onboarding_completed_at: string | null
@@ -332,6 +333,7 @@ export type Database = {
           email: string
           email_signature?: string | null
           id: string
+          language?: string
           name: string
           notification_settings?: Json
           onboarding_completed_at?: string | null
@@ -358,6 +360,7 @@ export type Database = {
           email?: string
           email_signature?: string | null
           id?: string
+          language?: string
           name?: string
           notification_settings?: Json
           onboarding_completed_at?: string | null

@@ -1,6 +1,7 @@
 import { STEP_ORDER, type OnboardingStep } from "@client/shared/validators";
 
 const STEP_LABELS: Record<OnboardingStep, string> = {
+  language: "Language",
   gmail: "Gmail",
   booking: "Booking",
   calendar: "Calendar",

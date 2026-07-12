@@ -4,6 +4,7 @@ import { StepIndicator } from "./StepIndicator";
 import { TimezoneCapture } from "./TimezoneCapture";
 
 const STEP_HEADINGS: Record<OnboardingStep, string> = {
+  language: "Vælg sprog · Choose language",
   gmail: "Connect your Gmail",
   booking: "Add your booking link",
   calendar: "Connect your calendar",

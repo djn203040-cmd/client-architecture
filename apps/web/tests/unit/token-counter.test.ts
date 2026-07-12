@@ -37,6 +37,7 @@ function makeParams(overrides: Partial<DraftGenerationParams> = {}): DraftGenera
   return {
     coachId: 'coach-1',
     leadId: 'lead-1',
+    language: 'en',
     leadStatus: 'no_show',
     leadName: 'Jane Smith',
     aiSummary: null,

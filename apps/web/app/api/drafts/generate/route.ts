@@ -2,7 +2,7 @@ import { NextResponse, after } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { isHardBlocked } from '@client/ai-engine';
-import { VoiceProfileSchema, coerceSalesToolkit } from '@client/shared/validators';
+import { VoiceProfileSchema, coerceSalesToolkit, coerceLanguage } from '@client/shared/validators';
 import { inngest } from '@/inngest/client';
 import { buildDraftOutcome } from '@/lib/autonomous-mode';
 import { draftsGenerateLimiter, enforce } from '@/lib/security/ratelimit';
@@ -61,13 +61,15 @@ export async function POST(request: Request) {
   // Load voice model + booking URL for the AI prompt
   const { data: coach, error: coachError } = await supabase
     .from('coaches')
-    .select('voice_model, name, autonomous_mode, public_booking_url, sales_toolkit')
+    .select('voice_model, name, autonomous_mode, public_booking_url, sales_toolkit, language')
     .eq('id', user.id)
     .single();
 
   if (coachError || !coach) {
     return NextResponse.json({ error: 'Coach record not found' }, { status: 500 });
   }
+
+  const language = coerceLanguage(coach.language);
 
   const voiceModelRaw = coach.voice_model;
   const voiceModelParsed = VoiceProfileSchema.safeParse(voiceModelRaw);
@@ -158,6 +160,7 @@ export async function POST(request: Request) {
         {
           coachId,
           leadId,
+          language,
           leadStatus: lead.status as TLeadStatus,
           leadName: lead.name,
           aiSummary: lead.ai_summary,
@@ -238,6 +241,7 @@ export async function POST(request: Request) {
           leadId,
           coachId,
           leadName: lead.name,
+          language,
           transcript: transcript ?? undefined,
           conversationHistory: conversationHistory ?? undefined,
           existingSummary: lead.ai_summary ?? undefined,

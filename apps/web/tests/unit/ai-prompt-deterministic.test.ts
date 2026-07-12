@@ -31,6 +31,7 @@ const voiceModel: TVoiceProfile = {
 const baseParams: DraftGenerationParams = {
   leadId: "lead-deterministic-001",
   coachId: "coach-deterministic-001",
+  language: "en",
   leadName: "Sam Rivera",
   leadStatus: "no_show",
   touchpointIndex: 1,
@@ -51,9 +52,9 @@ describe("AI-Prompt-Deterministic: byte-identical output for identical inputs", 
   });
 
   it("buildSystemPrompt produces identical strings across 100 invocations", () => {
-    const first = buildSystemPrompt(voiceModel, "Daniel");
+    const first = buildSystemPrompt(voiceModel, "Daniel", "en");
     for (let i = 0; i < 99; i++) {
-      expect(buildSystemPrompt(voiceModel, "Daniel")).toBe(first);
+      expect(buildSystemPrompt(voiceModel, "Daniel", "en")).toBe(first);
     }
   });
 

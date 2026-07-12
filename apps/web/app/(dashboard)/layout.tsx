@@ -4,8 +4,9 @@ import { cookies, headers } from "next/headers";
 import { AppShell } from "@/components/shell/AppShell";
 import { TourProvider } from "@/components/tour/TourProvider";
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
-import { type OnboardingProgress } from "@client/shared/validators";
+import { type OnboardingProgress, coerceLanguage } from "@client/shared/validators";
 import { nextIncompleteStep } from "@/lib/onboarding/progress";
+import { I18nProvider } from "@/lib/i18n/provider";
 
 export default async function DashboardLayout({
   children,
@@ -51,13 +52,15 @@ export default async function DashboardLayout({
   }
 
   return (
-    <TourProvider autoStart={!!coach.onboarding_completed_at}>
-      <AppShell coachName={coach.name}>
-        {!coach.onboarding_completed_at && (
-          <OnboardingBanner progress={progress} coachCreatedAt={coach.created_at} />
-        )}
-        {children}
-      </AppShell>
-    </TourProvider>
+    <I18nProvider locale={coerceLanguage(coach.language)}>
+      <TourProvider autoStart={!!coach.onboarding_completed_at}>
+        <AppShell coachName={coach.name}>
+          {!coach.onboarding_completed_at && (
+            <OnboardingBanner progress={progress} coachCreatedAt={coach.created_at} />
+          )}
+          {children}
+        </AppShell>
+      </TourProvider>
+    </I18nProvider>
   );
 }

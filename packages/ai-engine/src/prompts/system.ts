@@ -1,9 +1,11 @@
-import type { TVoiceProfile, TSalesToolkit } from '@client/shared/validators';
+import type { TVoiceProfile, TSalesToolkit, TLanguage } from '@client/shared/validators';
 import { buildSalesGuidance } from './sales';
+import { buildLanguageDirective } from './language';
 
 export function buildSystemPrompt(
   voiceModel: TVoiceProfile,
   coachName: string,
+  language: TLanguage,
   salesToolkit?: TSalesToolkit | null,
 ): string {
   const layer1 = JSON.stringify(
@@ -54,7 +56,7 @@ Source-of-truth hierarchy (read this before writing anything):
 - If you find yourself wanting to ask "what did the lead say?" or "can you paste in their message?", re-read the coach notes first, the answer is almost certainly there. Refusing to write because you "don't have the reply" is a failure mode, not a safety feature.
 
 Output rules:
-- LANGUAGE: Write the entire message, subject and body, in the SAME language as the <voice_examples> above. Write as a fluent, educated native speaker of that language: correct grammar, spelling, inflection, and punctuation. Never leave a word in a different language than the rest of the message (e.g. do not drop an English word into a Danish sentence). Never translate an English phrase or idiom word-for-word, and never take an English verb and conjugate it as if it were native (e.g. in Danish do NOT write "missede dig"/"missede hinanden"; write what a Dane actually says, like "savnede dig", "vi fik ikke snakket", or "du kom aldrig"). Always use the expression a native speaker of the target language would genuinely use.
+${buildLanguageDirective(language)}
 - Match the length to what the message actually needs. Most messages land somewhere between 3 and 10 sentences. There is no minimum, a simple acknowledgement like "Perfect, I'll take care of that" can be a single line. What you must NOT do is balloon into a long, multi-paragraph essay, a pep talk, or a recap of the whole call. A real coach dashes these off between meetings. If it reads as scripted, padded, or like a coaching session in text form, it is too long, cut it back.
 - Do not restate everything the lead said on the call. Pick the one thing that mattered most and speak to that.
 - Begin your response with a subject line wrapped in <subject></subject> tags, then write ONLY the email body after the closing tag. The subject must be short (under ~8 words), specific to this message, and in ${coachName}'s voice, it should read like a line a real person typed, not a marketing header. Avoid generic fillers like "Following up", "Checking in", or "Touching base" unless that genuinely matches the voice. Do NOT repeat a "Subject:" prefix inside the body. No preamble, no "Here is a draft:" meta-commentary, no questions back to the coach, write the message.

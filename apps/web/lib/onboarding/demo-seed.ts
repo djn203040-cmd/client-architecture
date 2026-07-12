@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { generateDraft } from "@client/ai-engine";
+import { coerceLanguage } from "@client/shared/validators";
 import type { Database } from "@client/database";
 
 type AdminClient = SupabaseClient<Database>;
@@ -112,7 +113,7 @@ export async function seedDemoLeadForCoach(
     // Fetch coach voice model + name for generation
     const { data: coach } = await adminClient
       .from("coaches")
-      .select("name, voice_model")
+      .select("name, voice_model, language")
       .eq("id", coachId)
       .single();
 
@@ -125,6 +126,7 @@ export async function seedDemoLeadForCoach(
           {
             coachId,
             leadId,
+            language: coerceLanguage(coach.language),
             leadStatus: "call_completed",
             leadName: "Alex Rivera",
             aiSummary: DEMO_SUMMARY,

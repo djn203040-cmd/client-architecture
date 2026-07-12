@@ -1,9 +1,14 @@
+import type { TLanguage } from '@client/shared/validators';
+import { languageName } from './language';
+
 interface LeadDescriptionParams {
   transcript?: string;
   conversationHistory?: string;
   existingSummary?: string;
   coachNotes?: string;
   leadName: string;
+  // The coach reads this summary, so it is written in the coach's language.
+  language: TLanguage;
 }
 
 export function buildLeadDescriptionPrompt(params: LeadDescriptionParams): {
@@ -15,6 +20,7 @@ export function buildLeadDescriptionPrompt(params: LeadDescriptionParams): {
 Rules:
 - Write facts only. Never invent pain points, goals, or biographical details not evidenced in the provided context.
 - Write in third person, plainly. No AI-cliché phrases.
+- Write the paragraph in ${languageName(params.language)}, in natural, everyday ${languageName(params.language)} (the coach reads it). If ${languageName(params.language)} is Danish, use "du"-register, plain spoken Danish, and no anglicisms or word-for-word translations.
 - NEVER use the em-dash ("—") or en-dash ("–"). Not for pauses, asides, or ranges. Rewrite with a comma, a period, parentheses, or the word "to". Ordinary hyphens inside compound words ("follow-up", "check-in") are fine.
 - Target ~150-200 words. One paragraph.
 - Cover: what they do or where they are in life, stated goals, implied challenges, emotional signals from the conversation, and anything unusual or notable.
