@@ -40,9 +40,10 @@ export function StepSales({ initialToolkit }: Props) {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground leading-relaxed">
-        When a lead hesitates on price or timing, a good coach makes one gentle attempt to
-        bridge the gap before letting it go. Capture how you do that here, once, and the AI
-        will use it on every draft. You can skip this and add it later in Settings.
+        Start by picking the sales approach that sounds most like you, that part takes about
+        a minute. If you want, add your programs and how you handle objections too, so the AI
+        can bridge the gap the way you would when a lead hesitates. The whole thing takes
+        about 3 to 5 minutes, and you can skip it now and finish later in Settings.
       </p>
 
       <SalesToolkitForm initial={initialToolkit} />

@@ -12,6 +12,26 @@ function buildSalesToolkitBlock(toolkit: TSalesToolkit | null | undefined): stri
   if (toolkit.philosophy.trim()) {
     parts.push(`Philosophy: ${toolkit.philosophy.trim()}`);
   }
+
+  // The coach's real programs / pricing ladder. Rendered first so the model
+  // understands WHAT is on offer before it reaches for a bridge or downsell.
+  const usablePackages = toolkit.packages.filter((p) => p.name.trim());
+  if (usablePackages.length > 0) {
+    const lines = usablePackages
+      .map((p) => {
+        const attrs: string[] = [];
+        if (p.price.trim()) attrs.push(`price: ${p.price.trim()}`);
+        if (p.format.trim()) attrs.push(`format: ${p.format.trim()}`);
+        if (p.includes.trim()) attrs.push(`includes: ${p.includes.trim()}`);
+        if (p.ideal_for.trim()) attrs.push(`ideal for: ${p.ideal_for.trim()}`);
+        return attrs.length > 0
+          ? `- ${p.name.trim()} (${attrs.join('; ')})`
+          : `- ${p.name.trim()}`;
+      })
+      .join('\n');
+    parts.push(`Programs & pricing (the coach's real offer ladder):\n${lines}`);
+  }
+
   const renderOptions = (label: string, options: TSalesToolkit['bridges']): void => {
     const usable = options.filter((o) => o.name.trim());
     if (usable.length === 0) return;

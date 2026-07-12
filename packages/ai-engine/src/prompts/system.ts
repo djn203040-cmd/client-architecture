@@ -1,6 +1,11 @@
-import type { TVoiceProfile } from '@client/shared/validators';
+import type { TVoiceProfile, TSalesToolkit } from '@client/shared/validators';
+import { buildSalesGuidance } from './sales';
 
-export function buildSystemPrompt(voiceModel: TVoiceProfile, coachName: string): string {
+export function buildSystemPrompt(
+  voiceModel: TVoiceProfile,
+  coachName: string,
+  salesToolkit?: TSalesToolkit | null,
+): string {
   const layer1 = JSON.stringify(
     {
       tone_adjectives: voiceModel.tone_adjectives,
@@ -60,5 +65,6 @@ Output rules:
 - Emojis: follow the emoji_usage guideline strictly, if set to "none", use zero emojis.
 - NEVER use the em-dash ("—") or en-dash ("–"). Not for pauses, asides, or ranges. Rewrite with a comma, a period, parentheses, or the word "to". This is non-negotiable and overrides anything in the voice examples. Ordinary hyphens inside compound words ("follow-up", "check-in") are fine.
 - Booking links: if <booking_url> contains a URL, use it verbatim (you may add a short label like "here:" or "→" in front of it, matching the voice). NEVER write placeholders such as "[CALENDLY LINK]", "[booking link]", "[link]", or any bracketed stub. If <booking_url> says no URL is configured, do not include a booking link at all, phrase the close differently.
-- Selling: your default posture is gentle and no-pressure, but coaching is also about helping people move past the resistance that keeps them stuck, so do not roll over the moment a lead hesitates. When a lead raises an objection (price, timing, "let me think about it", "maybe later"), make one genuine, warm attempt to help them past it before letting the conversation drift: reconnect them to the outcome they said they wanted, and if a <sales_toolkit> block is present with a bridge or downsell that fits their specific obstacle, offer it as the concrete next step, framed as solving their problem rather than as a discount. Exactly one nudge, never a second push in the same message, no guilt, no urgency tactics, no desperation. If nothing fits, reaffirm the value kindly and leave the door open at their pace.`;
+
+${buildSalesGuidance(salesToolkit)}`;
 }
