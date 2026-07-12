@@ -1,6 +1,6 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
-import { VoiceProfileSchema } from "@client/shared/validators";
+import { VoiceProfileSchema, coerceSalesToolkit } from "@client/shared/validators";
 import type { TLeadStatus } from "@client/shared/types";
 
 const AI_MODEL = "claude-sonnet-4-6";
@@ -58,7 +58,7 @@ export async function generateTouchpointDraft(
 
   const { data: coach } = await adminClient
     .from("coaches")
-    .select("name, voice_model, public_booking_url, autonomous_mode")
+    .select("name, voice_model, public_booking_url, autonomous_mode, sales_toolkit")
     .eq("id", coachId)
     .maybeSingle();
   if (!coach) return { ok: false, reason: "coach_not_found" };
@@ -114,6 +114,7 @@ export async function generateTouchpointDraft(
         conversationHistory,
         coachNotes: lead.coach_notes,
         bookingUrl: coach.public_booking_url,
+        salesToolkit: coerceSalesToolkit(coach.sales_toolkit),
         touchpointIndex,
         voiceModel: voiceModelParsed.data,
       },

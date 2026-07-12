@@ -5,6 +5,7 @@ import { ProfileSection } from "@/components/settings/ProfileSection";
 import { NotificationsSection } from "@/components/settings/NotificationsSection";
 import { AutonomousSection } from "@/components/settings/AutonomousSection";
 import { VoiceSection } from "@/components/settings/VoiceSection";
+import { SalesToolkitSection } from "@/components/settings/SalesToolkitSection";
 import { IntegrationsSection } from "@/components/settings/IntegrationsSection";
 import { CalendarSection } from "@/components/settings/CalendarSection";
 import { DangerZone } from "@/components/settings/DangerZone";
@@ -35,7 +36,7 @@ export default async function SettingsPage({
     supabase
       .from("coaches")
       .select(
-        "id, name, email, autonomous_mode, voice_model, display_name, role_title, timezone, working_hours, email_signature, public_booking_url, avatar_url, active_calendar_provider",
+        "id, name, email, autonomous_mode, voice_model, display_name, role_title, timezone, working_hours, email_signature, public_booking_url, avatar_url, active_calendar_provider, sales_toolkit",
       )
       .eq("id", user.id)
       .single(),
@@ -89,6 +90,10 @@ export default async function SettingsPage({
 
       <section id="voice" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <VoiceSection voiceModel={initialVoiceModel} />
+      </section>
+
+      <section id="sales" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+        <SalesToolkitSection salesToolkit={coach.sales_toolkit} />
       </section>
 
       <section id="calendar" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">

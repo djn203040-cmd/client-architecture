@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { type OnboardingProgress } from "@client/shared/validators";
+import { STEP_ORDER, type OnboardingProgress } from "@client/shared/validators";
 import { completedCount, nextIncompleteStep } from "@/lib/onboarding/progress";
+
+const TOTAL_STEPS = STEP_ORDER.length;
 
 interface Props {
   progress: OnboardingProgress;
@@ -14,19 +16,19 @@ export function OnboardingBanner({ progress, coachCreatedAt }: Props) {
   if (Date.now() - createdMs > sevenDaysMs) return null;
 
   const done = completedCount(progress);
-  if (done >= 4) return null;
+  if (done >= TOTAL_STEPS) return null;
 
   const nextStep = nextIncompleteStep(progress);
   if (!nextStep) return null;
 
-  const remaining = 4 - done;
+  const remaining = TOTAL_STEPS - done;
 
   return (
     <div className="sticky top-0 z-20 flex items-center justify-between gap-4 px-4 py-2.5 bg-card/80 backdrop-blur-md border-b border-border dark:bg-white/5 dark:border-white/10">
       <p className="text-sm font-medium">
         Finish setup, {" "}
         <span className="text-muted-foreground font-normal">
-          {remaining} of 4 step{remaining !== 1 ? "s" : ""} remaining
+          {remaining} of {TOTAL_STEPS} step{remaining !== 1 ? "s" : ""} remaining
         </span>
       </p>
       <Link

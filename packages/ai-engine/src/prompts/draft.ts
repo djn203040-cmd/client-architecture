@@ -1,5 +1,39 @@
 import type { DraftGenerationParams } from '../types';
 import type { TLeadStatus } from '../types';
+import { isSalesToolkitEmpty, type TSalesToolkit } from '@client/shared/validators';
+
+// Render the coach's sales toolkit as a readable block for the model. Returns
+// an empty string when there is nothing usable, so the block is omitted and the
+// draft behaves exactly as it did before the toolkit feature existed.
+function buildSalesToolkitBlock(toolkit: TSalesToolkit | null | undefined): string {
+  if (isSalesToolkitEmpty(toolkit) || !toolkit) return '';
+
+  const parts: string[] = [];
+  if (toolkit.philosophy.trim()) {
+    parts.push(`Philosophy: ${toolkit.philosophy.trim()}`);
+  }
+  const renderOptions = (label: string, options: TSalesToolkit['bridges']): void => {
+    const usable = options.filter((o) => o.name.trim());
+    if (usable.length === 0) return;
+    const lines = usable
+      .map((o) =>
+        o.when_to_offer.trim()
+          ? `- ${o.name.trim()} — offer when: ${o.when_to_offer.trim()}`
+          : `- ${o.name.trim()}`,
+      )
+      .join('\n');
+    parts.push(`${label}:\n${lines}`);
+  };
+  renderOptions('Bridges (ways to close the gap on an objection)', toolkit.bridges);
+  renderOptions('Downsells (lighter offers to fall back to)', toolkit.downsells);
+  if (toolkit.leverage_points.trim()) {
+    parts.push(
+      `Leverage points (what the coach learns on discovery, so you know what you might have on this lead): ${toolkit.leverage_points.trim()}`,
+    );
+  }
+
+  return `<sales_toolkit>\n${parts.join('\n\n')}\n</sales_toolkit>`;
+}
 
 // State-specific framing. Each entry must be explicit about:
 // 1. Where the ground truth lives for THIS state (transcript vs coach_notes
@@ -15,11 +49,11 @@ const STATE_FRAMING: Record<TLeadStatus, string> = {
   no_show:
     'The lead booked a call and then did not show up; the call never happened. THE LEAD HAS NOT SENT A MESSAGE about it, so do not write as if replying to one. Your OPENING LINE must directly and warmly acknowledge that they were not on the booked call, while gently leaving room that something may simply have come up on their end. Do not skip this with a generic "hope you are well" opener; kindly naming the missed call is the whole point of this first message. Express it naturally in the coach\'s own language and voice. Do NOT translate any wording from these instructions literally into the message, and do not leave any word in a different language than the rest of the message. After acknowledging the no-show, with no blame, guilt-trip, or desperation, offer one clear, low-pressure way to rebook. If coach notes describe context (first-time vs repeat no-show), honor that.',
   call_completed:
-    'The coach just had a sales call with this lead. The transcript is the primary source of truth for what was discussed; the coach notes capture the coach\'s own takeaways and any next-step commitments made. Write a message that bridges the interest shown on the call to the next step (usually a proposal, a follow-up resource, or a clear ask). Reference one specific moment from the transcript, not a recap of the whole call. Help them see the next step as the obvious move.',
+    'The coach just had a sales call with this lead. The transcript is the primary source of truth for what was discussed; the coach notes capture the coach\'s own takeaways and any next-step commitments made. Write a message that bridges the interest shown on the call to the next step (usually a proposal, a follow-up resource, or a clear ask). Reference one specific moment from the transcript, not a recap of the whole call. Help them see the next step as the obvious move. If a <sales_toolkit> block is present and the transcript surfaced hesitation about scope, timing, or price, you may shape the proposal around a bridge or downsell from the toolkit, framed as the sensible next step for THEM, never as a discount pitch.',
   in_sequence:
     'This is touchpoint #{touchpointIndex} in an active follow-up sequence. The lead has not replied yet (if they had, the status would be "replied", do not write as if responding to a reply). Use the coach notes to understand where this lead is in their decision-making and what tone fits this specific touchpoint. Earlier touchpoints should be warmer and more exploratory; later ones more direct and outcome-focused.',
   replied:
-    'The lead has replied. THE LEAD\'S ACTUAL REPLY IS IN THE <lead_reply> BLOCK, read it and respond directly to what they said. Address their specific words, concerns, or questions. If there are several messages in that block, the lead sent them before you could answer; respond to all of them together in one coherent reply, not just the last one. Do NOT ask the coach to paste in the reply (you already have it). Do NOT write a generic response. The coach notes may describe the coach\'s intent for the response (e.g. "I want to hold the price but offer a bridge"), if so, honor that intent while still answering what the lead actually wrote.',
+    'The lead has replied. THE LEAD\'S ACTUAL REPLY IS IN THE <lead_reply> BLOCK, read it and respond directly to what they said. Address their specific words, concerns, or questions. If there are several messages in that block, the lead sent them before you could answer; respond to all of them together in one coherent reply, not just the last one. Do NOT ask the coach to paste in the reply (you already have it). Do NOT write a generic response. The coach notes may describe the coach\'s intent for the response (e.g. "I want to hold the price but offer a bridge"), if so, honor that intent while still answering what the lead actually wrote. If the lead is raising an objection (price, timing, "let me think", "maybe in a few months"), do NOT simply accept the deferral. Make ONE gentle attempt to bridge the gap first: lead with THEIR stated goal (from the coach notes or transcript, e.g. the outcome they said they wanted), then, if the <sales_toolkit> block offers a bridge or downsell that fits their specific objection, propose it as the way to solve the obstacle, not as a discount. If nothing in the toolkit fits, still gently reaffirm the value and leave a warm, open door, then respect their pace. Never pushy, never desperate, one nudge and then let it breathe.',
   converted:
     'The lead has become a client. Write a warm, personal, forward-looking welcome-aboard message. Celebrate their decision without being over-the-top. Set a positive tone for the journey ahead. Reference their goals if available from the transcript or coach notes.',
   lost:
@@ -90,6 +124,15 @@ export function buildDraftUserPrompt(params: DraftGenerationParams): string {
     ? `<booking_url>\n${params.bookingUrl}\n</booking_url>`
     : '<booking_url>\nNo booking URL configured. Do not include a booking link in this draft. Do not write "[CALENDLY LINK]", "[BOOKING LINK]", or any other placeholder. If the message would normally end with "book a time here", end it differently, e.g. "let me know what works" or whatever fits the voice.\n</booking_url>';
 
+  // The coach's sales toolkit. Present for EVERY draft (lead-state-agnostic);
+  // the model decides when it's relevant. Omitted entirely when the coach has
+  // no toolkit, so empty-toolkit coaches see no behavior change. Includes a
+  // one-line usage rule so the model treats it as a tool, not a script.
+  const toolkitBody = buildSalesToolkitBlock(params.salesToolkit);
+  const toolkitBlock = toolkitBody
+    ? `${toolkitBody}\n\nUse the sales toolkit only when it genuinely fits this lead's situation. It is a set of tools, not a script: never force a bridge or downsell where there is no objection to bridge, and never turn a warm reply into a sales pitch.\n\n`
+    : '';
+
   return `<lead_context>
 Name: ${params.leadName}
 Status: ${params.leadStatus}
@@ -106,7 +149,7 @@ ${historyBlock}
 
 ${bookingBlock}
 
-<instruction>
+${toolkitBlock}<instruction>
 ${stateInstruction}
 
 Write the subject line in <subject></subject> tags first, then the email body. No preamble. Just the message.
