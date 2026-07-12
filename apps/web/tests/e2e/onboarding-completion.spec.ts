@@ -17,6 +17,12 @@ const FAKE_VOICE_MODEL = {
 test("full onboarding wizard golden path, all steps complete", async ({ coach, page }) => {
   await page.context().addCookies(coach.cookies);
 
+  // Step 0: language, the first step in STEP_ORDER. Just records the choice.
+  const languageRes = await page.request.patch(`/api/onboarding/complete-step`, {
+    data: { step: "language" },
+  });
+  expect(languageRes.status()).toBe(200);
+
   // Step 1: gmail, mock the OAuth row, then complete step
   await mockOauthCallback("gmail", coach.id);
   const gmailRes = await page.request.patch(`/api/onboarding/complete-step`, {
@@ -25,7 +31,7 @@ test("full onboarding wizard golden path, all steps complete", async ({ coach, p
   expect(gmailRes.status()).toBe(200);
 
   // Steps booking + calendar + sales, no server-side gate, just record progress.
-  // STEP_ORDER requires all seven steps before onboarding is marked complete.
+  // STEP_ORDER requires all eight steps before onboarding is marked complete.
   for (const step of ["booking", "calendar", "sales"] as const) {
     const res = await page.request.patch(`/api/onboarding/complete-step`, { data: { step } });
     expect(res.status()).toBe(200);
