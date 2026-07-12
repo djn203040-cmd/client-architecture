@@ -4,6 +4,7 @@ const STEP_LABELS: Record<OnboardingStep, string> = {
   gmail: "Gmail",
   booking: "Booking",
   calendar: "Calendar",
+  sales: "Selling",
   voice: "Voice",
   "first-lead": "First lead",
   notifications: "Notifications",

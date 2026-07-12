@@ -2,7 +2,7 @@ import { NextResponse, after } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { isHardBlocked } from '@client/ai-engine';
-import { VoiceProfileSchema } from '@client/shared/validators';
+import { VoiceProfileSchema, coerceSalesToolkit } from '@client/shared/validators';
 import { inngest } from '@/inngest/client';
 import { buildDraftOutcome } from '@/lib/autonomous-mode';
 import { draftsGenerateLimiter, enforce } from '@/lib/security/ratelimit';
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
   // Load voice model + booking URL for the AI prompt
   const { data: coach, error: coachError } = await supabase
     .from('coaches')
-    .select('voice_model, name, autonomous_mode, public_booking_url')
+    .select('voice_model, name, autonomous_mode, public_booking_url, sales_toolkit')
     .eq('id', user.id)
     .single();
 
@@ -165,6 +165,7 @@ export async function POST(request: Request) {
           conversationHistory,
           coachNotes: lead.coach_notes,
           bookingUrl: coach.public_booking_url,
+          salesToolkit: coerceSalesToolkit(coach.sales_toolkit),
           touchpointIndex,
           voiceModel,
         },

@@ -1,11 +1,17 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { OnboardingStepEnum, type OnboardingProgress } from "@client/shared/validators";
+import {
+  OnboardingStepEnum,
+  SalesToolkitSchema,
+  EMPTY_SALES_TOOLKIT,
+  type OnboardingProgress,
+} from "@client/shared/validators";
 import { nextIncompleteStep } from "@/lib/onboarding/progress";
 import { WizardShell } from "@/components/onboarding/WizardShell";
 import { StepGmail } from "@/components/onboarding/StepGmail";
 import { StepBooking } from "@/components/onboarding/StepBooking";
 import { StepCalendar } from "@/components/onboarding/StepCalendar";
+import { StepSales } from "@/components/onboarding/StepSales";
 import { StepVoice } from "@/components/onboarding/StepVoice";
 import { StepFirstLead } from "@/components/onboarding/StepFirstLead";
 import { StepNotifications } from "@/components/onboarding/StepNotifications";
@@ -34,7 +40,7 @@ export default async function OnboardingStepPage({ params }: Props) {
 
   const { data: coach } = await supabase
     .from("coaches")
-    .select("voice_model, onboarding_progress, notification_settings, onboarding_completed_at, public_booking_url, active_calendar_provider, timezone")
+    .select("voice_model, onboarding_progress, notification_settings, onboarding_completed_at, public_booking_url, active_calendar_provider, timezone, sales_toolkit")
     .eq("id", user.id)
     .single();
 
@@ -73,6 +79,13 @@ export default async function OnboardingStepPage({ params }: Props) {
       <StepCalendar
         activeProvider={(coach?.active_calendar_provider as CalendarProviderId | null) ?? null}
         oauthConfigured={oauthConfigured}
+      />
+    );
+  } else if (step === "sales") {
+    const parsedToolkit = SalesToolkitSchema.safeParse(coach?.sales_toolkit ?? {});
+    stepContent = (
+      <StepSales
+        initialToolkit={parsedToolkit.success ? parsedToolkit.data : EMPTY_SALES_TOOLKIT}
       />
     );
   } else if (step === "voice") {

@@ -1,5 +1,5 @@
 import type { Database } from '@client/database';
-import type { TVoiceProfile } from '@client/shared/validators';
+import type { TVoiceProfile, TSalesToolkit } from '@client/shared/validators';
 
 export type TDraft = Database['public']['Tables']['drafts']['Row'];
 export type TLeadStatus = Database['public']['Enums']['lead_status'];
@@ -27,6 +27,11 @@ export interface DraftGenerationParams {
   // the AI uses it verbatim; when null, the AI is instructed not to invent
   // or stub a placeholder link.
   bookingUrl: string | null;
+  // The coach's once-captured "how you sell" toolkit (philosophy, bridges,
+  // downsells, leverage points). Injected into every draft so the AI can handle
+  // objections the way this coach would. null when the coach has none, in which
+  // case the <sales_toolkit> block is omitted entirely (pre-toolkit behavior).
+  salesToolkit?: TSalesToolkit | null;
   touchpointIndex: number;
   voiceModel: TVoiceProfile | null;
 }

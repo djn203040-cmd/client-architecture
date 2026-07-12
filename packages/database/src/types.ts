@@ -313,6 +313,7 @@ export type Database = {
           public_booking_url: string | null
           role: string
           role_title: string | null
+          sales_toolkit: Json
           sequence_config: Json | null
           service_info: Json | null
           timezone: string | null
@@ -338,6 +339,7 @@ export type Database = {
           public_booking_url?: string | null
           role?: string
           role_title?: string | null
+          sales_toolkit?: Json
           sequence_config?: Json | null
           service_info?: Json | null
           timezone?: string | null
@@ -363,6 +365,7 @@ export type Database = {
           public_booking_url?: string | null
           role?: string
           role_title?: string | null
+          sales_toolkit?: Json
           sequence_config?: Json | null
           service_info?: Json | null
           timezone?: string | null

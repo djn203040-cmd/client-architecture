@@ -1,6 +1,6 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
-import { VoiceProfileSchema } from "@client/shared/validators";
+import { VoiceProfileSchema, coerceSalesToolkit } from "@client/shared/validators";
 import { fetchLeadThread, fetchMessageById } from "@/lib/gmail/thread";
 import {
   extractUnansweredInbound,
@@ -58,7 +58,7 @@ export async function generateReplyDraft(
 
   const { data: coach } = await adminClient
     .from("coaches")
-    .select("name, voice_model, public_booking_url, autonomous_mode")
+    .select("name, voice_model, public_booking_url, autonomous_mode, sales_toolkit")
     .eq("id", coachId)
     .maybeSingle();
   if (!coach) return { ok: false, reason: "coach_not_found" };
@@ -197,6 +197,7 @@ export async function generateReplyDraft(
         coachNotes: lead.coach_notes,
         inboundMessages,
         bookingUrl: coach.public_booking_url,
+        salesToolkit: coerceSalesToolkit(coach.sales_toolkit),
         touchpointIndex,
         voiceModel: voiceModelParsed.data,
       },

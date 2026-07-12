@@ -1,7 +1,7 @@
 import { NextResponse, after } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isHardBlocked } from '@client/ai-engine';
-import { VoiceProfileSchema } from '@client/shared/validators';
+import { VoiceProfileSchema, coerceSalesToolkit } from '@client/shared/validators';
 import type { TLeadStatus } from '@client/shared/types';
 
 export async function POST(
@@ -46,7 +46,7 @@ export async function POST(
   // Load voice model
   const { data: coach } = await supabase
     .from('coaches')
-    .select('voice_model, name, public_booking_url')
+    .select('voice_model, name, public_booking_url, sales_toolkit')
     .eq('id', coachId)
     .single();
   if (!coach) return NextResponse.json({ error: 'Coach record not found' }, { status: 500 });
@@ -109,6 +109,7 @@ export async function POST(
           conversationHistory,
           coachNotes: lead.coach_notes,
           bookingUrl: coach.public_booking_url,
+          salesToolkit: coerceSalesToolkit(coach.sales_toolkit),
           touchpointIndex: touchpointIndex ?? 1,
           voiceModel,
         },

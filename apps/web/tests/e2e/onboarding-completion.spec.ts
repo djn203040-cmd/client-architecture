@@ -24,9 +24,9 @@ test("full onboarding wizard golden path, all steps complete", async ({ coach, p
   });
   expect(gmailRes.status()).toBe(200);
 
-  // Steps booking + calendar, no server-side gate, just record progress.
-  // STEP_ORDER requires all six steps before onboarding is marked complete.
-  for (const step of ["booking", "calendar"] as const) {
+  // Steps booking + calendar + sales, no server-side gate, just record progress.
+  // STEP_ORDER requires all seven steps before onboarding is marked complete.
+  for (const step of ["booking", "calendar", "sales"] as const) {
     const res = await page.request.patch(`/api/onboarding/complete-step`, { data: { step } });
     expect(res.status()).toBe(200);
   }
