@@ -64,7 +64,7 @@ export const SALES_STYLES: readonly SalesStyleMeta[] = [
     bestFor:
       "Business, sales, mindset, and fitness coaches whose clients respect straight talk and short decision cycles.",
     example:
-      "Fair, and thanks for saying it straight. Honest question: is the money genuinely not there, or are you not yet sure it's worth it? Those are two different problems. If it's worth-it, let's settle that right now. If it's timing, we can split it into three payments so you start this week instead of 'someday.' Want me to set that up?",
+      "Fair, and thanks for saying it straight. Honest question: is the money genuinely not there, or are you just not sure yet it's worth it? Those are two different problems. If it's worth-it, that's the real thing for us to work through. And if it's timing, it doesn't have to be one big hit, we can split it into three payments. Which of those is closer to the truth for you?",
   },
   {
     id: "strategist",
