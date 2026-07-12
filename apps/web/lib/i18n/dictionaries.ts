@@ -1,74 +1,57 @@
 import type { TLanguage } from "@client/shared/validators";
+import { common } from "./messages/common";
+import { nav } from "./messages/nav";
+import { language } from "./messages/language";
+import { dashboard } from "./messages/dashboard";
+import { leads } from "./messages/leads";
+import { drafts } from "./messages/drafts";
+import { calls } from "./messages/calls";
+import { settings } from "./messages/settings";
+import { onboarding } from "./messages/onboarding";
+import { modules } from "./messages/modules";
+import { review } from "./messages/review";
 
 export type Locale = TLanguage;
 
 /**
- * The message catalog. `en` is the source of truth for the shape; `da` must
- * mirror its keys exactly (enforced by the `Dictionary` type below). Danish is
- * written idiomatically, NOT word-for-word from the English, read each string
- * for meaning and phrase it the way a Dane actually would.
+ * The message catalog, composed from one module per surface under `messages/`.
+ * `en` is the source of truth for the shape; each module's `defineMessages`
+ * pins its `da` to the same shape, so Danish can never silently drift from the
+ * English keys.
  *
- * This is intentionally namespaced by surface (common, nav, ...). Stage 2 grows
- * it surface by surface (settings, drafts, leads, ...); components read it via
- * `useDictionary()` (client) or `getDictionary(locale)` (server).
+ * Danish is written idiomatically, NOT word-for-word — read each string for
+ * meaning and phrase it the way a Dane actually would. See `GLOSSARY.md`.
+ *
+ * Components read it via `useDictionary()` (client) or `getDictionary(locale)`
+ * (server). Grow it surface by surface inside the `messages/` modules — never
+ * inline strings here.
  */
 const en = {
-  common: {
-    save: "Save",
-    saving: "Saving…",
-    cancel: "Cancel",
-    continue: "Continue",
-    back: "Back",
-    edit: "Edit",
-    delete: "Delete",
-    loading: "Loading…",
-    retry: "Try again",
-    somethingWentWrong: "Something went wrong. Try again.",
-  },
-  nav: {
-    dashboard: "Dashboard",
-    leads: "Leads",
-    drafts: "Drafts",
-    calls: "Calls",
-    settings: "Settings",
-    signOut: "Sign out",
-  },
-  language: {
-    label: "Language",
-    danish: "Danish",
-    english: "English",
-    settingHint: "This sets your whole dashboard and the language the AI writes your drafts in.",
-  },
+  common: common.en,
+  nav: nav.en,
+  language: language.en,
+  dashboard: dashboard.en,
+  leads: leads.en,
+  drafts: drafts.en,
+  calls: calls.en,
+  settings: settings.en,
+  onboarding: onboarding.en,
+  modules: modules.en,
+  review: review.en,
 };
 
-/** Danish mirrors the English shape exactly. Phrased as everyday, spoken Danish. */
 const da: Dictionary = {
-  common: {
-    save: "Gem",
-    saving: "Gemmer…",
-    cancel: "Annullér",
-    continue: "Fortsæt",
-    back: "Tilbage",
-    edit: "Redigér",
-    delete: "Slet",
-    loading: "Indlæser…",
-    retry: "Prøv igen",
-    somethingWentWrong: "Noget gik galt. Prøv igen.",
-  },
-  nav: {
-    dashboard: "Overblik",
-    leads: "Leads",
-    drafts: "Udkast",
-    calls: "Samtaler",
-    settings: "Indstillinger",
-    signOut: "Log ud",
-  },
-  language: {
-    label: "Sprog",
-    danish: "Dansk",
-    english: "Engelsk",
-    settingHint: "Det styrer hele dit dashboard og det sprog, AI'en skriver dine udkast på.",
-  },
+  common: common.da,
+  nav: nav.da,
+  language: language.da,
+  dashboard: dashboard.da,
+  leads: leads.da,
+  drafts: drafts.da,
+  calls: calls.da,
+  settings: settings.da,
+  onboarding: onboarding.da,
+  modules: modules.da,
+  review: review.da,
 };
 
 export type Dictionary = typeof en;
