@@ -4,8 +4,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Envelope } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
 
 export function StepGmail() {
+  const t = useDictionary();
   const router = useRouter();
   const [connected, setConnected] = useState(false);
   const [advancing, setAdvancing] = useState(false);
@@ -43,7 +45,7 @@ export function StepGmail() {
       });
       if (!r.ok) {
         const body = await r.json().catch(() => ({}));
-        toast.error(body.error ?? "Couldn't advance. Try again.");
+        toast.error(body.error ?? t.onboarding.gmail.advanceFailed);
         return;
       }
       // Drop the client Router Cache so the prefetched next step
@@ -58,14 +60,13 @@ export function StepGmail() {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground leading-relaxed">
-        We send follow-up emails as you, from your Gmail address, not a generic system address.
-        This keeps deliverability high and trust intact.
+        {t.onboarding.gmail.intro}
       </p>
 
       {connected ? (
         <div className="flex items-center gap-3 rounded-xl bg-[oklch(60%_0.14_145)]/10 border border-[oklch(60%_0.14_145)]/20 px-4 py-3">
           <CheckCircle weight="fill" className="w-5 h-5 text-[oklch(60%_0.14_145)] shrink-0" />
-          <span className="text-sm font-medium">Gmail connected</span>
+          <span className="text-sm font-medium">{t.onboarding.gmail.connected}</span>
         </div>
       ) : (
         <a
@@ -73,13 +74,13 @@ export function StepGmail() {
           className="flex items-center justify-center gap-2 w-full rounded-xl border border-border bg-secondary/60 hover:bg-secondary px-4 py-3 text-sm font-medium transition-colors"
         >
           <Envelope weight="bold" className="w-4 h-4" />
-          Connect Gmail
+          {t.onboarding.gmail.connect}
         </a>
       )}
 
       <div className="flex justify-end pt-2">
         <Button onClick={advance} disabled={!connected || advancing} size="sm">
-          {advancing ? "Saving…" : "Continue"}
+          {advancing ? t.onboarding.gmail.saving : t.onboarding.gmail.continue}
         </Button>
       </div>
     </div>

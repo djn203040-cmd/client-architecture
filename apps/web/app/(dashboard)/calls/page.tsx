@@ -1,9 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
+import { getServerDictionary } from "@/lib/i18n/server";
 import { CallQueueScaffold } from "@/components/calls/CallQueueScaffold";
 import type { CallOutcomeRow } from "@/components/calls/call-outcome-realtime";
 
 export default async function CallsPage() {
   const supabase = await createClient();
+  const t = await getServerDictionary();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -39,11 +41,10 @@ export default async function CallsPage() {
     <section className="space-y-6">
       <header data-tour="calls-header" className="space-y-1">
         <h1 className="text-[28px] font-semibold leading-[1.2]">
-          How did the call go?
+          {t.calls.page.title}
         </h1>
         <p className="text-sm text-muted-foreground max-w-[60ch]">
-          After every booked call, record the outcome in one tap. Converted leads
-          stay fully monitored; only the auto-nurture stops.
+          {t.calls.page.subtitle}
         </p>
       </header>
       <CallQueueScaffold

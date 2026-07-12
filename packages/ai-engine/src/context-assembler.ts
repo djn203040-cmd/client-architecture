@@ -54,7 +54,7 @@ export async function assembleContext(
   let currentVoiceModel = { ...voiceModel };
 
   function estimate(): number {
-    const sys = buildSystemPrompt(currentVoiceModel, coachName, mutableParams.salesToolkit);
+    const sys = buildSystemPrompt(currentVoiceModel, coachName, mutableParams.language, mutableParams.salesToolkit);
     const usr = buildDraftUserPrompt(mutableParams);
     return estimateTokens(sys) + estimateTokens(usr);
   }
@@ -108,7 +108,7 @@ export async function assembleContext(
     }
   }
 
-  const systemPrompt = buildSystemPrompt(currentVoiceModel, coachName, mutableParams.salesToolkit);
+  const systemPrompt = buildSystemPrompt(currentVoiceModel, coachName, mutableParams.language, mutableParams.salesToolkit);
   const userPrompt = buildDraftUserPrompt(mutableParams);
 
   return { systemPrompt, userPrompt, truncationLog, confidenceLevel };

@@ -1,6 +1,6 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
-import { VoiceProfileSchema, coerceSalesToolkit } from "@client/shared/validators";
+import { VoiceProfileSchema, coerceSalesToolkit, coerceLanguage } from "@client/shared/validators";
 import { fetchLeadThread } from "@/lib/gmail/thread";
 import { formatThreadAsConversation } from "@/lib/drafts/thread-context";
 
@@ -64,13 +64,14 @@ export async function generateReengagementDraft(
 
   const { data: coach } = await adminClient
     .from("coaches")
-    .select("name, voice_model, public_booking_url, autonomous_mode, sales_toolkit")
+    .select("name, voice_model, public_booking_url, autonomous_mode, sales_toolkit, language")
     .eq("id", coachId)
     .maybeSingle();
   if (!coach) return { ok: false, reason: "coach_not_found" };
 
   const voiceModelParsed = VoiceProfileSchema.safeParse(coach.voice_model);
   if (!voiceModelParsed.success) return { ok: false, reason: "no_voice_model" };
+  const language = coerceLanguage(coach.language);
 
   const { data: latestTranscript } = await adminClient
     .from("transcripts")
@@ -135,6 +136,7 @@ export async function generateReengagementDraft(
       {
         coachId,
         leadId,
+        language,
         leadStatus: "replied",
         framingOverride: buildReengagementFraming(attempt, maxAttempts),
         leadName: lead.name,

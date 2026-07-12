@@ -5,6 +5,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { getServerDictionary } from "@/lib/i18n/server";
 
 const PROVIDER_NO_SHOW_MODE: Record<string, "auto" | "manual"> = {
   calendly: "auto",
@@ -14,11 +15,6 @@ const PROVIDER_NO_SHOW_MODE: Record<string, "auto" | "manual"> = {
   square: "manual",
   ms_bookings: "manual",
   tidycal: "manual",
-};
-
-const NO_SHOW_TOOLTIP: Record<"auto" | "manual", string> = {
-  auto: "Auto: no-show detected automatically",
-  manual: "Manual: click Start Sequence after a no-show",
 };
 
 const PROVIDER_LABELS: Record<string, string> = {
@@ -42,10 +38,12 @@ interface Props {
   integration: Integration;
 }
 
-export function IntegrationHealthCard({ integration }: Props) {
+export async function IntegrationHealthCard({ integration }: Props) {
+  const t = await getServerDictionary();
+  const copy = t.settingsAdvanced.integrationHealth;
   const isConnected = integration.status === "connected";
   const mode = PROVIDER_NO_SHOW_MODE[integration.provider] ?? "manual";
-  const tooltipText = NO_SHOW_TOOLTIP[mode];
+  const tooltipText = mode === "auto" ? copy.noShowAuto : copy.noShowManual;
   const label = PROVIDER_LABELS[integration.provider] ?? integration.provider;
 
   return (
@@ -75,7 +73,7 @@ export function IntegrationHealthCard({ integration }: Props) {
         </TooltipProvider>
       </div>
       <span className={isConnected ? "text-muted-foreground" : "text-[var(--health-red)]"}>
-        {isConnected ? "Connected" : "Disconnected"}
+        {isConnected ? copy.connected : copy.disconnected}
       </span>
     </div>
   );

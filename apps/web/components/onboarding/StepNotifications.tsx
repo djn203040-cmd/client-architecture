@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { NotificationMatrix } from "@/app/(dashboard)/settings/notifications/NotificationMatrix";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
 
 interface Pref {
   event_type: string;
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export function StepNotifications({ initialPrefs, integrations }: Props) {
+  const t = useDictionary();
   const router = useRouter();
   const [advancing, setAdvancing] = useState(false);
 
@@ -35,13 +37,10 @@ export function StepNotifications({ initialPrefs, integrations }: Props) {
       });
       if (!r.ok) {
         const body = await r.json().catch(() => ({}));
-        toast.error(
-          body.error ??
-            "Enable at least one channel, or acknowledge Dashboard-only mode in the matrix below.",
-        );
+        toast.error(body.error ?? t.onboarding.notifications.advanceFailed);
         return;
       }
-      toast.success("Notifications set, you can change these anytime in Settings.");
+      toast.success(t.onboarding.notifications.savedToast);
       router.push("/dashboard");
     } finally {
       setAdvancing(false);
@@ -51,13 +50,12 @@ export function StepNotifications({ initialPrefs, integrations }: Props) {
   return (
     <div className="space-y-5">
       <p className="text-sm text-muted-foreground leading-relaxed">
-        We&apos;ll notify you the moment a draft is ready or a lead replies. Pick at least one
-        channel beyond Dashboard, or acknowledge Dashboard-only mode.
+        {t.onboarding.notifications.intro}
       </p>
       <NotificationMatrix initialPreferences={initialPrefs} integrations={integrations} />
       <div className="flex justify-end pt-2">
         <Button onClick={advance} disabled={advancing} size="sm">
-          {advancing ? "Saving…" : "Finish setup"}
+          {advancing ? t.onboarding.notifications.saving : t.onboarding.notifications.finish}
         </Button>
       </div>
     </div>

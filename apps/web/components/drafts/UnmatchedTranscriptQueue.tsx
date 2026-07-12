@@ -6,6 +6,7 @@ import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from "@
 import { CheckCircle, LinkSimple } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/browser";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { Database } from "@client/database";
 
 type TTranscript = Database["public"]["Tables"]["transcripts"]["Row"];
@@ -20,6 +21,7 @@ export function UnmatchedTranscriptQueue({
   initialTranscripts: TTranscript[];
   leads: LeadRow[];
 }) {
+  const t = useDictionary();
   const [transcripts, setTranscripts] = useState<TTranscript[]>(initialTranscripts);
 
   // Live updates for new unmatched transcripts
@@ -48,7 +50,7 @@ export function UnmatchedTranscriptQueue({
     return (
       <div className="rounded-2xl bg-card border border-border p-12 text-center space-y-3">
         <CheckCircle weight="regular" className="size-8 text-muted-foreground mx-auto" aria-hidden="true" />
-        <p className="text-sm text-muted-foreground">All transcripts matched.</p>
+        <p className="text-sm text-muted-foreground">{t.drafts.unmatchedTranscripts.empty}</p>
       </div>
     );
   }
@@ -76,6 +78,7 @@ function TranscriptRow({
   leads: LeadRow[];
   onAssigned: (id: string) => void;
 }) {
+  const t = useDictionary();
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [assigning, setAssigning] = useState(false);
@@ -89,7 +92,7 @@ function TranscriptRow({
 
   const callDate = transcript.call_at
     ? new Date(transcript.call_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-    : "Unknown date";
+    : t.drafts.unmatchedTranscripts.unknownDate;
 
   const preview = transcript.content.slice(0, 200);
 
@@ -102,10 +105,10 @@ function TranscriptRow({
         body: JSON.stringify({ leadId }),
       });
       if (r.ok) {
-        toast.success(`Assigned to ${leadName}. Draft generating...`);
+        toast.success(t.drafts.unmatchedTranscripts.assignedToast(leadName));
         onAssigned(transcript.id);
       } else {
-        toast.error("Couldn't assign the transcript. Try again.");
+        toast.error(t.drafts.unmatchedTranscripts.assignFailed);
       }
     } finally {
       setAssigning(false);
@@ -116,21 +119,21 @@ function TranscriptRow({
     <li className="rounded-2xl bg-card dark:bg-white/5 border border-border dark:border-white/10 p-5 space-y-4">
       <p className="text-xs font-mono text-muted-foreground">
         {callDate}
-        {transcript.duration_seconds ? ` · ${Math.round(transcript.duration_seconds / 60)} min` : ""}
+        {transcript.duration_seconds ? ` · ${t.drafts.unmatchedTranscripts.minutes(Math.round(transcript.duration_seconds / 60))}` : ""}
         {` · ${transcript.provider}`}
       </p>
       <p className="text-sm text-foreground line-clamp-3">{preview}</p>
 
       {suggestion && (
         <div className="rounded-lg bg-accent/8 border border-accent/20 px-3 py-2 flex items-center justify-between gap-3">
-          <span className="text-sm text-accent">Looks like {suggestion.name}?</span>
+          <span className="text-sm text-accent">{t.drafts.unmatchedTranscripts.looksLike(suggestion.name)}</span>
           <Button
             size="sm"
             className="min-h-[44px] text-sm"
             disabled={assigning}
             onClick={() => assign(suggestion.id, suggestion.name)}
           >
-            Yes, assign
+            {t.drafts.unmatchedTranscripts.yesAssign}
           </Button>
         </div>
       )}
@@ -139,14 +142,14 @@ function TranscriptRow({
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="sm" className="min-h-[44px] text-sm">
-              {selectedLead ? selectedLead.name : "Search leads..."}
+              {selectedLead ? selectedLead.name : t.drafts.unmatchedTranscripts.searchLeads}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="p-0 w-72" align="start">
             <Command>
-              <CommandInput placeholder="Search by name or email..." />
+              <CommandInput placeholder={t.drafts.unmatchedTranscripts.searchPlaceholder} />
               <CommandList>
-                <CommandEmpty>No leads found.</CommandEmpty>
+                <CommandEmpty>{t.drafts.unmatchedTranscripts.noLeadsFound}</CommandEmpty>
                 {leads.map((lead) => (
                   <CommandItem
                     key={lead.id}
@@ -169,7 +172,7 @@ function TranscriptRow({
           onClick={() => selectedLead && assign(selectedLead.id, selectedLead.name)}
         >
           <LinkSimple weight="regular" className="size-4" />
-          Assign to lead
+          {t.drafts.unmatchedTranscripts.assignToLead}
         </Button>
       </div>
     </li>

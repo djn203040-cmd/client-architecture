@@ -1,6 +1,6 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
-import { VoiceProfileSchema, coerceSalesToolkit } from "@client/shared/validators";
+import { VoiceProfileSchema, coerceSalesToolkit, coerceLanguage } from "@client/shared/validators";
 import type { TLeadStatus } from "@client/shared/types";
 
 const AI_MODEL = "claude-sonnet-4-6";
@@ -58,13 +58,14 @@ export async function generateTouchpointDraft(
 
   const { data: coach } = await adminClient
     .from("coaches")
-    .select("name, voice_model, public_booking_url, autonomous_mode, sales_toolkit")
+    .select("name, voice_model, public_booking_url, autonomous_mode, sales_toolkit, language")
     .eq("id", coachId)
     .maybeSingle();
   if (!coach) return { ok: false, reason: "coach_not_found" };
 
   const voiceModelParsed = VoiceProfileSchema.safeParse(coach.voice_model);
   if (!voiceModelParsed.success) return { ok: false, reason: "no_voice_model" };
+  const language = coerceLanguage(coach.language);
 
   // Latest transcript drives the next message; full history is kept for later.
   const { data: latestTranscript } = await adminClient
@@ -107,6 +108,7 @@ export async function generateTouchpointDraft(
       {
         coachId,
         leadId,
+        language,
         leadStatus: leadStatusForPrompt,
         leadName: lead.name,
         aiSummary: lead.ai_summary,
@@ -173,6 +175,7 @@ export async function generateTouchpointDraft(
         leadId,
         coachId,
         leadName: lead.name,
+        language,
         transcript: transcript ?? undefined,
         conversationHistory: conversationHistory ?? undefined,
         existingSummary: lead.ai_summary ?? undefined,

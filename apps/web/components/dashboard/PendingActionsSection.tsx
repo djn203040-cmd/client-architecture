@@ -1,4 +1,5 @@
 import { adminClient } from "@/lib/supabase/admin";
+import { getServerDictionary } from "@/lib/i18n/server";
 import { PendingActionCard } from "./PendingActionCard";
 
 interface Props {
@@ -6,6 +7,7 @@ interface Props {
 }
 
 export async function PendingActionsSection({ coachId }: Props) {
+  const t = await getServerDictionary();
   const { data: items } = await adminClient
     .from("pending_actions")
     .select("id, type, lead_id, payload, created_at")
@@ -23,7 +25,7 @@ export async function PendingActionsSection({ coachId }: Props) {
 
   return (
     <section className="space-y-3">
-      <h2 className="text-xl font-semibold">Pending Actions</h2>
+      <h2 className="text-xl font-semibold">{t.dashboard.pendingActions.heading}</h2>
       <div className="space-y-3">
         {items.map((item) => {
           const lead = item.lead_id ? leadMap[item.lead_id] : null;
@@ -32,7 +34,7 @@ export async function PendingActionsSection({ coachId }: Props) {
               key={item.id}
               id={item.id}
               type={item.type as "call_follow_up" | "lead_intake"}
-              leadName={lead?.name ?? "Unknown Lead"}
+              leadName={lead?.name ?? t.dashboard.pendingActions.unknownLead}
               leadEmail={lead?.email ?? ""}
             />
           );

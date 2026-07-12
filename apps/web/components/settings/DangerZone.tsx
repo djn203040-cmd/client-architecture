@@ -2,6 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,30 +33,32 @@ interface ActionConfig {
   destructive?: boolean;
 }
 
-function buildActions(email: string): ActionConfig[] {
+function buildActions(email: string, t: Dictionary): ActionConfig[] {
+  const a = t.settings.danger.actions;
   return [
     {
       slug: "disconnect-gmail",
-      label: "Disconnect Gmail",
-      description: "Removes Gmail access. Your sequences will pause until you reconnect.",
+      label: a.disconnectGmailLabel,
+      description: a.disconnectGmailDescription,
+      // Confirmation phrase stays the English literal the API validates against.
       phrase: "disconnect gmail",
     },
     {
       slug: "disconnect-slack",
-      label: "Disconnect Slack",
-      description: "Removes Slack notifications. Dashboard notifications stay active.",
+      label: a.disconnectSlackLabel,
+      description: a.disconnectSlackDescription,
       phrase: "disconnect slack",
     },
     {
       slug: "disconnect-twilio",
-      label: "Disconnect Twilio",
-      description: "Removes WhatsApp and SMS notifications.",
+      label: a.disconnectTwilioLabel,
+      description: a.disconnectTwilioDescription,
       phrase: "disconnect twilio",
     },
     {
       slug: "delete-account",
-      label: "Delete account",
-      description: "Permanently deletes your account and all data. This cannot be undone.",
+      label: a.deleteAccountLabel,
+      description: a.deleteAccountDescription,
       phrase: email,
       destructive: true,
     },
@@ -62,6 +66,7 @@ function buildActions(email: string): ActionConfig[] {
 }
 
 function ActionCard({ action, email }: { action: ActionConfig; email: string }) {
+  const t = useDictionary();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -78,18 +83,18 @@ function ActionCard({ action, email }: { action: ActionConfig; email: string }) 
       });
       if (!res.ok) {
         const { error } = await res.json();
-        toast.error(error ?? "Action failed");
+        toast.error(error ?? t.settings.danger.actionFailed);
         return;
       }
       setOpen(false);
-      toast.success(action.destructive ? "Account deleted" : "Disconnected");
+      toast.success(action.destructive ? t.settings.danger.accountDeleted : t.settings.danger.disconnected);
       if (action.destructive) {
         window.location.href = "/login";
       } else {
         window.location.reload();
       }
     } catch {
-      toast.error("Something went wrong");
+      toast.error(t.settings.danger.somethingWentWrong);
     } finally {
       setLoading(false);
     }
@@ -120,11 +125,11 @@ function ActionCard({ action, email }: { action: ActionConfig; email: string }) 
           </DialogHeader>
           <div className="space-y-3 py-2">
             <Label className="text-sm">
-              Type{" "}
+              {t.settings.danger.typeToConfirmBefore}{" "}
               <code className="rounded bg-muted px-1 py-0.5 text-xs font-mono">
                 {action.destructive ? email : action.phrase}
               </code>{" "}
-              to confirm
+              {t.settings.danger.typeToConfirmAfter}
             </Label>
             <Input
               value={input}
@@ -134,7 +139,7 @@ function ActionCard({ action, email }: { action: ActionConfig; email: string }) 
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>{t.settings.danger.cancel}</Button>
             <Button
               disabled={!matches || loading}
               onClick={confirm}
@@ -142,7 +147,7 @@ function ActionCard({ action, email }: { action: ActionConfig; email: string }) 
                 ? "bg-red-500 hover:bg-red-600 text-white"
                 : undefined}
             >
-              {loading ? "Processing…" : "Confirm"}
+              {loading ? t.settings.danger.processing : t.settings.danger.confirm}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -152,16 +157,17 @@ function ActionCard({ action, email }: { action: ActionConfig; email: string }) 
 }
 
 export function DangerZone({ coach }: Props) {
+  const t = useDictionary();
   const email = coach.email ?? "";
-  // buildActions depends only on email, stable across renders
-  const actions = useMemo(() => buildActions(email), [email]);
+  // buildActions depends on email + the active dictionary
+  const actions = useMemo(() => buildActions(email, t), [email, t]);
 
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold">Danger zone</h2>
+        <h2 className="text-xl font-semibold">{t.settings.danger.title}</h2>
         <p className="text-sm text-muted-foreground max-w-[65ch]">
-          Irreversible actions. All require exact phrase confirmation.
+          {t.settings.danger.description}
         </p>
       </div>
       <div className="space-y-2">

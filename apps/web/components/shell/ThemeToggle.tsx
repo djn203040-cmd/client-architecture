@@ -2,8 +2,10 @@
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import { useDictionary } from "@/lib/i18n/provider";
 
 export function ThemeToggle() {
+  const t = useDictionary();
   // mounted gates any theme-dependent rendering until after hydration.
   // The server always renders a stable placeholder; only the client knows
   // the real theme (read from <html class="dark"> set by the layout cookie).
@@ -31,7 +33,13 @@ export function ThemeToggle() {
     <Button
       variant="ghost"
       size="icon"
-      aria-label={mounted ? `Switch to ${theme === "light" ? "dark" : "light"} mode` : "Toggle theme"}
+      aria-label={
+        mounted
+          ? theme === "light"
+            ? t.dashboard.shell.switchToDark
+            : t.dashboard.shell.switchToLight
+          : t.dashboard.shell.themeToggle
+      }
       onClick={toggle}
       suppressHydrationWarning
     >

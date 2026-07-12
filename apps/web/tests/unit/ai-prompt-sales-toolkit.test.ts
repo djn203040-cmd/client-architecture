@@ -32,6 +32,7 @@ const voiceModel: TVoiceProfile = {
 const baseParams: DraftGenerationParams = {
   leadId: "lead-toolkit-001",
   coachId: "coach-toolkit-001",
+  language: "en",
   leadName: "Camilla",
   leadStatus: "replied",
   touchpointIndex: 2,
@@ -123,28 +124,28 @@ describe("AI-Prompt sales toolkit injection (issue #39)", () => {
 
 describe("AI sales methodology + styles (system prompt)", () => {
   it("always carries the merged base methodology, even with no toolkit", () => {
-    const prompt = buildSystemPrompt(voiceModel, "Daniel");
+    const prompt = buildSystemPrompt(voiceModel, "Daniel", "en");
     expect(prompt).toContain("Selling posture");
     // Guardrails from the base methodology are always present.
     expect(prompt).toContain("exactly one genuine nudge per message");
   });
 
   it("no style selected produces the same system prompt as an undefined toolkit", () => {
-    const noToolkit = buildSystemPrompt(voiceModel, "Daniel");
-    const nullStyle = buildSystemPrompt(voiceModel, "Daniel", EMPTY_SALES_TOOLKIT);
+    const noToolkit = buildSystemPrompt(voiceModel, "Daniel", "en");
+    const nullStyle = buildSystemPrompt(voiceModel, "Daniel", "en",EMPTY_SALES_TOOLKIT);
     expect(nullStyle).toBe(noToolkit);
   });
 
   it("injects the chosen style's steer and differs per style", () => {
-    const guide = buildSystemPrompt(voiceModel, "Daniel", {
+    const guide = buildSystemPrompt(voiceModel, "Daniel", "en",{
       ...EMPTY_SALES_TOOLKIT,
       sales_style: "guide",
     });
-    const closer = buildSystemPrompt(voiceModel, "Daniel", {
+    const closer = buildSystemPrompt(voiceModel, "Daniel", "en",{
       ...EMPTY_SALES_TOOLKIT,
       sales_style: "closer",
     });
-    const strategist = buildSystemPrompt(voiceModel, "Daniel", {
+    const strategist = buildSystemPrompt(voiceModel, "Daniel", "en",{
       ...EMPTY_SALES_TOOLKIT,
       sales_style: "strategist",
     });
@@ -158,7 +159,7 @@ describe("AI sales methodology + styles (system prompt)", () => {
   });
 
   it("appends the coach's approach override as overriding guidance", () => {
-    const prompt = buildSystemPrompt(voiceModel, "Daniel", {
+    const prompt = buildSystemPrompt(voiceModel, "Daniel", "en",{
       ...EMPTY_SALES_TOOLKIT,
       sales_style: "closer",
       approach_override: "I never mention price until they ask.",
@@ -173,9 +174,9 @@ describe("AI sales methodology + styles (system prompt)", () => {
       sales_style: "strategist",
       approach_override: "Lead with ROI.",
     };
-    const first = buildSystemPrompt(voiceModel, "Daniel", toolkit);
+    const first = buildSystemPrompt(voiceModel, "Daniel", "en",toolkit);
     for (let i = 0; i < 25; i++) {
-      expect(buildSystemPrompt(voiceModel, "Daniel", toolkit)).toBe(first);
+      expect(buildSystemPrompt(voiceModel, "Daniel", "en",toolkit)).toBe(first);
     }
   });
 });

@@ -12,6 +12,7 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { TOUR_STEPS, type TourStep } from "@/lib/tour/steps";
+import { useDictionary } from "@/lib/i18n/provider";
 import { TourOverlay } from "./TourOverlay";
 
 const SEEN_KEY = "tca_tour_v1_seen";
@@ -65,6 +66,7 @@ export function TourProvider({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const t = useDictionary();
 
   const [active, setActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
@@ -116,13 +118,13 @@ export function TourProvider({
         setDemoLeadId(data.leadId);
       } else {
         setSeedFailed(true);
-        toast.error("Couldn't load the demo lead, showing the rest of the tour.");
+        toast.error(t.tour.seedFailed);
       }
     } catch {
       setSeedFailed(true);
-      toast.error("Couldn't load the demo lead, showing the rest of the tour.");
+      toast.error(t.tour.seedFailed);
     }
-  }, []);
+  }, [t]);
 
   const persist = useCallback((s: PersistedState) => {
     try {

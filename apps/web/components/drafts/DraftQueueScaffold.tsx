@@ -6,6 +6,7 @@ import { HeldTab } from "./HeldTab";
 import { CelebrationEmptyState } from "./CelebrationEmptyState";
 import { UnmatchedTranscriptQueue } from "./UnmatchedTranscriptQueue";
 import { useDraftRealtime } from "./draft-realtime";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { Database } from "@client/database";
 
 type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
@@ -30,6 +31,7 @@ export function DraftQueueScaffold({
   /** Coach's IANA timezone, renders draft send times in their local clock. */
   timeZone?: string | null;
 }) {
+  const t = useDictionary();
   const [activeTab, setActiveTab] = useState<Tab>("drafts");
   const [justEmptied, setJustEmptied] = useState(false);
   const prevLengthRef = useRef(initialDrafts.length);
@@ -71,7 +73,7 @@ export function DraftQueueScaffold({
     <div data-tour="drafts-queue" className="space-y-4">
       <div
         role="tablist"
-        aria-label="Draft queue sections"
+        aria-label={t.drafts.queue.tablistLabel}
         className="flex items-center gap-1 border-b border-border pb-3"
       >
         <TabButton
@@ -81,7 +83,7 @@ export function DraftQueueScaffold({
           onClick={() => setActiveTab("drafts")}
           badge={drafts.length > 0 ? drafts.length : undefined}
         >
-          Pending
+          {t.drafts.queue.tabPending}
         </TabButton>
         <TabButton
           id="tab-held"
@@ -90,7 +92,7 @@ export function DraftQueueScaffold({
           onClick={() => setActiveTab("held")}
           badge={heldCount > 0 ? heldCount : undefined}
         >
-          Held
+          {t.drafts.queue.tabHeld}
         </TabButton>
         <TabButton
           id="tab-unmatched"
@@ -99,7 +101,7 @@ export function DraftQueueScaffold({
           onClick={() => setActiveTab("unmatched")}
           badge={unmatchedCount > 0 ? unmatchedCount : undefined}
         >
-          Unmatched
+          {t.drafts.queue.tabUnmatched}
         </TabButton>
       </div>
 
@@ -114,16 +116,15 @@ export function DraftQueueScaffold({
           <CelebrationEmptyState />
         ) : drafts.length === 0 ? (
           <div className="rounded-2xl backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 p-16 text-center">
-            <h2 className="text-xl font-semibold mb-2">No drafts waiting</h2>
+            <h2 className="text-xl font-semibold mb-2">{t.drafts.queue.emptyTitle}</h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Drafts appear here 24 hours before they&apos;re scheduled to send. You&apos;ll be
-              notified when the first one is ready.
+              {t.drafts.queue.emptyBody}
             </p>
           </div>
         ) : (
           <>
             <p className="text-sm text-muted-foreground mb-4" aria-live="polite">
-              {drafts.length} draft{drafts.length === 1 ? "" : "s"} waiting
+              {t.drafts.queue.waiting(drafts.length)}
             </p>
             <AnimatePresence mode="wait">
               <DraftCard

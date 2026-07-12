@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getServerDictionary } from "@/lib/i18n/server";
 import { LeadsTable } from "./leads-table";
 import { LeadListControls } from "./lead-list-controls";
 import { AddLeadSheet } from "./add-lead-sheet";
@@ -34,11 +35,12 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
   if (sp.status) query = query.eq("status", sp.status);
 
   const { data: leads = [] } = await query;
+  const t = await getServerDictionary();
 
   return (
     <section className="space-y-6">
       <header className="flex items-center justify-between">
-        <h1 className="text-[28px] font-semibold leading-[1.2]">Leads</h1>
+        <h1 className="text-[28px] font-semibold leading-[1.2]">{t.leads.list.title}</h1>
         <AddLeadSheet />
       </header>
       <LeadListControls activeTab={tab} q={q} />

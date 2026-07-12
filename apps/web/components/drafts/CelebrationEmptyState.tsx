@@ -3,31 +3,36 @@ import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "@phosphor-icons/react";
+import { useDictionary } from "@/lib/i18n/provider";
 
 interface Props {
   stat?: { value: number; label: "responded" | "sent" } | "first-time";
 }
 
 function StatLine({ stat }: { stat: Props["stat"] }) {
+  const t = useDictionary();
   if (stat === "first-time" || !stat) {
-    return <p className="text-sm text-muted-foreground">Your queue is clear</p>;
+    return <p className="text-sm text-muted-foreground">{t.drafts.emptyState.queueClear}</p>;
   }
   if (stat.label === "responded") {
     return (
       <p className="text-sm text-muted-foreground">
-        <span className="font-mono text-foreground">{stat.value}</span> leads responded this week
+        <span className="font-mono text-foreground">{stat.value}</span>{" "}
+        {t.drafts.emptyState.responded(stat.value)}
       </p>
     );
   }
   return (
     <p className="text-sm text-muted-foreground">
-      <span className="font-mono text-foreground">{stat.value}</span> drafts sent this week
+      <span className="font-mono text-foreground">{stat.value}</span>{" "}
+      {t.drafts.emptyState.sent(stat.value)}
     </p>
   );
 }
 
 export function CelebrationEmptyState({ stat }: Props) {
   const reduce = useReducedMotion();
+  const t = useDictionary();
   return (
     <motion.div
       initial={reduce ? { opacity: 0 } : { y: 16, opacity: 0 }}
@@ -56,13 +61,13 @@ export function CelebrationEmptyState({ stat }: Props) {
         />
       </svg>
       <h2 className="text-[28px] font-semibold leading-[1.2]">
-        You&apos;re all caught up.
+        {t.drafts.emptyState.title}
       </h2>
       <StatLine stat={stat} />
       <Button asChild variant="ghost" className="min-h-[44px]">
         <Link href="/">
           <ArrowLeft className="size-4 mr-2" weight="regular" />
-          Back to dashboard
+          {t.drafts.emptyState.backToDashboard}
         </Link>
       </Button>
     </motion.div>

@@ -1,5 +1,5 @@
 import type { Database } from '@client/database';
-import type { TVoiceProfile, TSalesToolkit } from '@client/shared/validators';
+import type { TVoiceProfile, TSalesToolkit, TLanguage } from '@client/shared/validators';
 
 export type TDraft = Database['public']['Tables']['drafts']['Row'];
 export type TLeadStatus = Database['public']['Enums']['lead_status'];
@@ -7,6 +7,9 @@ export type TLeadStatus = Database['public']['Enums']['lead_status'];
 export interface DraftGenerationParams {
   coachId: string;
   leadId: string;
+  // The coach's selected language. Drives the language the draft is written in,
+  // explicitly, rather than inferring it from the voice examples.
+  language: TLanguage;
   leadStatus: TLeadStatus;
   leadName: string;
   aiSummary: string | null;

@@ -20,20 +20,7 @@ import { PencilSimple } from "@phosphor-icons/react";
 import { LeadStatusEnum } from "@client/shared/validators";
 import type { TLeadStatus } from "@client/shared/types";
 import { toast } from "sonner";
-
-const LABELS: Record<TLeadStatus, string> = {
-  identified: "Identified",
-  call_booked: "Call booked",
-  no_show: "No show",
-  call_completed: "Call completed",
-  in_sequence: "In sequence",
-  replied: "Replied",
-  converted: "Converted",
-  lost: "Lost",
-  unsubscribed: "Unsubscribed",
-  do_not_contact: "Do not contact",
-  bounced: "Bounced",
-};
+import { useDictionary } from "@/lib/i18n/provider";
 
 export function ManualStateOverride({
   leadId,
@@ -44,6 +31,7 @@ export function ManualStateOverride({
   currentStatus: TLeadStatus;
   leadName: string;
 }) {
+  const t = useDictionary();
   const router = useRouter();
   const [pendingDnc, setPendingDnc] = useState(false);
 
@@ -62,10 +50,10 @@ export function ManualStateOverride({
       body: JSON.stringify({ status: s }),
     });
     if (!r.ok) {
-      toast.error("Couldn't update status.");
+      toast.error(t.leads.stateOverride.updateError);
       return;
     }
-    toast.success("Status updated");
+    toast.success(t.leads.stateOverride.updated);
     router.refresh();
   }
 
@@ -75,7 +63,7 @@ export function ManualStateOverride({
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm">
             <PencilSimple weight="regular" className="size-4 mr-2" />
-            Update lead status
+            {t.leads.stateOverride.trigger}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -85,7 +73,7 @@ export function ManualStateOverride({
               disabled={s === currentStatus}
               onSelect={() => setStatus(s)}
             >
-              {LABELS[s]}
+              {t.leads.status[s]}
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
@@ -94,14 +82,14 @@ export function ManualStateOverride({
       <Dialog open={pendingDnc} onOpenChange={setPendingDnc}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Mark {leadName} as do-not-contact?</DialogTitle>
+            <DialogTitle>{t.leads.stateOverride.dncTitle(leadName)}</DialogTitle>
             <DialogDescription>
-              No further emails will ever be sent to this address.
+              {t.leads.stateOverride.dncDescription}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPendingDnc(false)}>
-              Cancel
+              {t.leads.stateOverride.dncCancel}
             </Button>
             <Button
               variant="destructive"
@@ -110,7 +98,7 @@ export function ManualStateOverride({
                 await applyStatus("do_not_contact");
               }}
             >
-              Mark do-not-contact
+              {t.leads.stateOverride.dncConfirm}
             </Button>
           </DialogFooter>
         </DialogContent>

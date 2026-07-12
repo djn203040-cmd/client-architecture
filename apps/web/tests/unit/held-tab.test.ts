@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
+import { getDictionary } from "../../lib/i18n/dictionaries";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const src = readFileSync(
@@ -9,13 +10,16 @@ const src = readFileSync(
   "utf8",
 );
 
+// Empty-state copy now lives in the i18n dictionary, not inline.
+const en = getDictionary("en");
+
 describe("HeldTab, structural contracts", () => {
   it("uses useDraftRealtime with status=held", () => {
     expect(src).toContain('status: "held"');
   });
 
   it("empty state shows 'Nothing on hold.'", () => {
-    expect(src).toContain("Nothing on hold.");
+    expect(en.drafts.heldTab.empty).toBe("Nothing on hold.");
   });
 
   it("sorts by held_at DESC", () => {

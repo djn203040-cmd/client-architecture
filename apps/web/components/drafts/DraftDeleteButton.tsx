@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
 
 interface Props {
   draftId: string;
@@ -19,6 +20,7 @@ interface Props {
  * unlike Hold/Cancel which only move status.
  */
 export function DraftDeleteButton({ draftId, onDeleted }: Props) {
+  const t = useDictionary();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -27,10 +29,10 @@ export function DraftDeleteButton({ draftId, onDeleted }: Props) {
     try {
       const r = await fetch(`/api/drafts/${draftId}`, { method: "DELETE" });
       if (!r.ok) {
-        toast.error("Couldn't delete this draft. Try again.");
+        toast.error(t.drafts.deleteButton.deleteFailed);
         return;
       }
-      toast.success("Draft deleted.");
+      toast.success(t.drafts.deleteButton.deletedToast);
       onDeleted?.();
     } finally {
       setBusy(false);
@@ -41,17 +43,17 @@ export function DraftDeleteButton({ draftId, onDeleted }: Props) {
   if (confirming) {
     return (
       <div className="flex items-center gap-2 text-xs">
-        <span className="text-muted-foreground">Delete this draft permanently?</span>
+        <span className="text-muted-foreground">{t.drafts.deleteButton.confirm}</span>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setConfirming(false)}
           disabled={busy}
         >
-          Keep
+          {t.drafts.deleteButton.keep}
         </Button>
         <Button variant="destructive" size="sm" onClick={del} disabled={busy}>
-          Delete
+          {t.drafts.deleteButton.delete}
         </Button>
       </div>
     );
@@ -61,11 +63,11 @@ export function DraftDeleteButton({ draftId, onDeleted }: Props) {
     <button
       type="button"
       onClick={() => setConfirming(true)}
-      aria-label="Delete draft permanently"
+      aria-label={t.drafts.deleteButton.ariaLabel}
       className="inline-flex items-center gap-1 text-xs text-muted-foreground/50 transition-colors hover:text-destructive focus-visible:text-destructive focus-visible:outline-none"
     >
       <Trash weight="regular" className="size-3.5" />
-      Delete
+      {t.drafts.deleteButton.delete}
     </button>
   );
 }

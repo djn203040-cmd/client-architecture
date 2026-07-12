@@ -4,37 +4,37 @@ import { usePathname } from "next/navigation";
 import { House, Users, EnvelopeSimple, PhoneCall, Gear, LockSimple } from "@phosphor-icons/react";
 import type { Route } from "next";
 import { NAV_ANCHOR_BY_HREF } from "@/lib/tour/anchors";
+import { useDictionary } from "@/lib/i18n/provider";
 
 const ITEMS = [
-  { href: "/dashboard", label: "Dashboard", Icon: House },
-  { href: "/leads", label: "Leads", Icon: Users },
-  { href: "/drafts", label: "Drafts", Icon: EnvelopeSimple },
-  { href: "/calls", label: "Calls", Icon: PhoneCall },
-  { href: "/settings", label: "Settings", Icon: Gear },
+  { href: "/dashboard", labelKey: "dashboard", Icon: House },
+  { href: "/leads", labelKey: "leads", Icon: Users },
+  { href: "/drafts", labelKey: "drafts", Icon: EnvelopeSimple },
+  { href: "/calls", labelKey: "calls", Icon: PhoneCall },
+  { href: "/settings", labelKey: "settings", Icon: Gear },
 ] as const;
 
 const LOCKED = [
   {
     id: "module-2",
-    label: "The Threshold Experience",
-    subtitle: "Your client's first 48 hours, built from your sales call.",
-    cta: "Learn more →",
+    titleKey: "module2Title",
+    subtitleKey: "module2Subtitle",
     href: "/modules/threshold" as const,
   },
   {
     id: "module-3",
-    label: "The Continuation",
-    subtitle: "Thirty days before they leave, we remind them why they stayed.",
-    cta: "Learn more →",
+    titleKey: "module3Title",
+    subtitleKey: "module3Subtitle",
     href: "/modules/continuation" as const,
   },
-];
+] as const;
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const t = useDictionary();
   return (
-    <nav className="flex flex-col gap-1 p-3" aria-label="Primary">
-      {ITEMS.map(({ href, label, Icon }) => {
+    <nav className="flex flex-col gap-1 p-3" aria-label={t.dashboard.shell.primaryNavLabel}>
+      {ITEMS.map(({ href, labelKey, Icon }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         return (
           <Link
@@ -49,13 +49,13 @@ export function SidebarNav() {
             }`}
           >
             <Icon weight="regular" className="size-5" />
-            {label}
+            {t.nav[labelKey]}
           </Link>
         );
       })}
 
       <div className="mt-6 px-3 text-xs uppercase text-muted-foreground tracking-wide mb-2">
-        Unlock more
+        {t.dashboard.shell.unlockMore}
       </div>
 
       {LOCKED.map((m) => (
@@ -67,10 +67,14 @@ export function SidebarNav() {
           <div className="flex items-start gap-2">
             <LockSimple weight="regular" className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
             <div className="min-w-0">
-              <p className="text-xs font-medium leading-tight">{m.label}</p>
-              <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{m.subtitle}</p>
+              <p className="text-xs font-medium leading-tight">
+                {t.dashboard.shell[m.titleKey]}
+              </p>
+              <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
+                {t.dashboard.shell[m.subtitleKey]}
+              </p>
               <span className="mt-1.5 inline-block text-[11px] font-medium text-accent">
-                {m.cta}
+                {t.dashboard.shell.learnMore}
               </span>
             </div>
           </div>
@@ -82,13 +86,14 @@ export function SidebarNav() {
 
 export function MobileBottomNav() {
   const pathname = usePathname();
+  const t = useDictionary();
   return (
     <nav
       className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center border-t border-border bg-background/95 backdrop-blur-md"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-      aria-label="Mobile navigation"
+      aria-label={t.dashboard.shell.mobileNavLabel}
     >
-      {ITEMS.map(({ href, label, Icon }) => {
+      {ITEMS.map(({ href, labelKey, Icon }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         return (
           <Link
@@ -101,7 +106,7 @@ export function MobileBottomNav() {
             }`}
           >
             <Icon weight={active ? "fill" : "regular"} className="size-5" />
-            {label}
+            {t.nav[labelKey]}
           </Link>
         );
       })}

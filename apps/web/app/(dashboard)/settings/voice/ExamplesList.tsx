@@ -3,6 +3,7 @@ import { useState } from "react";
 import { CaretDown, CaretUp, Trash } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useDictionary } from "@/lib/i18n/provider";
 
 // Examples shorter than this comfortably fit in 2 lines, so no toggle is shown.
 const CLAMP_THRESHOLD = 140;
@@ -14,6 +15,7 @@ export function ExamplesList({
   examples: string[];
   onChange: (updated: string[]) => void;
 }) {
+  const t = useDictionary();
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
   function toggleExpanded(index: number) {
@@ -29,10 +31,10 @@ export function ExamplesList({
     const removed = examples[index] ?? '';
     const next = examples.filter((_, i) => i !== index);
     onChange(next);
-    toast("Removed. Undo?", {
+    toast(t.settingsAdvanced.voice.examples.removedUndo, {
       duration: 4000,
       action: {
-        label: "Undo",
+        label: t.settingsAdvanced.voice.examples.undo,
         onClick: () => {
           const restored = [...next];
           restored.splice(index, 0, removed);
@@ -45,9 +47,9 @@ export function ExamplesList({
   if (examples.length === 0) {
     return (
       <div className="rounded-2xl bg-card border border-border p-6">
-        <h2 className="text-xl font-semibold mb-4">Writing Examples</h2>
+        <h2 className="text-xl font-semibold mb-4">{t.settingsAdvanced.voice.examples.heading}</h2>
         <p className="text-sm text-muted-foreground italic">
-          No examples selected yet. Analyze your writing first.
+          {t.settingsAdvanced.voice.examples.emptyState}
         </p>
       </div>
     );
@@ -56,16 +58,16 @@ export function ExamplesList({
   return (
     <div className="rounded-2xl bg-card border border-border p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Writing Examples</h2>
+        <h2 className="text-xl font-semibold">{t.settingsAdvanced.voice.examples.heading}</h2>
         <span className="text-xs font-mono text-muted-foreground">
-          {examples.length} {examples.length === 1 ? "example" : "examples"} selected
+          {t.settingsAdvanced.voice.examples.selectedCount(examples.length)}
         </span>
       </div>
 
       <ul
         className="max-h-[400px] overflow-y-auto list-none p-0 m-0"
         tabIndex={0}
-        aria-label="Writing examples"
+        aria-label={t.settingsAdvanced.voice.examples.listLabel}
       >
         {examples.map((example, i) => {
           const isExpanded = expanded.has(i);
@@ -95,14 +97,14 @@ export function ExamplesList({
                     ) : (
                       <CaretDown weight="regular" className="size-3" />
                     )}
-                    {isExpanded ? "Show less" : "Show more"}
+                    {isExpanded ? t.settingsAdvanced.voice.examples.showLess : t.settingsAdvanced.voice.examples.showMore}
                   </button>
                 )}
               </div>
               <button
                 onClick={() => remove(i)}
                 className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                aria-label={`Remove example ${i + 1}`}
+                aria-label={t.settingsAdvanced.voice.examples.removeExample(i + 1)}
               >
                 <Trash weight="regular" className="size-4" />
               </button>

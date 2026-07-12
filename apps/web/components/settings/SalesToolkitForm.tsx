@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useAutosave } from "@/lib/settings/autosave";
+import { useDictionary } from "@/lib/i18n/provider";
 import {
   SalesToolkitSchema,
   EMPTY_SALES_TOOLKIT,
@@ -57,13 +58,13 @@ function StylePicker({
   value: TSalesStyle | null;
   onChange: (next: TSalesStyle | null) => void;
 }) {
+  const t = useDictionary();
   return (
     <div className="space-y-3">
       <div className="space-y-1">
-        <Label>How do you sell?</Label>
+        <Label>{t.settings.salesToolkit.stylePickerLabel}</Label>
         <p className="text-xs text-muted-foreground max-w-[65ch]">
-          Pick the approach that sounds most like you. It shapes how the AI handles a lead
-          who hesitates. You can change it any time.
+          {t.settings.salesToolkit.stylePickerHelper}
         </p>
       </div>
 
@@ -102,7 +103,7 @@ function StylePicker({
                   {style.description}
                 </p>
                 <p className="text-[11px] text-muted-foreground/80 mt-2 leading-relaxed">
-                  <span className="font-medium">Best for:</span> {style.bestFor}
+                  <span className="font-medium">{t.settings.salesToolkit.bestFor}</span> {style.bestFor}
                 </p>
               </button>
 
@@ -113,7 +114,7 @@ function StylePicker({
                 <HoverCardTrigger asChild>
                   <button
                     type="button"
-                    aria-label={`Example of how ${style.label} sounds`}
+                    aria-label={t.settings.salesToolkit.exampleAria(style.label)}
                     onClick={(e) => e.stopPropagation()}
                     className="absolute right-2 top-2 grid size-6 place-items-center rounded-full text-muted-foreground hover:text-foreground hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
@@ -121,7 +122,7 @@ function StylePicker({
                   </button>
                 </HoverCardTrigger>
                 <HoverCardContent align="end" className="w-80 space-y-2">
-                  <p className="text-sm font-medium">{style.label} in action</p>
+                  <p className="text-sm font-medium">{t.settings.salesToolkit.inAction(style.label)}</p>
                   <p className="text-xs text-muted-foreground italic">
                     {SALES_STYLE_SCENARIO}
                   </p>
@@ -158,6 +159,7 @@ function OptionListEditor({
   options: TToolkitOption[];
   onChange: (next: TToolkitOption[]) => void;
 }) {
+  const t = useDictionary();
   function update(index: number, patch: Partial<TToolkitOption>) {
     onChange(options.map((o, i) => (i === index ? { ...o, ...patch } : o)));
   }
@@ -176,7 +178,7 @@ function OptionListEditor({
       </div>
 
       {options.length === 0 ? (
-        <p className="text-sm text-muted-foreground italic">Nothing added yet.</p>
+        <p className="text-sm text-muted-foreground italic">{t.settings.salesToolkit.optionsEmpty}</p>
       ) : (
         <div className="space-y-3">
           {options.map((opt, i) => (
@@ -204,7 +206,7 @@ function OptionListEditor({
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label="Remove"
+                  aria-label={t.settings.salesToolkit.remove}
                   onClick={() => remove(i)}
                   className="shrink-0 text-muted-foreground hover:text-destructive"
                 >
@@ -232,6 +234,8 @@ function PackageListEditor({
   packages: TSalesPackage[];
   onChange: (next: TSalesPackage[]) => void;
 }) {
+  const t = useDictionary();
+  const st = t.settings.salesToolkit;
   function update(index: number, patch: Partial<TSalesPackage>) {
     onChange(packages.map((p, i) => (i === index ? { ...p, ...patch } : p)));
   }
@@ -245,16 +249,14 @@ function PackageListEditor({
   return (
     <div className="space-y-3">
       <div className="space-y-1">
-        <Label>Your programs &amp; pricing</Label>
+        <Label>{st.packagesLabel}</Label>
         <p className="text-xs text-muted-foreground max-w-[65ch]">
-          Add the packages you actually sell. The more the AI understands your offer ladder,
-          the better it can position the right next step, or a lighter one, when a lead
-          hesitates. Only a name is required.
+          {st.packagesHelper}
         </p>
       </div>
 
       {packages.length === 0 ? (
-        <p className="text-sm text-muted-foreground italic">No packages added yet.</p>
+        <p className="text-sm text-muted-foreground italic">{st.packagesEmpty}</p>
       ) : (
         <div className="space-y-3">
           {packages.map((pkg, i) => (
@@ -267,14 +269,14 @@ function PackageListEditor({
                   <div className="grid gap-2 sm:grid-cols-2">
                     <Input
                       id={`st-pkg-name-${i}`}
-                      placeholder="Program name, e.g. 12-Week 1:1 Container"
+                      placeholder={st.pkgNamePlaceholder}
                       value={pkg.name}
                       maxLength={120}
                       onChange={(e) => update(i, { name: e.target.value })}
                     />
                     <Input
                       id={`st-pkg-price-${i}`}
-                      placeholder="Price, e.g. $4,000 or 3× $1,500/mo"
+                      placeholder={st.pkgPricePlaceholder}
                       value={pkg.price}
                       maxLength={120}
                       onChange={(e) => update(i, { price: e.target.value })}
@@ -282,14 +284,14 @@ function PackageListEditor({
                   </div>
                   <Input
                     id={`st-pkg-format-${i}`}
-                    placeholder="Format & duration, e.g. 12 weeks, weekly 60-min calls + Voxer"
+                    placeholder={st.pkgFormatPlaceholder}
                     value={pkg.format}
                     maxLength={200}
                     onChange={(e) => update(i, { format: e.target.value })}
                   />
                   <Textarea
                     id={`st-pkg-includes-${i}`}
-                    placeholder="What's included, e.g. workbook, 2 live intensives, private community"
+                    placeholder={st.pkgIncludesPlaceholder}
                     value={pkg.includes}
                     maxLength={600}
                     rows={2}
@@ -297,7 +299,7 @@ function PackageListEditor({
                   />
                   <Input
                     id={`st-pkg-ideal-${i}`}
-                    placeholder="Ideal for, e.g. founders stuck under $10k/mo"
+                    placeholder={st.pkgIdealPlaceholder}
                     value={pkg.ideal_for}
                     maxLength={300}
                     onChange={(e) => update(i, { ideal_for: e.target.value })}
@@ -306,7 +308,7 @@ function PackageListEditor({
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label="Remove package"
+                  aria-label={st.removePackage}
                   onClick={() => remove(i)}
                   className="shrink-0 text-muted-foreground hover:text-destructive"
                 >
@@ -320,13 +322,15 @@ function PackageListEditor({
 
       <Button variant="outline" size="sm" onClick={add} disabled={packages.length >= 12}>
         <Plus className="size-4 mr-1.5" />
-        Add a package
+        {st.addPackage}
       </Button>
     </div>
   );
 }
 
 export function SalesToolkitForm({ initial, showApproachOverride = false }: Props) {
+  const t = useDictionary();
+  const st = t.settings.salesToolkit;
   const [salesStyle, setSalesStyle] = useState<TSalesStyle | null>(initial.sales_style);
   const [philosophy, setPhilosophy] = useState(initial.philosophy);
   const [approachOverride, setApproachOverride] = useState(initial.approach_override);
@@ -372,14 +376,13 @@ export function SalesToolkitForm({ initial, showApproachOverride = false }: Prop
       <StylePicker value={salesStyle} onChange={setSalesStyle} />
 
       <div className="space-y-1.5">
-        <Label htmlFor="st-philosophy">Your sales philosophy</Label>
+        <Label htmlFor="st-philosophy">{st.philosophyLabel}</Label>
         <p className="text-xs text-muted-foreground max-w-[65ch]">
-          One to three sentences on how you sell, in your own words. The AI uses this to fine
-          tune its posture on top of the approach you picked above.
+          {st.philosophyHelper}
         </p>
         <Textarea
           id="st-philosophy"
-          placeholder="e.g. Gentle, never pushy, but I believe part of my job is helping people past the resistance that keeps them stuck. I bridge gaps and encourage the next step."
+          placeholder={st.philosophyPlaceholder}
           value={philosophy}
           maxLength={800}
           rows={3}
@@ -392,36 +395,34 @@ export function SalesToolkitForm({ initial, showApproachOverride = false }: Prop
 
       <OptionListEditor
         idPrefix="st-bridge"
-        label="Bridges"
-        helper="Ways you close the gap when a lead is interested but stuck on an objection, e.g. a payment plan or a lighter version of the program."
-        namePlaceholder="e.g. Payment plan (3-month split)"
-        whenPlaceholder="When to offer it, e.g. if price is the stated objection but interest is real"
-        addLabel="Add a bridge"
+        label={st.bridgesLabel}
+        helper={st.bridgesHelper}
+        namePlaceholder={st.bridgeNamePlaceholder}
+        whenPlaceholder={st.bridgeWhenPlaceholder}
+        addLabel={st.addBridge}
         options={bridges}
         onChange={setBridges}
       />
 
       <OptionListEditor
         idPrefix="st-downsell"
-        label="Downsells"
-        helper="Lighter or shorter offers you can fall back to when the full container is too big a commitment right now."
-        namePlaceholder="e.g. 4-week intensive"
-        whenPlaceholder="When to offer it, e.g. if the full program feels like too long a commitment"
-        addLabel="Add a downsell"
+        label={st.downsellsLabel}
+        helper={st.downsellsHelper}
+        namePlaceholder={st.downsellNamePlaceholder}
+        whenPlaceholder={st.downsellWhenPlaceholder}
+        addLabel={st.addDownsell}
         options={downsells}
         onChange={setDownsells}
       />
 
       <div className="space-y-1.5">
-        <Label htmlFor="st-leverage">Leverage points</Label>
+        <Label htmlFor="st-leverage">{st.leverageLabel}</Label>
         <p className="text-xs text-muted-foreground max-w-[65ch]">
-          What you learn on a discovery call, so the AI knows what it might be able to draw
-          on when handling an objection (e.g. income lost to the current situation, the ROI
-          they expect from working with you).
+          {st.leverageHelper}
         </p>
         <Textarea
           id="st-leverage"
-          placeholder="e.g. I always ask what their current situation is costing them each month, and what a solved version would be worth."
+          placeholder={st.leveragePlaceholder}
           value={leveragePoints}
           maxLength={1500}
           rows={3}
@@ -432,15 +433,13 @@ export function SalesToolkitForm({ initial, showApproachOverride = false }: Prop
 
       {showApproachOverride && (
         <div className="space-y-1.5 rounded-xl border border-white/10 bg-white/5 p-4">
-          <Label htmlFor="st-approach-override">Fine-tune your sales approach</Label>
+          <Label htmlFor="st-approach-override">{st.overrideLabel}</Label>
           <p className="text-xs text-muted-foreground max-w-[65ch]">
-            Optional, and most coaches never need it. If the approach you picked doesn&apos;t
-            quite match how you sell, describe the difference here in your own words. This
-            overrides the default guidance where they conflict.
+            {st.overrideHelper}
           </p>
           <Textarea
             id="st-approach-override"
-            placeholder="e.g. I never mention price until they ask. I always open with a question about where they are right now, not where they want to be."
+            placeholder={st.overridePlaceholder}
             value={approachOverride}
             maxLength={1500}
             rows={3}

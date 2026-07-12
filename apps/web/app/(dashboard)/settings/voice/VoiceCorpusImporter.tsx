@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowsClockwise, ArrowsIn, ArrowsOut, ArrowCounterClockwise, CalendarBlank, Funnel, Upload, User } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { TVoiceProfile } from "@client/shared/validators";
 import {
   detectSpeakers,
@@ -16,44 +17,20 @@ import {
 type Corpus = { gmail: string; linkedin: string; instagram: string; whatsapp: string };
 
 const CHANNELS = [
-  {
-    key: "gmail" as const,
-    label: "Gmail exports",
-    placeholder: "Paste Gmail exports here, any emails you've written to leads or clients.",
-    accept: ".txt",
-    acceptLabel: ".txt",
-  },
-  {
-    key: "linkedin" as const,
-    label: "LinkedIn messages",
-    placeholder: "Paste LinkedIn messages you've sent, or upload your messages.csv export.",
-    accept: ".csv,.txt",
-    acceptLabel: ".csv",
-  },
-  {
-    key: "instagram" as const,
-    label: "Instagram DMs",
-    placeholder: "Paste Instagram DMs you've written, or upload your messages.json export.",
-    accept: ".json,.txt",
-    acceptLabel: ".json",
-  },
-  {
-    key: "whatsapp" as const,
-    label: "WhatsApp messages",
-    placeholder: "Paste WhatsApp messages from your .txt export.",
-    accept: ".txt",
-    acceptLabel: ".txt",
-  },
+  { key: "gmail" as const, accept: ".txt", acceptLabel: ".txt" },
+  { key: "linkedin" as const, accept: ".csv,.txt", acceptLabel: ".csv" },
+  { key: "instagram" as const, accept: ".json,.txt", acceptLabel: ".json" },
+  { key: "whatsapp" as const, accept: ".txt", acceptLabel: ".txt" },
 ];
 
 type DateWindow = "3m" | "6m" | "12m" | "24m" | "all";
 
-const DATE_WINDOWS: { value: DateWindow; label: string; months: number | null }[] = [
-  { value: "3m", label: "Last 3 months", months: 3 },
-  { value: "6m", label: "Last 6 months", months: 6 },
-  { value: "12m", label: "Last 12 months", months: 12 },
-  { value: "24m", label: "Last 24 months", months: 24 },
-  { value: "all", label: "All time", months: null },
+const DATE_WINDOWS: { value: DateWindow; months: number | null }[] = [
+  { value: "3m", months: 3 },
+  { value: "6m", months: 6 },
+  { value: "12m", months: 12 },
+  { value: "24m", months: 24 },
+  { value: "all", months: null },
 ];
 
 function windowToDate(win: DateWindow): Date | undefined {
@@ -62,6 +39,36 @@ function windowToDate(win: DateWindow): Date | undefined {
   const d = new Date();
   d.setMonth(d.getMonth() - found.months);
   return d;
+}
+
+type CorpusImporterCopy = ReturnType<typeof useDictionary>["settingsAdvanced"]["voice"]["corpusImporter"];
+
+function channelLabel(copy: CorpusImporterCopy, key: keyof Corpus): string {
+  switch (key) {
+    case "gmail": return copy.gmailLabel;
+    case "linkedin": return copy.linkedinLabel;
+    case "instagram": return copy.instagramLabel;
+    case "whatsapp": return copy.whatsappLabel;
+  }
+}
+
+function channelPlaceholder(copy: CorpusImporterCopy, key: keyof Corpus): string {
+  switch (key) {
+    case "gmail": return copy.gmailPlaceholder;
+    case "linkedin": return copy.linkedinPlaceholder;
+    case "instagram": return copy.instagramPlaceholder;
+    case "whatsapp": return copy.whatsappPlaceholder;
+  }
+}
+
+function windowLabel(copy: CorpusImporterCopy, win: DateWindow): string {
+  switch (win) {
+    case "3m": return copy.last3Months;
+    case "6m": return copy.last6Months;
+    case "12m": return copy.last12Months;
+    case "24m": return copy.last24Months;
+    case "all": return copy.allTime;
+  }
 }
 
 export function VoiceCorpusImporter({
@@ -73,6 +80,8 @@ export function VoiceCorpusImporter({
   onAnalyzing: () => void;
   isAnalyzing: boolean;
 }) {
+  const t = useDictionary();
+  const copy = t.settingsAdvanced.voice.corpusImporter;
   const [corpus, setCorpus] = useState<Corpus>({ gmail: "", linkedin: "", instagram: "", whatsapp: "" });
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [preFilter, setPreFilter] = useState<Partial<Record<keyof Corpus, string>>>({});
@@ -115,7 +124,7 @@ export function VoiceCorpusImporter({
     });
     if (!filtered.trim()) {
       import("sonner").then(({ toast }) => {
-        toast.error("Nothing matched that filter. Loosen the date window or change the speaker selection.");
+        toast.error(copy.noFilterMatch);
       });
       return;
     }
@@ -161,7 +170,7 @@ export function VoiceCorpusImporter({
       });
     } catch {
       import("sonner").then(({ toast }) => {
-        toast.error("Couldn't read one of those files. Try again or paste the text directly.");
+        toast.error(copy.fileReadFailed);
       });
     }
   }
@@ -176,27 +185,27 @@ export function VoiceCorpusImporter({
       });
       if (!r.ok) {
         const data = await r.json().catch(() => ({}));
-        throw new Error((data as { error?: string }).error ?? "Analysis failed");
+        throw new Error((data as { error?: string }).error ?? copy.analysisFailed);
       }
       const profile = await r.json();
       onAnalyzed(profile);
     } catch (err) {
       import("sonner").then(({ toast }) => {
-        toast.error(err instanceof Error ? err.message : "Something went wrong analyzing your writing. Try again or add more content.");
+        toast.error(err instanceof Error ? err.message : copy.analyzeError);
       });
     }
   }
 
   return (
     <div className="space-y-4">
-      {CHANNELS.map(({ key, label, placeholder, accept, acceptLabel }) => {
+      {CHANNELS.map(({ key, accept, acceptLabel }) => {
         const isExpanded = Boolean(expanded[key]);
         return (
           <ChannelCard
             key={key}
             channel={key}
-            label={label}
-            placeholder={placeholder}
+            label={channelLabel(copy, key)}
+            placeholder={channelPlaceholder(copy, key)}
             accept={accept}
             acceptLabel={acceptLabel}
             value={corpus[key]}
@@ -228,16 +237,15 @@ export function VoiceCorpusImporter({
             {isAnalyzing ? (
               <>
                 <ArrowsClockwise weight="regular" className="size-4 animate-spin" />
-                Analyzing...
+                {copy.analyzing}
               </>
             ) : (
-              "Analyze my writing"
+              copy.analyzeMyWriting
             )}
           </Button>
           {isAnalyzing && (
             <p className="text-xs text-muted-foreground leading-relaxed" role="status">
-              This can take 2-5 minutes. You can leave this tab open, we&apos;ll
-              show your writing style as soon as it&apos;s ready.
+              {copy.analyzeHint}
             </p>
           )}
         </div>
@@ -275,6 +283,8 @@ function ChannelCard(props: ChannelCardProps) {
     selfNames, dateWindow, isFiltered, onToggleExpanded, onChange, onToggleSelf,
     onSetWindow, onApplyFilter, onRestoreOriginal, onPickFile, fileInputRef, onFileChange,
   } = props;
+  const t = useDictionary();
+  const copy = t.settingsAdvanced.voice.corpusImporter;
 
   const speakers = useMemo(() => detectSpeakers(channel, value), [channel, value]);
   const datesPresent = useMemo(() => hasTimestamps(channel, value), [channel, value]);
@@ -301,7 +311,7 @@ function ChannelCard(props: ChannelCardProps) {
           type="button"
           onClick={onToggleExpanded}
           className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          aria-label={isExpanded ? `Collapse ${label} field` : `Expand ${label} field`}
+          aria-label={isExpanded ? copy.collapseField(label) : copy.expandField(label)}
           aria-pressed={isExpanded}
         >
           {isExpanded ? (
@@ -309,7 +319,7 @@ function ChannelCard(props: ChannelCardProps) {
           ) : (
             <ArrowsOut weight="regular" className="size-3.5" />
           )}
-          {isExpanded ? "Collapse" : "Expand"}
+          {isExpanded ? copy.collapse : copy.expand}
         </button>
       </div>
 
@@ -319,7 +329,7 @@ function ChannelCard(props: ChannelCardProps) {
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs font-medium text-amber-700 dark:text-amber-400">
                 <User weight="regular" className="size-3.5" />
-                {speakers.length} speakers found, which are you?
+                {copy.speakersFound(speakers.length)}
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {speakers.map(({ name, count }) => {
@@ -352,10 +362,10 @@ function ChannelCard(props: ChannelCardProps) {
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs font-medium text-amber-700 dark:text-amber-400">
                 <CalendarBlank weight="regular" className="size-3.5" />
-                Time window
+                {copy.timeWindow}
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {DATE_WINDOWS.map(({ value: v, label: l }) => {
+                {DATE_WINDOWS.map(({ value: v }) => {
                   const selected = dateWindow === v;
                   return (
                     <button
@@ -370,14 +380,13 @@ function ChannelCard(props: ChannelCardProps) {
                       )}
                       aria-pressed={selected}
                     >
-                      {l}
+                      {windowLabel(copy, v)}
                     </button>
                   );
                 })}
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Older writing reflects an older voice. Trim to recent messages
-                for the truest current-you signal.
+                {copy.timeWindowHint}
               </p>
             </div>
           )}
@@ -385,9 +394,11 @@ function ChannelCard(props: ChannelCardProps) {
           <div className="flex items-center justify-between gap-3 pt-1 border-t border-amber-500/20">
             {preview && (
               <p className="text-xs text-muted-foreground tabular-nums">
-                Keeps <span className="font-medium text-foreground">{preview.keptCount.toLocaleString()}</span> of{" "}
-                {preview.totalCount.toLocaleString()} messages
-                {" "}({preview.keptChars.toLocaleString()} chars)
+                {copy.keepsSummary(
+                  preview.keptCount.toLocaleString(),
+                  preview.totalCount.toLocaleString(),
+                  preview.keptChars.toLocaleString(),
+                )}
               </p>
             )}
             <Button
@@ -398,7 +409,7 @@ function ChannelCard(props: ChannelCardProps) {
               disabled={isAnalyzing || (preview?.keptCount ?? 0) === 0}
             >
               <Funnel weight="regular" className="size-3.5" />
-              Apply filter
+              {copy.applyFilter}
             </Button>
           </div>
         </div>
@@ -407,8 +418,8 @@ function ChannelCard(props: ChannelCardProps) {
       {isFiltered && (
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 flex items-center justify-between gap-2">
           <p className="text-xs text-emerald-700 dark:text-emerald-400">
-            Filtered{selfNames.length > 0 ? ` to ${selfNames.join(", ")}` : ""}
-            {dateWindow !== "all" ? `, ${DATE_WINDOWS.find((w) => w.value === dateWindow)?.label.toLowerCase()}` : ""}.
+            {selfNames.length > 0 ? copy.filteredTo(selfNames.join(", ")) : copy.filtered}
+            {dateWindow !== "all" ? `, ${windowLabel(copy, dateWindow).toLowerCase()}` : ""}.
           </p>
           <Button
             size="sm"
@@ -418,7 +429,7 @@ function ChannelCard(props: ChannelCardProps) {
             disabled={isAnalyzing}
           >
             <ArrowCounterClockwise weight="regular" className="size-3.5" />
-            Restore original
+            {copy.restoreOriginal}
           </Button>
         </div>
       )}
@@ -436,7 +447,7 @@ function ChannelCard(props: ChannelCardProps) {
       />
       {value.trim().length > 0 && (
         <p className="text-xs text-muted-foreground text-right">
-          {value.length.toLocaleString()} chars
+          {copy.chars(value.length.toLocaleString())}
         </p>
       )}
       <div className="flex items-center gap-2">
@@ -448,10 +459,10 @@ function ChannelCard(props: ChannelCardProps) {
           onClick={onPickFile}
         >
           <Upload weight="regular" className="size-4" />
-          Upload {acceptLabel} files
+          {copy.uploadFiles(acceptLabel)}
         </Button>
         <span className="text-xs text-muted-foreground">
-          Select one or many, successive uploads add to what&apos;s already here.
+          {copy.uploadHint}
         </span>
         <input
           ref={fileInputRef}

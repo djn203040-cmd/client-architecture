@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LeadStateBadge } from "@/components/leads/LeadStateBadge";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import type { Database } from "@client/database";
 import type { TLeadStatus } from "@client/shared/types";
@@ -64,7 +65,13 @@ export function CoachDetailDrawer({
                   <tr key={l.id} className="min-h-[44px]">
                     <td className="px-4 py-3 font-medium">{l.name}</td>
                     <td className="px-4 py-3">
-                      <LeadStateBadge status={l.status as TLeadStatus} />
+                      <LeadStateBadge
+                        status={l.status as TLeadStatus}
+                        label={
+                          getDictionary("en").leads.status[l.status as TLeadStatus] ??
+                          l.status
+                        }
+                      />
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{l.source}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground font-mono">

@@ -18,7 +18,7 @@ import { traceGeneration } from './tracing';
 import { recordUsage } from './usage';
 import { buildReviewPrompt } from './prompts/review';
 import type { VoiceAnalysisParams, DraftGenerationParams } from './types';
-import type { TVoiceProfile } from '@client/shared/validators';
+import type { TVoiceProfile, TLanguage } from '@client/shared/validators';
 
 // Model routing. Draft generation and voice analysis are voice/quality-critical
 // and stay on Sonnet; the review pass is a mechanical native-language proofread,
@@ -220,12 +220,13 @@ async function reviewDraft(
   coachId: string,
   voiceModel: DraftGenerationParams['voiceModel'],
   coachName: string,
+  language: TLanguage,
   subject: string | null,
   body: string,
 ): Promise<{ subject: string | null; body: string } | null> {
   if (!voiceModel) return null;
   try {
-    const { system, user } = buildReviewPrompt(voiceModel, coachName, subject, body);
+    const { system, user } = buildReviewPrompt(voiceModel, coachName, language, subject, body);
     const message = await anthropic.messages.create({
       model: REVIEW_MODEL,
       max_tokens: 800,
@@ -304,7 +305,7 @@ export async function generateDraft(
   // fluency in the examples' language (no stray foreign words, no calques, no
   // grammar errors) while preserving the voice, meaning, and URL. Best-effort:
   // if it fails or returns nothing usable, keep the original draft.
-  const reviewed = await reviewDraft(params.coachId, params.voiceModel, coachName, parsed.subject, parsed.body);
+  const reviewed = await reviewDraft(params.coachId, params.voiceModel, coachName, params.language, parsed.subject, parsed.body);
   if (reviewed) {
     parsed = reviewed;
     // Re-scan after the rewrite so a reintroduced banned phrase is still flagged.
@@ -343,6 +344,7 @@ export async function updateLeadDescription(params: {
   leadId: string;
   coachId: string;
   leadName: string;
+  language: TLanguage;
   transcript?: string;
   conversationHistory?: string;
   existingSummary?: string;
@@ -358,6 +360,7 @@ export async function updateLeadDescription(params: {
     existingSummary: params.existingSummary,
     coachNotes: params.coachNotes,
     leadName: params.leadName,
+    language: params.language,
   });
 
   const message = await anthropic.messages.create({

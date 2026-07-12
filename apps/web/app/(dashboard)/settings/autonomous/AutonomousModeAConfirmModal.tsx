@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useDictionary } from "@/lib/i18n/provider";
 
 const CONFIRMATION_PHRASE = "send without review";
 
@@ -20,6 +21,8 @@ interface Props {
 }
 
 export function AutonomousModeAConfirmModal({ open, onConfirm, onCancel }: Props) {
+  const t = useDictionary();
+  const copy = t.settingsAdvanced.autonomous.confirmModal;
   const [phrase, setPhrase] = useState("");
   const inputId = useId();
   const matches = phrase.trim() === CONFIRMATION_PHRASE;
@@ -32,15 +35,14 @@ export function AutonomousModeAConfirmModal({ open, onConfirm, onCancel }: Props
     <Dialog open={open} onOpenChange={(o) => { if (!o) onCancel(); }}>
       <DialogContent className="max-w-[460px] backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Send without review?</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">{copy.title}</DialogTitle>
         </DialogHeader>
         <p className="text-sm leading-[1.5] max-w-[65ch]">
-          Drafts will send without your review. You won&apos;t see them in the queue before they go
-          out. This setting is not recommended for most coaches.
+          {copy.body}
         </p>
         <div className="space-y-2">
           <Label htmlFor={inputId} className="text-xs font-medium text-muted-foreground">
-            Type the phrase to confirm
+            {copy.typeToConfirm}
           </Label>
           <Input
             id={inputId}
@@ -54,7 +56,7 @@ export function AutonomousModeAConfirmModal({ open, onConfirm, onCancel }: Props
         </div>
         <DialogFooter className="gap-2 sm:gap-2">
           <Button variant="ghost" onClick={onCancel} className="min-h-[44px]">
-            Keep manual
+            {copy.keepManual}
           </Button>
           <Button
             variant="destructive"
@@ -62,7 +64,7 @@ export function AutonomousModeAConfirmModal({ open, onConfirm, onCancel }: Props
             onClick={() => onConfirm(phrase.trim())}
             className="min-h-[44px]"
           >
-            Enable autonomous send
+            {copy.enableAutonomous}
           </Button>
         </DialogFooter>
       </DialogContent>

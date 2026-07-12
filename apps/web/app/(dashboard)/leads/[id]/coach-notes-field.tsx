@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { FloppyDisk } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
 
 export function CoachNotesField({
   leadId,
@@ -12,6 +13,7 @@ export function CoachNotesField({
   leadId: string;
   initialNotes: string;
 }) {
+  const t = useDictionary();
   const [value, setValue] = useState(initialNotes);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const tRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -23,10 +25,7 @@ export function CoachNotesField({
       body: JSON.stringify({ coach_notes: v }),
     }).then((r) => {
       if (r.ok) setSavedAt(new Date());
-      else
-        toast.error(
-          "Notes couldn't be saved. Your changes are still here, try again."
-        );
+      else toast.error(t.leads.notes.saveError);
     });
   }
 
@@ -39,7 +38,7 @@ export function CoachNotesField({
   return (
     <section className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
       <Label htmlFor="coach-notes" className="block mb-2">
-        Private notes, injected into every AI draft for this lead.
+        {t.leads.notes.label}
       </Label>
       <Textarea
         id="coach-notes"
@@ -53,7 +52,7 @@ export function CoachNotesField({
         {savedAt && (
           <>
             <FloppyDisk weight="regular" className="size-3" />
-            Saved {savedAt.toLocaleTimeString()}
+            {t.leads.notes.savedAt(savedAt.toLocaleTimeString())}
           </>
         )}
       </div>

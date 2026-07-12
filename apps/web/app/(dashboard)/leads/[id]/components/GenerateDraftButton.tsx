@@ -4,6 +4,7 @@ import { Sparkle, ArrowsClockwise } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/browser";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { TLeadStatus } from "@client/shared/types";
 
 const HARD_BLOCK_STATES: TLeadStatus[] = ["unsubscribed", "do_not_contact", "bounced"];
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function GenerateDraftButton({ leadId, leadStatus }: Props) {
+  const t = useDictionary();
   const [generating, setGenerating] = useState(false);
   const [draftId, setDraftId] = useState<string | null>(null);
 
@@ -29,9 +31,9 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
       setGenerating(false);
       setDraftId(null);
       if (status === "error") {
-        toast.error("Draft generation failed. Try again.");
+        toast.error(t.leads.generate.genFailed);
       } else {
-        toast.success("Draft ready, review it below.");
+        toast.success(t.leads.generate.ready);
       }
     };
 
@@ -72,7 +74,7 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
       settled = true;
       setGenerating(false);
       setDraftId(null);
-      toast.error("Still generating, refresh the queue in a moment.");
+      toast.error(t.leads.generate.timeout);
     }, 90_000);
 
     return () => {
@@ -80,7 +82,7 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
       clearTimeout(timeout);
       void supabase.removeChannel(channel);
     };
-  }, [draftId]);
+  }, [draftId, t]);
 
   // D-16: Hard-blocked states, hide entirely. Must happen AFTER all hooks
   // to keep hook order stable across renders when status flips.
@@ -100,7 +102,7 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
         const msg =
           typeof body === "object" && body !== null && "error" in body
             ? (body as { error: string }).error
-            : "Generation failed. Try again.";
+            : t.leads.generate.failedFallback;
         toast.error(msg);
         setGenerating(false);
         return;
@@ -109,7 +111,7 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
       const data = (await res.json()) as { draftId: string };
       setDraftId(data.draftId);
     } catch {
-      toast.error("Network error. Try again.");
+      toast.error(t.leads.generate.networkError);
       setGenerating(false);
     }
   }
@@ -123,12 +125,12 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
       {generating ? (
         <>
           <ArrowsClockwise size={16} className="mr-2 animate-spin" aria-hidden="true" />
-          Generating...
+          {t.leads.generate.generating}
         </>
       ) : (
         <>
           <Sparkle size={16} className="mr-2" weight="fill" aria-hidden="true" />
-          Generate draft
+          {t.leads.generate.idle}
         </>
       )}
     </Button>

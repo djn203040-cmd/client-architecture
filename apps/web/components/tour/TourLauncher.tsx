@@ -2,6 +2,7 @@
 
 import { Compass } from "@phosphor-icons/react";
 import { useTour } from "./TourProvider";
+import { useDictionary } from "@/lib/i18n/provider";
 
 /**
  * "Take the tour" affordance for the sidebar footer. Replays the guided
@@ -9,6 +10,7 @@ import { useTour } from "./TourProvider";
  */
 export function TourLauncher() {
   const { start, active } = useTour();
+  const t = useDictionary();
   return (
     <button
       type="button"
@@ -17,7 +19,7 @@ export function TourLauncher() {
       className="flex w-full items-center gap-2 text-left text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
     >
       <Compass weight="regular" className="size-4 shrink-0" />
-      Take a tour
+      {t.tour.launcher}
     </button>
   );
 }

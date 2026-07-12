@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DemoLeadDraft } from "./DemoLeadDraft";
 import { CheckCircle } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
 
 interface SeedResult {
   leadId: string;
@@ -13,6 +14,7 @@ interface SeedResult {
 }
 
 export function StepFirstLead() {
+  const t = useDictionary();
   const router = useRouter();
   const [seed, setSeed] = useState<SeedResult | null>(null);
   const [seeding, setSeeding] = useState(true);
@@ -28,14 +30,14 @@ export function StepFirstLead() {
         const data = await r.json();
         if (!cancelled) setSeed(data);
       } catch {
-        if (!cancelled) toast.error("Couldn't load demo. Refresh to try again.");
+        if (!cancelled) toast.error(t.onboarding.firstLead.loadFailed);
       } finally {
         if (!cancelled) setSeeding(false);
       }
     }
     seedDemo();
     return () => { cancelled = true; };
-  }, []);
+  }, [t.onboarding.firstLead.loadFailed]);
 
   async function advance() {
     setAdvancing(true);
@@ -47,7 +49,7 @@ export function StepFirstLead() {
       });
       if (!r.ok) {
         const body = await r.json().catch(() => ({}));
-        toast.error(body.error ?? "Couldn't advance. Try again.");
+        toast.error(body.error ?? t.onboarding.firstLead.advanceFailed);
         return;
       }
       router.push("/onboarding/notifications" as never);
@@ -60,7 +62,7 @@ export function StepFirstLead() {
     return (
       <div className="py-8 flex flex-col items-center gap-3">
         <div className="w-6 h-6 border-2 border-border border-t-foreground rounded-full animate-spin" />
-        <p className="text-sm text-muted-foreground">Generating your first AI draft…</p>
+        <p className="text-sm text-muted-foreground">{t.onboarding.firstLead.generating}</p>
       </div>
     );
   }
@@ -74,7 +76,7 @@ export function StepFirstLead() {
         </div>
         <div className="flex justify-end">
           <Button onClick={advance} disabled={advancing} size="sm">
-            {advancing ? "Saving…" : "Continue"}
+            {advancing ? t.onboarding.firstLead.saving : t.onboarding.firstLead.continue}
           </Button>
         </div>
       </div>
@@ -84,7 +86,7 @@ export function StepFirstLead() {
   if (!seed) {
     return (
       <p className="text-sm text-muted-foreground py-4">
-        Couldn&apos;t load the demo. Refresh the page to try again.
+        {t.onboarding.firstLead.loadFailedBody}
       </p>
     );
   }
@@ -92,8 +94,7 @@ export function StepFirstLead() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground leading-relaxed">
-        Here&apos;s what the AI drafted for a sample lead, in your voice, based on what they shared
-        on the call. Review it, then approve to see what happens next.
+        {t.onboarding.firstLead.intro}
       </p>
       <DemoLeadDraft
         draftId={seed.draftId}

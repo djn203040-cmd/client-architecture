@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, CheckCircle } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { CalendarProviderId } from "@/lib/calendar/providers";
 
 interface Props {
@@ -18,6 +19,8 @@ interface WebhookInfo {
 }
 
 export function WebhookSetupPanel({ providerId }: Props) {
+  const t = useDictionary();
+  const copy = t.settingsAdvanced.calendar.webhookSetup;
   const [info, setInfo] = useState<WebhookInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,16 +46,16 @@ export function WebhookSetupPanel({ providerId }: Props) {
   }, [providerId]);
 
   if (loading) {
-    return <p className="text-xs text-muted-foreground">Loading webhook setup…</p>;
+    return <p className="text-xs text-muted-foreground">{copy.loading}</p>;
   }
   if (!info) {
-    return <p className="text-xs text-destructive">Couldn&apos;t load webhook setup. Try refreshing.</p>;
+    return <p className="text-xs text-destructive">{copy.loadFailed}</p>;
   }
   if (info.webhookMode === "auto") {
     return (
       <div className="flex items-center gap-1.5 text-xs text-[oklch(60%_0.14_145)]">
         <CheckCircle weight="fill" className="size-3.5" />
-        Webhook registered automatically.
+        {copy.registeredAuto}
       </div>
     );
   }
@@ -60,18 +63,18 @@ export function WebhookSetupPanel({ providerId }: Props) {
   return (
     <div className="space-y-4 text-sm">
       <div className="space-y-2">
-        <div className="text-xs font-medium text-muted-foreground">Webhook URL</div>
+        <div className="text-xs font-medium text-muted-foreground">{copy.webhookUrl}</div>
         <CopyRow value={info.webhookUrl} mono />
       </div>
       {info.secret && (
         <div className="space-y-2">
-          <div className="text-xs font-medium text-muted-foreground">Signing secret</div>
+          <div className="text-xs font-medium text-muted-foreground">{copy.signingSecret}</div>
           <CopyRow value={info.secret} mono masked />
         </div>
       )}
       {info.instructions && (
         <div className="space-y-2">
-          <div className="text-xs font-medium text-muted-foreground">Setup steps</div>
+          <div className="text-xs font-medium text-muted-foreground">{copy.setupSteps}</div>
           <ol className="space-y-1 text-xs leading-relaxed text-muted-foreground whitespace-pre-line">
             {info.instructions}
           </ol>
@@ -82,13 +85,15 @@ export function WebhookSetupPanel({ providerId }: Props) {
 }
 
 function CopyRow({ value, mono, masked }: { value: string; mono?: boolean; masked?: boolean }) {
+  const t = useDictionary();
+  const copy_ = t.settingsAdvanced.calendar.webhookSetup;
   const [copied, setCopied] = useState(false);
   const [revealed, setRevealed] = useState(!masked);
 
   function copy() {
     navigator.clipboard.writeText(value).then(() => {
       setCopied(true);
-      toast.success("Copied to clipboard");
+      toast.success(copy_.copiedToClipboard);
       setTimeout(() => setCopied(false), 1500);
     });
   }
@@ -108,10 +113,10 @@ function CopyRow({ value, mono, masked }: { value: string; mono?: boolean; maske
       </div>
       {masked && (
         <Button size="sm" variant="ghost" onClick={() => setRevealed((r) => !r)}>
-          {revealed ? "Hide" : "Show"}
+          {revealed ? copy_.hide : copy_.show}
         </Button>
       )}
-      <Button size="sm" variant="ghost" onClick={copy} aria-label="Copy">
+      <Button size="sm" variant="ghost" onClick={copy} aria-label={copy_.copy}>
         {copied ? <CheckCircle weight="fill" className="size-4" /> : <Copy weight="regular" className="size-4" />}
       </Button>
     </div>

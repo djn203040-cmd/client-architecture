@@ -6,8 +6,10 @@ import {
   EMPTY_SALES_TOOLKIT,
   type OnboardingProgress,
 } from "@client/shared/validators";
+import { coerceLanguage } from "@client/shared/validators";
 import { nextIncompleteStep } from "@/lib/onboarding/progress";
 import { WizardShell } from "@/components/onboarding/WizardShell";
+import { StepLanguage } from "@/components/onboarding/StepLanguage";
 import { StepGmail } from "@/components/onboarding/StepGmail";
 import { StepBooking } from "@/components/onboarding/StepBooking";
 import { StepCalendar } from "@/components/onboarding/StepCalendar";
@@ -40,7 +42,7 @@ export default async function OnboardingStepPage({ params }: Props) {
 
   const { data: coach } = await supabase
     .from("coaches")
-    .select("voice_model, onboarding_progress, notification_settings, onboarding_completed_at, public_booking_url, active_calendar_provider, timezone, sales_toolkit")
+    .select("voice_model, onboarding_progress, notification_settings, onboarding_completed_at, public_booking_url, active_calendar_provider, timezone, sales_toolkit, language")
     .eq("id", user.id)
     .single();
 
@@ -63,7 +65,9 @@ export default async function OnboardingStepPage({ params }: Props) {
 
   let stepContent: React.ReactNode;
 
-  if (step === "gmail") {
+  if (step === "language") {
+    stepContent = <StepLanguage initialLanguage={coerceLanguage(coach?.language)} />;
+  } else if (step === "gmail") {
     stepContent = <StepGmail />;
   } else if (step === "booking") {
     stepContent = <StepBooking initialUrl={coach?.public_booking_url ?? null} />;

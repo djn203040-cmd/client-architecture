@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useDraftRealtime } from "./draft-realtime";
 import { DraftCard } from "./DraftCard";
+import { useDictionary } from "@/lib/i18n/provider";
 
 export function HeldTab({
   coachId,
@@ -12,6 +13,7 @@ export function HeldTab({
   /** Coach's IANA timezone, renders draft send times in their local clock. */
   timeZone?: string | null;
 }) {
+  const t = useDictionary();
   // Queue-scope decision (#41): held standalone drafts live on their lead's
   // profile page, not in the dashboard queue, mirror the pending tab's filter.
   const { drafts, loading, removeDraft } = useDraftRealtime(coachId, { status: "held", sequenceOnly: true });
@@ -34,7 +36,7 @@ export function HeldTab({
   if (sorted.length === 0) {
     return (
       <div className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-16 text-center">
-        <p className="text-sm text-muted-foreground">Nothing on hold.</p>
+        <p className="text-sm text-muted-foreground">{t.drafts.heldTab.empty}</p>
       </div>
     );
   }

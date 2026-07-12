@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle, Link as LinkIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
 
 interface Props {
   initialUrl: string | null;
@@ -19,6 +20,7 @@ const PROVIDER_HINTS: { name: string; pattern: string; where: string }[] = [
 ];
 
 export function StepBooking({ initialUrl }: Props) {
+  const t = useDictionary();
   const router = useRouter();
   const [url, setUrl] = useState(initialUrl ?? "");
   const [submitting, setSubmitting] = useState(false);
@@ -31,7 +33,7 @@ export function StepBooking({ initialUrl }: Props) {
 
   async function saveAndAdvance(opts: { skip: boolean }) {
     if (hasInvalidUrl) {
-      toast.error("URLs need to start with http:// or https://");
+      toast.error(t.onboarding.booking.invalidUrl);
       return;
     }
     setSubmitting(true);
@@ -43,7 +45,7 @@ export function StepBooking({ initialUrl }: Props) {
           body: JSON.stringify({ public_booking_url: trimmed }),
         });
         if (!save.ok) {
-          toast.error("Couldn't save your booking link. Try again.");
+          toast.error(t.onboarding.booking.saveFailed);
           return;
         }
       }
@@ -54,7 +56,7 @@ export function StepBooking({ initialUrl }: Props) {
       });
       if (!advance.ok) {
         const body = await advance.json().catch(() => ({}));
-        toast.error(body.error ?? "Couldn't advance. Try again.");
+        toast.error(body.error ?? t.onboarding.booking.advanceFailed);
         return;
       }
       router.refresh();
@@ -67,19 +69,17 @@ export function StepBooking({ initialUrl }: Props) {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground leading-relaxed">
-        Paste the public booking link your leads use to book a call with you. The AI will use this
-        verbatim when a draft needs to offer a time, so you never see &ldquo;[CALENDLY LINK]&rdquo; placeholders
-        in your emails.
+        {t.onboarding.booking.intro}
       </p>
 
       <div className="space-y-2">
-        <Label htmlFor="ob-booking-url">Your booking link</Label>
+        <Label htmlFor="ob-booking-url">{t.onboarding.booking.label}</Label>
         <div className="relative">
           <LinkIcon weight="regular" className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             id="ob-booking-url"
             type="url"
-            placeholder="https://cal.com/your-name"
+            placeholder={t.onboarding.booking.placeholder}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             disabled={submitting}
@@ -88,12 +88,12 @@ export function StepBooking({ initialUrl }: Props) {
           />
         </div>
         {hasInvalidUrl && (
-          <p className="text-xs text-destructive">URLs need to start with http:// or https://</p>
+          <p className="text-xs text-destructive">{t.onboarding.booking.invalidUrl}</p>
         )}
         {!isEmpty && looksValid && (
           <div className="flex items-center gap-1.5 text-xs text-[oklch(60%_0.14_145)]">
             <CheckCircle weight="fill" className="size-3.5" />
-            Looks good.
+            {t.onboarding.booking.looksGood}
           </div>
         )}
       </div>
@@ -104,7 +104,7 @@ export function StepBooking({ initialUrl }: Props) {
           onClick={() => setShowHints((s) => !s)}
           className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
         >
-          {showHints ? "Hide" : "Show"} where to find your link
+          {showHints ? t.onboarding.booking.hideHints : t.onboarding.booking.showHints}
         </button>
         {showHints && (
           <ul className="mt-3 space-y-2 text-xs">
@@ -116,7 +116,7 @@ export function StepBooking({ initialUrl }: Props) {
               </li>
             ))}
             <li className="text-muted-foreground italic">
-              Any other provider works too, just paste the public booking URL.
+              {t.onboarding.booking.anyProvider}
             </li>
           </ul>
         )}
@@ -129,14 +129,14 @@ export function StepBooking({ initialUrl }: Props) {
           onClick={() => saveAndAdvance({ skip: true })}
           disabled={submitting}
         >
-          I&apos;ll add this later
+          {t.onboarding.booking.later}
         </Button>
         <Button
           size="sm"
           onClick={() => saveAndAdvance({ skip: false })}
           disabled={submitting || hasInvalidUrl || isEmpty}
         >
-          {submitting ? "Saving…" : "Continue"}
+          {submitting ? t.onboarding.booking.saving : t.onboarding.booking.continue}
         </Button>
       </div>
     </div>

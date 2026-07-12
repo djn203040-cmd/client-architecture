@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import type { TLeadStatus } from "@client/shared/types";
 import { isTerminalState } from "@client/shared";
 import type { TSequenceView, TSequenceStepTone } from "@/lib/sequences/progress";
+import { useDictionary } from "@/lib/i18n/provider";
 
 // Accent colour for the current step's status line, by tone.
 const TONE_CLASS: Record<TSequenceStepTone, string> = {
@@ -31,6 +32,7 @@ export function SequenceStatusPanel({
   status: TLeadStatus;
   sequence?: TSequenceView | null;
 }) {
+  const t = useDictionary();
   const router = useRouter();
   const canStart = !isTerminalState(status) && status !== "in_sequence";
   const [loading, setLoading] = useState(false);
@@ -44,13 +46,13 @@ export function SequenceStatusPanel({
         body: JSON.stringify({ leadId, track: "no_show" }),
       });
       if (!r.ok) {
-        toast.error("Couldn't start sequence. Try again.");
+        toast.error(t.leads.sequenceStatus.startError);
         return;
       }
-      toast.success("Intake sequence started.");
+      toast.success(t.leads.sequenceStatus.started);
       router.refresh();
     } catch {
-      toast.error("Couldn't start sequence. Try again.");
+      toast.error(t.leads.sequenceStatus.startError);
     } finally {
       setLoading(false);
     }
@@ -59,36 +61,36 @@ export function SequenceStatusPanel({
   const finished = sequence?.status === "completed";
   const nextSendDisplay = sequence
     ? finished
-      ? "Complete"
+      ? t.leads.sequenceStatus.complete
       : sequence.status === "paused"
-        ? "Paused"
+        ? t.leads.sequenceStatus.paused
         : sequence.status === "cancelled"
-          ? "Stopped"
+          ? t.leads.sequenceStatus.stopped
           : sequence.status === "held"
-            ? "On hold"
+            ? t.leads.sequenceStatus.onHold
             : (sequence.nextSendLabel ?? "-")
     : "-";
 
   return (
     <section data-tour="sequence-panel" className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-4">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-xl font-semibold">Sequence</h2>
+        <h2 className="text-xl font-semibold">{t.leads.sequenceStatus.heading}</h2>
         {sequence && (
           <span className="text-xs text-muted-foreground">
             {finished
-              ? `${sequence.totalSteps} of ${sequence.totalSteps} steps`
-              : `Step ${sequence.currentStep} of ${sequence.totalSteps}`}
+              ? t.leads.sequenceStatus.stepsOf(sequence.totalSteps)
+              : t.leads.sequenceStatus.stepOf(sequence.currentStep, sequence.totalSteps)}
           </span>
         )}
       </div>
 
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Status</span>
+          <span className="text-muted-foreground">{t.leads.sequenceStatus.statusLabel}</span>
           <span className="font-mono">{status}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Next send</span>
+          <span className="text-muted-foreground">{t.leads.sequenceStatus.nextSend}</span>
           <span className="font-mono text-muted-foreground">{nextSendDisplay}</span>
         </div>
       </div>
@@ -134,7 +136,7 @@ export function SequenceStatusPanel({
                         !done && !next ? "text-muted-foreground" : "",
                       ].join(" ")}
                     >
-                      Step {step.index}
+                      {t.leads.sequenceStatus.stepLabel(step.index)}
                     </p>
                     <p className={["text-xs", TONE_CLASS[step.tone]].join(" ")}>{step.detail}</p>
                   </div>
@@ -151,9 +153,9 @@ export function SequenceStatusPanel({
           className="w-full"
           disabled={loading}
           onClick={startSequence}
-          aria-label="Start Intake Sequence"
+          aria-label={t.leads.sequenceStatus.startAria}
         >
-          {loading ? "Starting…" : "Start Intake Sequence"}
+          {loading ? t.leads.sequenceStatus.starting : t.leads.sequenceStatus.start}
         </Button>
       )}
     </section>

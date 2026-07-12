@@ -22,6 +22,7 @@ import {
 } from "@/lib/calendar/providers";
 import { toast } from "sonner";
 import { ArrowsClockwise } from "@phosphor-icons/react";
+import { useDictionary } from "@/lib/i18n/provider";
 
 interface Integration {
   id: string;
@@ -38,6 +39,8 @@ interface Props {
 }
 
 export function CalendarSection({ activeProvider, integrations, oauthConfigured }: Props) {
+  const t = useDictionary();
+  const cal = t.settings.calendar;
   const router = useRouter();
   const [picker, setPicker] = useState<CalendarProviderId | null>(null);
   const [switching, setSwitching] = useState(false);
@@ -55,10 +58,10 @@ export function CalendarSection({ activeProvider, integrations, oauthConfigured 
     try {
       const res = await fetch(`/api/auth/calendar/${provider}/disconnect`, { method: "POST" });
       if (!res.ok) {
-        toast.error("Couldn't disconnect. Try again.");
+        toast.error(cal.disconnectError);
         return false;
       }
-      toast.success(`${CALENDAR_PROVIDERS[provider].label} disconnected.`);
+      toast.success(cal.disconnected(CALENDAR_PROVIDERS[provider].label));
       router.refresh();
       return true;
     } finally {
@@ -98,10 +101,9 @@ export function CalendarSection({ activeProvider, integrations, oauthConfigured 
   return (
     <div className="space-y-5">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold">Calendar</h2>
+        <h2 className="text-xl font-semibold">{cal.title}</h2>
         <p className="text-sm text-muted-foreground max-w-[65ch]">
-          Connect a single calendar tool. We listen for no-shows, completed calls, and new bookings,
-          then start the right follow-up automatically.
+          {cal.description}
         </p>
       </div>
 
@@ -126,12 +128,12 @@ export function CalendarSection({ activeProvider, integrations, oauthConfigured 
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-sm">{activeConfig.label}</span>
                   <span className="text-[11px] font-medium text-[oklch(60%_0.14_145)]">
-                    {activeIntegration?.status === "connected" ? "Connected" : (activeIntegration?.status ?? "unknown")}
+                    {activeIntegration?.status === "connected" ? t.common.connected : (activeIntegration?.status ?? "unknown")}
                   </span>
                 </div>
                 {activeIntegration?.last_checked_at && (
                   <p className="text-xs text-muted-foreground" suppressHydrationWarning>
-                    Last checked {new Date(activeIntegration.last_checked_at).toLocaleString()}
+                    {cal.lastChecked(new Date(activeIntegration.last_checked_at).toLocaleString())}
                   </p>
                 )}
                 {activeIntegration?.error_message && (
@@ -139,16 +141,16 @@ export function CalendarSection({ activeProvider, integrations, oauthConfigured 
                 )}
               </div>
               <Button variant="ghost" size="sm" onClick={() => setConfirmDisconnect(true)} disabled={disconnecting}>
-                {disconnecting ? "Disconnecting…" : "Disconnect"}
+                {disconnecting ? cal.disconnecting : cal.disconnect}
               </Button>
             </div>
 
             <div className="pt-2 border-t border-white/10">
               <details className="group">
                 <summary className="text-xs font-medium text-muted-foreground cursor-pointer select-none list-none flex items-center gap-1">
-                  Webhook setup
-                  <span className="text-muted-foreground/60 group-open:hidden">→ show</span>
-                  <span className="text-muted-foreground/60 hidden group-open:inline">↓ hide</span>
+                  {cal.webhookSetup}
+                  <span className="text-muted-foreground/60 group-open:hidden">{cal.show}</span>
+                  <span className="text-muted-foreground/60 hidden group-open:inline">{cal.hide}</span>
                 </summary>
                 <div className="mt-3">
                   <WebhookSetupPanel providerId={activeConfig.id} />
@@ -166,7 +168,7 @@ export function CalendarSection({ activeProvider, integrations, oauthConfigured 
       ) : (
         // NO CALENDAR CONNECTED YET
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">Pick the calendar you use:</p>
+          <p className="text-sm text-muted-foreground">{cal.pickPrompt}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {CALENDAR_PROVIDER_IDS.map((id) => {
               const config = CALENDAR_PROVIDERS[id];
@@ -202,22 +204,21 @@ export function CalendarSection({ activeProvider, integrations, oauthConfigured 
       <Dialog open={confirmDisconnect} onOpenChange={setConfirmDisconnect}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Disconnect {activeConfig?.label}?</DialogTitle>
+            <DialogTitle>{cal.confirmDisconnectTitle(activeConfig?.label ?? "")}</DialogTitle>
             <DialogDescription>
-              We&apos;ll stop receiving bookings and no-shows from {activeConfig?.label}. Sequences
-              that were already started for existing leads keep running.
+              {cal.confirmDisconnectBody(activeConfig?.label ?? "")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setConfirmDisconnect(false)} disabled={disconnecting}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button
               variant="destructive"
               onClick={() => activeProvider && disconnect(activeProvider)}
               disabled={disconnecting || !activeProvider}
             >
-              {disconnecting ? "Disconnecting…" : "Disconnect"}
+              {disconnecting ? cal.disconnecting : cal.disconnect}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -228,20 +229,21 @@ export function CalendarSection({ activeProvider, integrations, oauthConfigured 
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Switch to {confirmSwitchTo ? CALENDAR_PROVIDERS[confirmSwitchTo].label : ""}?
+              {cal.confirmSwitchTitle(confirmSwitchTo ? CALENDAR_PROVIDERS[confirmSwitchTo].label : "")}
             </DialogTitle>
             <DialogDescription>
-              We&apos;ll disconnect {activeConfig?.label} first, then walk you through connecting{" "}
-              {confirmSwitchTo ? CALENDAR_PROVIDERS[confirmSwitchTo].label : ""}. You can switch back
-              any time.
+              {cal.confirmSwitchBody(
+                activeConfig?.label ?? "",
+                confirmSwitchTo ? CALENDAR_PROVIDERS[confirmSwitchTo].label : "",
+              )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setConfirmSwitchTo(null)} disabled={switching}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button onClick={() => confirmSwitchTo && switchTo(confirmSwitchTo)} disabled={switching || !confirmSwitchTo}>
-              {switching ? "Switching…" : "Switch"}
+              {switching ? cal.switching : cal.switch}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -260,13 +262,14 @@ function SwitchPicker({
   onSelect: (id: CalendarProviderId) => void;
   switching: boolean;
 }) {
+  const cal = useDictionary().settings.calendar;
   const others = CALENDAR_PROVIDER_IDS.filter((id) => id !== activeProvider);
 
   return (
     <div className="flex items-center gap-2 text-sm">
       <ArrowsClockwise weight="regular" className="size-4 text-muted-foreground" />
       <label htmlFor="switch-calendar" className="text-muted-foreground">
-        Use a different calendar?
+        {cal.switchPrompt}
       </label>
       <select
         id="switch-calendar"
@@ -280,7 +283,7 @@ function SwitchPicker({
         className="rounded-lg px-3 py-1.5 text-sm bg-white/10 dark:bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-ring"
       >
         <option value="" disabled>
-          Pick one…
+          {cal.switchPickOne}
         </option>
         {others.map((id) => (
           <option key={id} value={id}>

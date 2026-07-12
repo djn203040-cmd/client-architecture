@@ -2,9 +2,11 @@
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmailRow } from "./EmailRow";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { TThreadEmail } from "@/lib/gmail/thread";
 
 export function EmailThreadView({ leadId }: { leadId: string }) {
+  const t = useDictionary();
   const [messages, setMessages] = useState<TThreadEmail[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,8 +16,7 @@ export function EmailThreadView({ leadId }: { leadId: string }) {
         const body = await res.json();
         if (!res.ok) {
           throw new Error(
-            (body as { error?: string }).error ??
-              "Couldn't load emails. Check your Gmail connection in Settings."
+            (body as { error?: string }).error ?? t.leads.emailThread.loadError
           );
         }
         return body as { messages: TThreadEmail[] };
@@ -23,12 +24,10 @@ export function EmailThreadView({ leadId }: { leadId: string }) {
       .then(({ messages: msgs }) => setMessages(msgs))
       .catch((err: unknown) => {
         setError(
-          err instanceof Error
-            ? err.message
-            : "Couldn't load emails. Check your Gmail connection in Settings."
+          err instanceof Error ? err.message : t.leads.emailThread.loadError
         );
       });
-  }, [leadId]);
+  }, [leadId, t]);
 
   if (error) {
     return (
@@ -49,7 +48,7 @@ export function EmailThreadView({ leadId }: { leadId: string }) {
   if (messages.length === 0) {
     return (
       <p className="text-sm text-muted-foreground py-8 text-center">
-        No emails yet.
+        {t.leads.emailThread.empty}
       </p>
     );
   }

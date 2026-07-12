@@ -16,6 +16,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { TLeadStatus } from "@client/shared/types";
 import type { CallOutcomeRow } from "@/components/calls/call-outcome-realtime";
 import { buildSequenceView, type TSequenceConfig } from "@/lib/sequences/progress";
+import { getServerDictionary } from "@/lib/i18n/server";
 
 export default async function LeadProfilePage({
   params,
@@ -24,6 +25,7 @@ export default async function LeadProfilePage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+  const t = await getServerDictionary();
 
   const {
     data: { user },
@@ -120,7 +122,7 @@ export default async function LeadProfilePage({
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to leads
+        {t.leads.profile.backToLeads}
       </Link>
       <article className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
       <div className="space-y-6">
@@ -151,9 +153,9 @@ export default async function LeadProfilePage({
         )}
         <Tabs defaultValue="thread" data-tour="lead-tabs">
           <TabsList>
-            <TabsTrigger value="thread">Thread</TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="notes">Notes</TabsTrigger>
+            <TabsTrigger value="thread">{t.leads.profile.threadTab}</TabsTrigger>
+            <TabsTrigger value="timeline">{t.leads.profile.timelineTab}</TabsTrigger>
+            <TabsTrigger value="notes">{t.leads.profile.notesTab}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="thread" className="mt-4">

@@ -15,20 +15,13 @@ const TONE: Record<TLeadStatus, string> = {
   do_not_contact:  "bg-[var(--state-do-not-contact-bg)] text-[var(--state-do-not-contact-fg)]",
 };
 
-const LABEL: Record<TLeadStatus, string> = {
-  identified: "Identified",
-  call_booked: "Call booked",
-  no_show: "No show",
-  call_completed: "Call completed",
-  in_sequence: "In sequence",
-  replied: "Replied",
-  converted: "Converted",
-  lost: "Lost",
-  unsubscribed: "Unsubscribed",
-  do_not_contact: "Do not contact",
-  bounced: "Bounced",
-};
-
-export function LeadStateBadge({ status }: { status: TLeadStatus }) {
-  return <Badge className={`${TONE[status]} font-normal`}>{LABEL[status]}</Badge>;
+export function LeadStateBadge({
+  status,
+  label,
+}: {
+  status: TLeadStatus;
+  /** Localized label for the status. Callers pass it from their dictionary. */
+  label: string;
+}) {
+  return <Badge className={`${TONE[status]} font-normal`}>{label}</Badge>;
 }

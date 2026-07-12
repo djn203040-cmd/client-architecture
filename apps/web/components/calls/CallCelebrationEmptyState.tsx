@@ -3,17 +3,12 @@ import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, PhoneCall } from "@phosphor-icons/react";
+import { useDictionary } from "@/lib/i18n/provider";
 
 interface Props {
   /** Tailors the line under the headline to the empty tab. */
   bucket?: "awaiting" | "upcoming" | "history";
 }
-
-const LINE: Record<NonNullable<Props["bucket"]>, string> = {
-  awaiting: "Every call is accounted for",
-  upcoming: "No calls on the calendar yet",
-  history: "Resolved calls will appear here",
-};
 
 /**
  * Calls-queue empty state, a quiet celebration rather than a dead-end, mirroring
@@ -22,6 +17,12 @@ const LINE: Record<NonNullable<Props["bucket"]>, string> = {
  */
 export function CallCelebrationEmptyState({ bucket = "awaiting" }: Props) {
   const reduce = useReducedMotion();
+  const t = useDictionary();
+  const line = {
+    awaiting: t.calls.emptyState.lineAwaiting,
+    upcoming: t.calls.emptyState.lineUpcoming,
+    history: t.calls.emptyState.lineHistory,
+  }[bucket];
   return (
     <motion.div
       initial={reduce ? { opacity: 0 } : { y: 16, opacity: 0 }}
@@ -36,13 +37,15 @@ export function CallCelebrationEmptyState({ bucket = "awaiting" }: Props) {
         <PhoneCall weight="regular" className="size-7" />
       </span>
       <h2 className="text-[28px] font-semibold leading-[1.2]">
-        {bucket === "awaiting" ? "You're all caught up." : "Nothing here yet."}
+        {bucket === "awaiting"
+          ? t.calls.emptyState.awaitingHeadline
+          : t.calls.emptyState.otherHeadline}
       </h2>
-      <p className="text-sm text-muted-foreground">{LINE[bucket]}</p>
+      <p className="text-sm text-muted-foreground">{line}</p>
       <Button asChild variant="ghost" className="min-h-[44px]">
         <Link href="/">
           <ArrowLeft className="size-4 mr-2" weight="regular" />
-          Back to dashboard
+          {t.calls.emptyState.backToDashboard}
         </Link>
       </Button>
     </motion.div>

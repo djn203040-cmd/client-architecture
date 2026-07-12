@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle, LockKey } from "@phosphor-icons/react";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { CalendarProviderConfig } from "@/lib/calendar/providers";
 
 interface Props {
@@ -12,6 +13,8 @@ interface Props {
 }
 
 export function ProviderCard({ provider, selected, connected, oauthConfigured = true, onSelect }: Props) {
+  const t = useDictionary();
+  const copy = t.settingsAdvanced.calendar.providerCard;
   const initials = provider.label
     .split(/\s+/)
     .map((w) => w[0])
@@ -50,13 +53,13 @@ export function ProviderCard({ provider, selected, connected, oauthConfigured = 
         {connected && (
           <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[oklch(60%_0.14_145)]">
             <CheckCircle weight="fill" className="size-3.5" />
-            Connected
+            {copy.connected}
           </span>
         )}
         {!connected && !oauthConfigured && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground" title="OAuth credentials not configured">
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground" title={copy.oauthNotConfigured}>
             <LockKey weight="regular" className="size-3.5" />
-            Setup needed
+            {copy.setupNeeded}
           </span>
         )}
       </div>
@@ -68,7 +71,7 @@ export function ProviderCard({ provider, selected, connected, oauthConfigured = 
 
       <div className="mt-auto pt-1">
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-          {provider.authType === "oauth2" ? "Sign in" : "API key"}
+          {provider.authType === "oauth2" ? copy.signIn : copy.apiKey}
         </span>
       </div>
     </button>

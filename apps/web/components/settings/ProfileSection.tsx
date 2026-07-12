@@ -1,8 +1,12 @@
+import { coerceLanguage } from "@client/shared/validators";
+import { getServerDictionary } from "@/lib/i18n/server";
 import { ProfileForm } from "./ProfileForm";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 interface Coach {
   id: string;
   name: string | null;
+  language?: string | null;
   display_name?: string | null;
   role_title?: string | null;
   timezone?: string | null;
@@ -16,17 +20,19 @@ interface Props {
   coach: Coach;
 }
 
-export function ProfileSection({ coach }: Props) {
+export async function ProfileSection({ coach }: Props) {
+  const t = await getServerDictionary();
   const wh = coach.working_hours as { start: string; end: string } | null | undefined;
 
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold">Profile</h2>
+        <h2 className="text-xl font-semibold">{t.settings.profile.title}</h2>
         <p className="text-sm text-muted-foreground max-w-[65ch]">
-          Your identity on Sonorous, saved automatically as you type.
+          {t.settings.profile.description}
         </p>
       </div>
+      <LanguageSwitcher initialLanguage={coerceLanguage(coach.language)} />
       <ProfileForm
         coach={{
           id: coach.id,

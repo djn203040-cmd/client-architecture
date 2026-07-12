@@ -7,6 +7,7 @@ import { VoiceCorpusImporter } from "./VoiceCorpusImporter";
 import { VoiceProfileCard } from "./VoiceProfileCard";
 import { VoiceRefineCard } from "./VoiceRefineCard";
 import { ExamplesList } from "./ExamplesList";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { TVoiceProfile } from "@client/shared/validators";
 
 type State = "idle" | "analyzing" | "complete";
@@ -18,6 +19,7 @@ export function VoiceBuilderClient({
   initialVoiceModel: TVoiceProfile | null;
   onSaved?: (profile: TVoiceProfile) => void;
 }) {
+  const t = useDictionary();
   const [state, setState] = useState<State>(initialVoiceModel ? "complete" : "idle");
   const [profile, setProfile] = useState<TVoiceProfile | null>(initialVoiceModel);
   const [saving, setSaving] = useState(false);
@@ -45,10 +47,10 @@ export function VoiceBuilderClient({
         body: JSON.stringify(profile),
       });
       if (r.ok) {
-        toast.success("Voice profile saved.");
+        toast.success(t.settingsAdvanced.voice.builder.profileSaved);
         if (profile) onSaved?.(profile);
       } else {
-        toast.error("Couldn't save profile. Try again.");
+        toast.error(t.settingsAdvanced.voice.builder.saveFailed);
       }
     } finally {
       setSaving(false);
@@ -65,7 +67,7 @@ export function VoiceBuilderClient({
       body: JSON.stringify(next),
     });
     if (!r.ok) {
-      toast.error("Couldn't save that. Try again.");
+      toast.error(t.settingsAdvanced.voice.builder.persistFailed);
       return false;
     }
     setProfile(next);
@@ -77,7 +79,7 @@ export function VoiceBuilderClient({
     if (!profile) return false;
     const existing = profile.usage_rules ?? [];
     if (existing.some((r) => r.rule.toLowerCase() === rule.toLowerCase())) {
-      toast.info("You already have that rule.");
+      toast.info(t.settingsAdvanced.voice.builder.ruleExists);
       return true;
     }
     const next: TVoiceProfile = {
@@ -88,7 +90,7 @@ export function VoiceBuilderClient({
       ],
     };
     const ok = await persist(next);
-    if (ok) toast.success("Rule added to your voice.");
+    if (ok) toast.success(t.settingsAdvanced.voice.builder.ruleAdded);
     return ok;
   }
 
@@ -105,7 +107,7 @@ export function VoiceBuilderClient({
   return (
     <div className="space-y-6">
       <div role="status" aria-live="polite" className="sr-only">
-        {state === "analyzing" ? "Analyzing your writing…" : state === "complete" ? "Analysis complete." : ""}
+        {state === "analyzing" ? t.settingsAdvanced.voice.builder.analyzing : state === "complete" ? t.settingsAdvanced.voice.builder.analysisComplete : ""}
       </div>
       <VoiceCorpusImporter
         onAnalyzed={onAnalyzed}
@@ -132,7 +134,7 @@ export function VoiceBuilderClient({
               disabled={saving}
             >
               <FloppyDisk weight="regular" className="size-4" />
-              {saving ? "Saving..." : "Save profile"}
+              {saving ? t.settingsAdvanced.voice.builder.saving : t.settingsAdvanced.voice.builder.saveProfile}
             </Button>
           </div>
           <VoiceRefineCard
