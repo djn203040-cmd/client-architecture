@@ -32,7 +32,16 @@ export interface SalesStyleMeta {
   tagline: string;
   description: string;
   bestFor: string;
+  // A concrete "how it sounds" example, so a coach can hear the difference
+  // before picking. All three answer the SAME objection (SALES_STYLE_SCENARIO)
+  // so they read as a direct comparison.
+  example: string;
 }
+
+// The shared objection every style example responds to, so the three examples
+// are directly comparable.
+export const SALES_STYLE_SCENARIO =
+  'A warm lead replies: "I love this, but $4,000 is a stretch for me right now."';
 
 export const SALES_STYLES: readonly SalesStyleMeta[] = [
   {
@@ -42,25 +51,31 @@ export const SALES_STYLES: readonly SalesStyleMeta[] = [
     description:
       "You lead with genuine curiosity and let people arrive at the decision themselves. Lots of questions, real listening, and only a gentle nudge when someone hesitates. You never push.",
     bestFor:
-      "Transformation, life, health, and relationship coaches — and anyone whose audience recoils from feeling 'sold to'.",
+      "Transformation, life, health, and relationship coaches, and anyone whose audience recoils from feeling 'sold to'.",
+    example:
+      "I completely hear you, and there's zero rush on my end. Can I ask, when you picture having this fully handled a few months from now, what changes for you? Sometimes 'it's a stretch' is really 'is now the right time,' and I'd rather help you get clear on that than talk you into anything. If it helps, we could also start smaller and see how it feels.",
   },
   {
     id: "closer",
     label: "The Closer",
     tagline: "Direct and decisive",
     description:
-      "You diagnose the problem quickly, then name the objection out loud and make a clear, confident ask. Honest urgency, no dancing around it — you help people stop overthinking and commit.",
+      "You diagnose the problem quickly, then name the objection out loud and make a clear, confident ask. Honest urgency, no dancing around it, you help people stop overthinking and commit.",
     bestFor:
       "Business, sales, mindset, and fitness coaches whose clients respect straight talk and short decision cycles.",
+    example:
+      "Fair, and thanks for saying it straight. Honest question: is the money genuinely not there, or are you not yet sure it's worth it? Those are two different problems. If it's worth-it, let's settle that right now. If it's timing, we can split it into three payments so you start this week instead of 'someday.' Want me to set that up?",
   },
   {
     id: "strategist",
     label: "The Strategist",
     tagline: "Value architect",
     description:
-      "You win on the offer itself: stack the value, lower the risk, present the right package, and reach for the payment plan or lighter option that removes the exact obstacle — so saying yes becomes the obvious move.",
+      "You win on the offer itself: stack the value, lower the risk, present the right package, and reach for the payment plan or lighter option that removes the exact obstacle, so saying yes becomes the obvious move.",
     bestFor:
       "Coaches with tiered programs and clear pricing ladders, and higher-ticket offers where structure and ROI matter most.",
+    example:
+      "Makes sense, let's look at it properly. The full program is $4,000 for the 12 weeks and everything in it. Lined up against what staying stuck is costing you, the math usually flips. But if cash flow is the real constraint, I'd rather keep your momentum than lose it, so we could do a 3-payment plan, or start with the 4-week intensive and roll it into the full thing. Which feels right?",
   },
 ] as const;
 

@@ -6,6 +6,7 @@ import {
   SalesToolkitSchema,
   EMPTY_SALES_TOOLKIT,
   SALES_STYLES,
+  SALES_STYLE_SCENARIO,
   type TSalesToolkit,
   type TSalesStyle,
   type TToolkitOption,
@@ -15,7 +16,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash, Check } from "@phosphor-icons/react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Plus, Trash, Check, Info } from "@phosphor-icons/react";
 
 interface Props {
   initial: TSalesToolkit;
@@ -65,33 +71,65 @@ function StylePicker({
         {SALES_STYLES.map((style) => {
           const selected = value === style.id;
           return (
-            <button
+            <div
               key={style.id}
-              type="button"
-              aria-pressed={selected}
-              onClick={() => onChange(selected ? null : style.id)}
               className={[
-                "relative text-left rounded-xl border p-4 transition-colors",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "relative rounded-xl border transition-colors",
                 selected
                   ? "border-primary/60 bg-primary/10"
                   : "border-white/10 bg-white/5 hover:bg-white/10",
               ].join(" ")}
             >
-              {selected && (
-                <span className="absolute right-3 top-3 grid size-5 place-items-center rounded-full bg-primary text-primary-foreground">
-                  <Check className="size-3" weight="bold" />
-                </span>
-              )}
-              <p className="font-semibold">{style.label}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{style.tagline}</p>
-              <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                {style.description}
-              </p>
-              <p className="text-[11px] text-muted-foreground/80 mt-2 leading-relaxed">
-                <span className="font-medium">Best for:</span> {style.bestFor}
-              </p>
-            </button>
+              {/* Main selectable area. Kept as a sibling of the info button (not a
+                  parent) so we never nest a button inside a button. Right padding
+                  leaves room for the info trigger in the corner. */}
+              <button
+                type="button"
+                aria-pressed={selected}
+                onClick={() => onChange(selected ? null : style.id)}
+                className="block w-full text-left rounded-xl p-4 pr-9 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <div className="flex items-center gap-1.5">
+                  {selected && (
+                    <span className="grid size-4 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+                      <Check className="size-2.5" weight="bold" />
+                    </span>
+                  )}
+                  <p className="font-semibold">{style.label}</p>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">{style.tagline}</p>
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                  {style.description}
+                </p>
+                <p className="text-[11px] text-muted-foreground/80 mt-2 leading-relaxed">
+                  <span className="font-medium">Best for:</span> {style.bestFor}
+                </p>
+              </button>
+
+              {/* Info affordance: shows a concrete example of how this style sounds,
+                  answering the same objection as the other two for easy comparison. */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={`See an example of ${style.label}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute right-2 top-2 grid size-6 place-items-center rounded-full text-muted-foreground hover:text-foreground hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Info className="size-4" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-80 space-y-2">
+                  <p className="text-sm font-medium">{style.label} in action</p>
+                  <p className="text-xs text-muted-foreground italic">
+                    {SALES_STYLE_SCENARIO}
+                  </p>
+                  <div className="rounded-lg bg-white/5 border border-white/10 p-2.5">
+                    <p className="text-sm leading-relaxed">{style.example}</p>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
           );
         })}
       </div>
