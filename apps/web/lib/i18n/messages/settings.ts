@@ -141,6 +141,43 @@ export const settings = defineMessages({
         "Optional, and most coaches never need it. If the approach you picked doesn't quite match how you sell, describe the difference here in your own words. This overrides the default guidance where they conflict.",
       overridePlaceholder:
         "e.g. I never mention price until they ask. I always open with a question about where they are right now, not where they want to be.",
+      // The shared objection every style example answers, so the three are
+      // directly comparable. Localized display copy only — the model-facing
+      // steer lives separately in ai-engine and is unaffected.
+      scenario:
+        'A warm lead replies: "I love this, but $4,000 is a stretch for me right now."',
+      styles: {
+        guide: {
+          label: "The Guide",
+          tagline: "Nurturing and unhurried",
+          description:
+            "You lead with genuine curiosity and let people arrive at the decision themselves. Lots of questions, real listening, and only a gentle nudge when someone hesitates. You never push.",
+          bestFor:
+            "Transformation, life, health, and relationship coaches, and anyone whose audience recoils from feeling 'sold to'.",
+          example:
+            "I completely hear you, and there's zero rush on my end. Can I ask, when you picture having this fully handled a few months from now, what changes for you? Sometimes 'it's a stretch' is really 'is now the right time,' and I'd rather help you get clear on that than talk you into anything. If it helps, we could also start smaller and see how it feels.",
+        },
+        closer: {
+          label: "The Closer",
+          tagline: "Direct and decisive",
+          description:
+            "You diagnose the problem quickly, then name the objection out loud and make a clear, confident ask. Honest urgency, no dancing around it, you help people stop overthinking and commit.",
+          bestFor:
+            "Business, sales, mindset, and fitness coaches whose clients respect straight talk and short decision cycles.",
+          example:
+            "Fair, and thanks for saying it straight. Honest question: is the money genuinely not there, or are you just not sure yet it's worth it? Those are two different problems. If it's worth-it, that's the real thing for us to work through. And if it's timing, it doesn't have to be one big hit, we can split it into three payments. Which of those is closer to the truth for you?",
+        },
+        strategist: {
+          label: "The Strategist",
+          tagline: "Value architect",
+          description:
+            "You win on the offer itself: stack the value, lower the risk, present the right package, and reach for the payment plan or lighter option that removes the exact obstacle, so saying yes becomes the obvious move.",
+          bestFor:
+            "Coaches with tiered programs and clear pricing ladders, and higher-ticket offers where structure and ROI matter most.",
+          example:
+            "Makes sense, let's look at it properly. The full program is $4,000 for the 12 weeks and everything in it. Lined up against what staying stuck is costing you, the math usually flips. But if cash flow is the real constraint, I'd rather keep your momentum than lose it, so we could do a 3-payment plan, or start with the 4-week intensive and roll it into the full thing. Which feels right?",
+        },
+      },
     },
     sequence: {
       description: "Days from sequence start for each touchpoint. Comma-separated.",
@@ -351,6 +388,40 @@ export const settings = defineMessages({
         "Valgfrit, og de fleste coaches får aldrig brug for det. Hvis den tilgang, du valgte, ikke helt rammer, hvordan du sælger, så beskriv forskellen her med dine egne ord. Det tilsidesætter standardvejledningen, hvor de er uenige.",
       overridePlaceholder:
         "f.eks. Jeg nævner aldrig pris, før de spørger. Jeg åbner altid med et spørgsmål om, hvor de er lige nu — ikke hvor de gerne vil hen.",
+      scenario:
+        'Et varmt lead svarer: "Jeg elsker det, men 30.000 kr. er lige i overkanten for mig lige nu."',
+      styles: {
+        guide: {
+          label: "Guiden",
+          tagline: "Nærværende og uden hastværk",
+          description:
+            "Du går til det med ægte nysgerrighed og lader folk selv nå frem til beslutningen. Masser af spørgsmål, rigtig lytning, og kun et blidt skub, når nogen tøver. Du presser aldrig.",
+          bestFor:
+            "Transformations-, livs-, sundheds- og parcoaches, og alle, hvis publikum får kuldegysninger af at føle sig 'solgt til'.",
+          example:
+            "Jeg forstår dig fuldstændig, og der er slet ingen hast fra min side. Må jeg spørge: når du forestiller dig, at det her er helt på plads om et par måneder, hvad ændrer sig så for dig? Nogle gange betyder 'det er lige i overkanten' i virkeligheden 'er det det rigtige tidspunkt', og jeg vil hellere hjælpe dig med at blive klar på det end tale dig til noget. Hvis det hjælper, kan vi også starte i det små og mærke, hvordan det føles.",
+        },
+        closer: {
+          label: "Afslutteren",
+          tagline: "Direkte og beslutsom",
+          description:
+            "Du finder problemet hurtigt, sætter så ord på indvendingen højt og kommer med en klar, selvsikker opfordring. Ærlig fornemmelse af, at det haster, ingen omsvøb — du hjælper folk med at holde op med at overtænke og træffe beslutningen.",
+          bestFor:
+            "Business-, salgs-, mindset- og fitnesscoaches, hvis kunder respekterer ligefrem tale og korte beslutningsforløb.",
+          example:
+            "Fair nok, og tak fordi du siger det ligeud. Ærligt spørgsmål: er pengene der reelt ikke, eller er du bare ikke sikker på, at det er det værd endnu? Det er to forskellige problemer. Er det 'værd-det', så er det lige præcis det, vi skal have styr på sammen. Og handler det om timing, behøver det ikke være ét stort beløb — vi kan dele det op i tre rater. Hvad af det ligger tættest på sandheden for dig?",
+        },
+        strategist: {
+          label: "Strategen",
+          tagline: "Værdiarkitekt",
+          description:
+            "Du vinder på selve tilbuddet: byg værdien op, sænk risikoen, præsentér den rigtige pakke, og grib fat i ratebetalingen eller den lettere løsning, der fjerner netop den forhindring, så et ja bliver det oplagte valg.",
+          bestFor:
+            "Coaches med trinvise programmer og klare pristrapper, og dyrere tilbud, hvor struktur og udbytte betyder mest.",
+          example:
+            "Giver god mening, lad os kigge ordentligt på det. Hele programmet er 30.000 kr. for de 12 uger og alt, hvad der er i det. Holdt op mod, hvad det koster dig at blive stående, hvor du er, vender regnestykket som regel. Men hvis likviditeten er den reelle udfordring, vil jeg hellere holde dit momentum end miste det, så vi kan lave en 3-rate-plan, eller starte med det 4-ugers intensivforløb og rulle det ind i det fulde. Hvad føles rigtigt?",
+        },
+      },
     },
     sequence: {
       description: "Antal dage fra forløbets start for hvert kontaktpunkt. Adskilt med komma.",

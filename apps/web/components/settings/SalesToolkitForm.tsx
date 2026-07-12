@@ -7,7 +7,6 @@ import {
   SalesToolkitSchema,
   EMPTY_SALES_TOOLKIT,
   SALES_STYLES,
-  SALES_STYLE_SCENARIO,
   type TSalesToolkit,
   type TSalesStyle,
   type TToolkitOption,
@@ -71,6 +70,8 @@ function StylePicker({
       <div className="grid gap-3 sm:grid-cols-3">
         {SALES_STYLES.map((style) => {
           const selected = value === style.id;
+          // Display copy is localized; SALES_STYLES is kept only for the id/enum.
+          const copy = t.settings.salesToolkit.styles[style.id];
           return (
             <div
               key={style.id}
@@ -96,14 +97,14 @@ function StylePicker({
                       <Check className="size-2.5" weight="bold" />
                     </span>
                   )}
-                  <p className="font-semibold">{style.label}</p>
+                  <p className="font-semibold">{copy.label}</p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5">{style.tagline}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{copy.tagline}</p>
                 <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                  {style.description}
+                  {copy.description}
                 </p>
                 <p className="text-[11px] text-muted-foreground/80 mt-2 leading-relaxed">
-                  <span className="font-medium">{t.settings.salesToolkit.bestFor}</span> {style.bestFor}
+                  <span className="font-medium">{t.settings.salesToolkit.bestFor}</span> {copy.bestFor}
                 </p>
               </button>
 
@@ -114,7 +115,7 @@ function StylePicker({
                 <HoverCardTrigger asChild>
                   <button
                     type="button"
-                    aria-label={t.settings.salesToolkit.exampleAria(style.label)}
+                    aria-label={t.settings.salesToolkit.exampleAria(copy.label)}
                     onClick={(e) => e.stopPropagation()}
                     className="absolute right-2 top-2 grid size-6 place-items-center rounded-full text-muted-foreground hover:text-foreground hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
@@ -122,12 +123,12 @@ function StylePicker({
                   </button>
                 </HoverCardTrigger>
                 <HoverCardContent align="end" className="w-80 space-y-2">
-                  <p className="text-sm font-medium">{t.settings.salesToolkit.inAction(style.label)}</p>
+                  <p className="text-sm font-medium">{t.settings.salesToolkit.inAction(copy.label)}</p>
                   <p className="text-xs text-muted-foreground italic">
-                    {SALES_STYLE_SCENARIO}
+                    {t.settings.salesToolkit.scenario}
                   </p>
                   <div className="rounded-lg bg-white/5 border border-white/10 p-2.5">
-                    <p className="text-sm leading-relaxed">{style.example}</p>
+                    <p className="text-sm leading-relaxed">{copy.example}</p>
                   </div>
                 </HoverCardContent>
               </HoverCard>
