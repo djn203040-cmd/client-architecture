@@ -87,7 +87,7 @@ export function SequenceStatusPanel({
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
           <span className="text-muted-foreground">{t.leads.sequenceStatus.statusLabel}</span>
-          <span className="font-mono">{status}</span>
+          <span>{t.leads.status[status] ?? status}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">{t.leads.sequenceStatus.nextSend}</span>

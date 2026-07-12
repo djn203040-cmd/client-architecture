@@ -13,20 +13,13 @@ export function EmailThreadView({ leadId }: { leadId: string }) {
   useEffect(() => {
     fetch(`/api/leads/${leadId}/thread`)
       .then(async (res) => {
-        const body = await res.json();
-        if (!res.ok) {
-          throw new Error(
-            (body as { error?: string }).error ?? t.leads.emailThread.loadError
-          );
-        }
-        return body as { messages: TThreadEmail[] };
+        if (!res.ok) throw new Error("thread_load_failed");
+        return (await res.json()) as { messages: TThreadEmail[] };
       })
       .then(({ messages: msgs }) => setMessages(msgs))
-      .catch((err: unknown) => {
-        setError(
-          err instanceof Error ? err.message : t.leads.emailThread.loadError
-        );
-      });
+      // The API's error text is English (backend stays English); always show
+      // the coach the localized message instead.
+      .catch(() => setError(t.leads.emailThread.loadError));
   }, [leadId, t]);
 
   if (error) {

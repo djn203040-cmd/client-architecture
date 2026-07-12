@@ -19,6 +19,7 @@ export const settings = defineMessages({
       calendar: "Calendar",
       integrations: "Integrations",
       session: "Sign out",
+      language: "Language",
       danger: "Danger zone",
     },
     profile: {
@@ -267,6 +268,7 @@ export const settings = defineMessages({
       calendar: "Kalender",
       integrations: "Integrationer",
       session: "Log ud",
+      language: "Sprog",
       danger: "Farezone",
     },
     profile: {
@@ -409,7 +411,7 @@ export const settings = defineMessages({
           bestFor:
             "Business-, salgs-, mindset- og fitnesscoaches, hvis kunder respekterer ligefrem tale og korte beslutningsforløb.",
           example:
-            "Fair nok, og tak fordi du siger det ligeud. Ærligt spørgsmål: er pengene der reelt ikke, eller er du bare ikke sikker på, at det er det værd endnu? Det er to forskellige problemer. Er det 'værd-det', så er det lige præcis det, vi skal have styr på sammen. Og handler det om timing, behøver det ikke være ét stort beløb — vi kan dele det op i tre rater. Hvad af det ligger tættest på sandheden for dig?",
+            "Fair nok, og tak fordi du siger det ligeud. Ærligt spørgsmål: er pengene der reelt ikke, eller er du bare ikke sikker på, at det er det værd endnu? Det er to forskellige problemer. Handler det om, hvorvidt det er det værd, så er det lige præcis det, vi skal have styr på sammen. Og handler det om timing, behøver det ikke være ét stort beløb — vi kan dele det op i tre rater. Hvad af det ligger tættest på sandheden for dig?",
         },
         strategist: {
           label: "Strategen",

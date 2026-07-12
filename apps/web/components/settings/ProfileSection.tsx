@@ -1,7 +1,5 @@
-import { coerceLanguage } from "@client/shared/validators";
 import { getServerDictionary } from "@/lib/i18n/server";
 import { ProfileForm } from "./ProfileForm";
-import { LanguageSwitcher } from "./LanguageSwitcher";
 
 interface Coach {
   id: string;
@@ -32,7 +30,6 @@ export async function ProfileSection({ coach }: Props) {
           {t.settings.profile.description}
         </p>
       </div>
-      <LanguageSwitcher initialLanguage={coerceLanguage(coach.language)} />
       <ProfileForm
         coach={{
           id: coach.id,

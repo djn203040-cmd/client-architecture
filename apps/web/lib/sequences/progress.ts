@@ -2,6 +2,7 @@ import type { TSequence, TSequenceStatus } from "@client/shared/types";
 import {
   formatDateInTZ,
   formatSendWhenInTZ,
+  type DateLocale,
 } from "@/lib/format/datetime";
 
 // Cadence defaults mirror the Inngest sequence functions
@@ -12,9 +13,58 @@ const DEFAULT_DELAYS: Record<string, number[]> = {
   call_completed: [1, 4, 10],
 };
 
-const TRACK_LABELS: Record<string, string> = {
-  no_show: "No-show follow-up",
-  call_completed: "Post-call nurture",
+/**
+ * All human-facing text the sequence view produces. The UI passes a localized
+ * slice (from the i18n dictionary) so the "Forløb" panel reads in the coach's
+ * language; when omitted, DEFAULT_SEQUENCE_LABELS (English) is used, which keeps
+ * this lib usable in tests and non-UI callers without a dictionary.
+ */
+export type TSequenceLabels = {
+  tracks: { no_show: string; call_completed: string; fallback: string };
+  halted: { cancelled: string; held: string; paused: string };
+  detail: {
+    sent: (date: string) => string;
+    overdueShouldHaveSent: (date: string) => string;
+    approvedSends: (when: string) => string;
+    sendWindowPassed: (date: string) => string;
+    awaitingApproval: (when: string) => string;
+    preparing: string;
+    onHold: string;
+    genError: string;
+    overdueWasDue: (date: string) => string;
+    sends: (when: string) => string;
+    wontSend: string;
+    paused: string;
+    sendsDate: (date: string) => string;
+  };
+};
+
+export const DEFAULT_SEQUENCE_LABELS: TSequenceLabels = {
+  tracks: {
+    no_show: "No-show follow-up",
+    call_completed: "Post-call nurture",
+    fallback: "Intake sequence",
+  },
+  halted: {
+    cancelled: "Sequence stopped",
+    held: "On hold",
+    paused: "Paused, lead replied",
+  },
+  detail: {
+    sent: (date) => `Sent ${date}`,
+    overdueShouldHaveSent: (date) => `Overdue · should have sent ${date}`,
+    approvedSends: (when) => `Approved · sends ${when}`,
+    sendWindowPassed: (date) => `Send window passed ${date} · wasn't approved in time`,
+    awaitingApproval: (when) => `Awaiting your approval · sends ${when}`,
+    preparing: "Preparing draft…",
+    onHold: "On hold",
+    genError: "Couldn't generate, needs a retry",
+    overdueWasDue: (date) => `Overdue · was due ${date}`,
+    sends: (when) => `Sends ${when}`,
+    wontSend: "Won't send",
+    paused: "Paused",
+    sendsDate: (date) => `Sends ${date}`,
+  },
 };
 
 export type TSequenceConfig = {
@@ -79,6 +129,10 @@ export type TBuildSequenceOptions = {
    * Falls back to the launch default when absent.
    */
   timeZone?: string | null;
+  /** Localized text for every label the view emits. Defaults to English. */
+  labels?: TSequenceLabels;
+  /** Date/time locale for scheduled sends. Defaults to en-US. */
+  locale?: DateLocale;
 };
 
 /**
@@ -98,6 +152,8 @@ export function buildSequenceView(
   const now = options.now ?? new Date();
   const drafts = options.drafts;
   const tz = options.timeZone;
+  const labels = options.labels ?? DEFAULT_SEQUENCE_LABELS;
+  const locale = options.locale ?? "en-US";
   const hasDraftData = Array.isArray(drafts);
 
   const track = sequence.track;
@@ -120,10 +176,10 @@ export function buildSequenceView(
     sequence.status === "held";
   const haltedDetail =
     sequence.status === "cancelled"
-      ? "Sequence stopped"
+      ? labels.halted.cancelled
       : sequence.status === "held"
-        ? "On hold"
-        : "Paused, lead replied";
+        ? labels.halted.held
+        : labels.halted.paused;
 
   // Index real drafts by touchpoint. When a touchpoint has more than one draft
   // (e.g. regenerated), keep the most-advanced by status rank.
@@ -173,8 +229,8 @@ export function buildSequenceView(
 
   const steps: TSequenceStep[] = raw.map((s, i) => {
     const scheduledDate = new Date(s.scheduledAt);
-    const dateLabel = formatDateInTZ(scheduledDate, tz);
-    const sendWhen = formatSendWhenInTZ(scheduledDate, now, tz);
+    const dateLabel = formatDateInTZ(scheduledDate, tz, locale);
+    const sendWhen = formatSendWhenInTZ(scheduledDate, now, tz, locale);
     const draftStatus = statusByTouchpoint.get(s.index) ?? null;
     const isSent = sentByTouchpoint.has(s.index);
 
@@ -187,7 +243,7 @@ export function buildSequenceView(
       completedSteps += 1;
       if (isSent) {
         tone = "sent";
-        detail = `Sent ${dateLabel}`;
+        detail = labels.detail.sent(dateLabel);
       } else {
         tone = "done";
         detail = dateLabel;
@@ -210,42 +266,42 @@ export function buildSequenceView(
         case "edited":
           if (overdue) {
             tone = "overdue";
-            detail = `Overdue · should have sent ${dateLabel}`;
+            detail = labels.detail.overdueShouldHaveSent(dateLabel);
           } else {
             tone = "approved";
             // Approval is decoupled from send: make it explicit that the message
             // is locked in and will go out at its fixed cadence time.
-            detail = `Approved · sends ${sendWhen}`;
+            detail = labels.detail.approvedSends(sendWhen);
           }
           break;
         case "pending":
           if (overdue) {
             tone = "overdue";
-            detail = `Send window passed ${dateLabel} · wasn't approved in time`;
+            detail = labels.detail.sendWindowPassed(dateLabel);
           } else {
             tone = "awaiting";
-            detail = `Awaiting your approval · sends ${sendWhen}`;
+            detail = labels.detail.awaitingApproval(sendWhen);
           }
           break;
         case "generating":
           tone = "preparing";
-          detail = "Preparing draft…";
+          detail = labels.detail.preparing;
           break;
         case "held":
           tone = "hold";
-          detail = "On hold";
+          detail = labels.detail.onHold;
           break;
         case "error":
           tone = "error";
-          detail = "Couldn't generate, needs a retry";
+          detail = labels.detail.genError;
           break;
         default:
           if (overdue) {
             tone = "overdue";
-            detail = `Overdue · was due ${dateLabel}`;
+            detail = labels.detail.overdueWasDue(dateLabel);
           } else {
             tone = "scheduled";
-            detail = `Sends ${sendWhen}`;
+            detail = labels.detail.sends(sendWhen);
           }
       }
     } else {
@@ -254,10 +310,10 @@ export function buildSequenceView(
         // Downstream steps won't fire while the sequence is stopped, don't
         // imply a future send date that isn't coming.
         tone = "paused";
-        detail = sequence.status === "cancelled" ? "Won't send" : "Paused";
+        detail = sequence.status === "cancelled" ? labels.detail.wontSend : labels.detail.paused;
       } else {
         tone = "scheduled";
-        detail = `Sends ${dateLabel}`;
+        detail = labels.detail.sendsDate(dateLabel);
       }
     }
 
@@ -277,9 +333,16 @@ export function buildSequenceView(
     ? delays.length
     : Math.min(completedSteps + 1, Math.max(delays.length, 1));
 
+  const trackLabel =
+    track === "no_show"
+      ? labels.tracks.no_show
+      : track === "call_completed"
+        ? labels.tracks.call_completed
+        : labels.tracks.fallback;
+
   return {
     track,
-    trackLabel: TRACK_LABELS[track] ?? "Intake sequence",
+    trackLabel,
     status: sequence.status,
     startedAt: sequence.created_at,
     totalSteps: delays.length,

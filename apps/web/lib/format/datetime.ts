@@ -18,18 +18,32 @@ function tzOrDefault(tz?: string | null): string {
   return tz && tz.length > 0 ? tz : DEFAULT_TIMEZONE;
 }
 
-/** "May 31" in the coach's timezone. */
-export function formatDateInTZ(d: Date, tz?: string | null): string {
-  return d.toLocaleDateString("en-US", {
+/**
+ * BCP-47 locale for date formatting. Defaults to en-US so every existing caller
+ * is unchanged; pass "da-DK" to render "31. maj" / "14.40" for a Danish coach.
+ */
+export type DateLocale = "en-US" | "da-DK";
+
+/** "May 31" (en) / "31. maj" (da) in the coach's timezone. */
+export function formatDateInTZ(
+  d: Date,
+  tz?: string | null,
+  locale: DateLocale = "en-US",
+): string {
+  return d.toLocaleDateString(locale, {
     timeZone: tzOrDefault(tz),
     month: "short",
     day: "numeric",
   });
 }
 
-/** "14:40" (24h) in the coach's timezone. */
-export function formatTimeInTZ(d: Date, tz?: string | null): string {
-  return d.toLocaleTimeString("en-US", {
+/** "14:40" (en) / "14.40" (da), 24h, in the coach's timezone. */
+export function formatTimeInTZ(
+  d: Date,
+  tz?: string | null,
+  locale: DateLocale = "en-US",
+): string {
+  return d.toLocaleTimeString(locale, {
     timeZone: tzOrDefault(tz),
     hour: "2-digit",
     minute: "2-digit",
@@ -63,13 +77,20 @@ function civilDayDiff(a: Date, b: Date, tz: string): number {
  * coach sees exactly when an approved draft goes out (send is decoupled from
  * approval, fired at its fixed cadence instant).
  */
-export function formatSendWhenInTZ(d: Date, now: Date, tz?: string | null): string {
+export function formatSendWhenInTZ(
+  d: Date,
+  now: Date,
+  tz?: string | null,
+  locale: DateLocale = "en-US",
+): string {
   const zone = tzOrDefault(tz);
-  const time = formatTimeInTZ(d, zone);
+  const time = formatTimeInTZ(d, zone, locale);
   const dayDiff = civilDayDiff(now, d, zone);
-  if (dayDiff === 0) return `today at ${time}`;
-  if (dayDiff === 1) return `tomorrow at ${time}`;
-  return `${formatDateInTZ(d, zone)} at ${time}`;
+  const da = locale === "da-DK";
+  if (dayDiff === 0) return da ? `i dag kl. ${time}` : `today at ${time}`;
+  if (dayDiff === 1) return da ? `i morgen kl. ${time}` : `tomorrow at ${time}`;
+  const date = formatDateInTZ(d, zone, locale);
+  return da ? `${date} kl. ${time}` : `${date} at ${time}`;
 }
 
 /** Full date + time for a draft card header, in the coach's timezone. */

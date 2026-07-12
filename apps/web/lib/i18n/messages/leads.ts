@@ -121,6 +121,8 @@ export const leads = defineMessages({
       emailSent: "Email sent",
       emailOpened: "Email opened",
       replied: "Lead replied",
+      bounced: "Email bounced",
+      callBooked: "Call booked",
       converted: "Converted to client",
     },
     // Sequence status panel
@@ -140,6 +142,35 @@ export const leads = defineMessages({
       start: "Start Intake Sequence",
       starting: "Starting…",
       startAria: "Start Intake Sequence",
+    },
+    // Sequence "Forløb" stepper labels + details (buildSequenceView). Shape must
+    // match TSequenceLabels in lib/sequences/progress.ts.
+    sequenceProgress: {
+      tracks: {
+        no_show: "No-show follow-up",
+        call_completed: "Post-call nurture",
+        fallback: "Intake sequence",
+      },
+      halted: {
+        cancelled: "Sequence stopped",
+        held: "On hold",
+        paused: "Paused, lead replied",
+      },
+      detail: {
+        sent: (date: string) => `Sent ${date}`,
+        overdueShouldHaveSent: (date: string) => `Overdue · should have sent ${date}`,
+        approvedSends: (when: string) => `Approved · sends ${when}`,
+        sendWindowPassed: (date: string) => `Send window passed ${date} · wasn't approved in time`,
+        awaitingApproval: (when: string) => `Awaiting your approval · sends ${when}`,
+        preparing: "Preparing draft…",
+        onHold: "On hold",
+        genError: "Couldn't generate, needs a retry",
+        overdueWasDue: (date: string) => `Overdue · was due ${date}`,
+        sends: (when: string) => `Sends ${when}`,
+        wontSend: "Won't send",
+        paused: "Paused",
+        sendsDate: (date: string) => `Sends ${date}`,
+      },
     },
     // AI lead description / summary
     summary: {
@@ -333,6 +364,8 @@ export const leads = defineMessages({
       emailSent: "E-mail sendt",
       emailOpened: "E-mail åbnet",
       replied: "Lead svarede",
+      bounced: "E-mail afvist",
+      callBooked: "Samtale booket",
       converted: "Konverteret til klient",
     },
     sequenceStatus: {
@@ -351,6 +384,33 @@ export const leads = defineMessages({
       start: "Start intake-forløb",
       starting: "Starter…",
       startAria: "Start intake-forløb",
+    },
+    sequenceProgress: {
+      tracks: {
+        no_show: "Opfølgning ved udeblivelse",
+        call_completed: "Nurture efter samtale",
+        fallback: "Intake-forløb",
+      },
+      halted: {
+        cancelled: "Forløbet er stoppet",
+        held: "På hold",
+        paused: "Sat på pause, lead svarede",
+      },
+      detail: {
+        sent: (date: string) => `Sendt ${date}`,
+        overdueShouldHaveSent: (date: string) => `Forsinket · skulle være sendt ${date}`,
+        approvedSends: (when: string) => `Godkendt · sendes ${when}`,
+        sendWindowPassed: (date: string) => `Afsendelsesvinduet udløb ${date} · nåede ikke at blive godkendt`,
+        awaitingApproval: (when: string) => `Afventer din godkendelse · sendes ${when}`,
+        preparing: "Laver udkast…",
+        onHold: "På hold",
+        genError: "Kunne ikke laves, prøv igen",
+        overdueWasDue: (date: string) => `Forsinket · skulle været sendt ${date}`,
+        sends: (when: string) => `Sendes ${when}`,
+        wontSend: "Sendes ikke",
+        paused: "Sat på pause",
+        sendsDate: (date: string) => `Sendes ${date}`,
+      },
     },
     summary: {
       cardAria: "AI-beskrivelse af lead",
