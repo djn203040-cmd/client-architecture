@@ -7,9 +7,11 @@ import { leads } from "./messages/leads";
 import { drafts } from "./messages/drafts";
 import { calls } from "./messages/calls";
 import { settings } from "./messages/settings";
+import { settingsAdvanced } from "./messages/settingsAdvanced";
 import { onboarding } from "./messages/onboarding";
 import { modules } from "./messages/modules";
 import { review } from "./messages/review";
+import { tour } from "./messages/tour";
 
 export type Locale = TLanguage;
 
@@ -35,9 +37,11 @@ const en = {
   drafts: drafts.en,
   calls: calls.en,
   settings: settings.en,
+  settingsAdvanced: settingsAdvanced.en,
   onboarding: onboarding.en,
   modules: modules.en,
   review: review.en,
+  tour: tour.en,
 };
 
 const da: Dictionary = {
@@ -49,9 +53,11 @@ const da: Dictionary = {
   drafts: drafts.da,
   calls: calls.da,
   settings: settings.da,
+  settingsAdvanced: settingsAdvanced.da,
   onboarding: onboarding.da,
   modules: modules.da,
   review: review.da,
+  tour: tour.da,
 };
 
 export type Dictionary = typeof en;
