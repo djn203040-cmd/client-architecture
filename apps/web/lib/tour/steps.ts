@@ -166,6 +166,14 @@ export const TOUR_STEPS: TourStep[] = [
     placement: "right",
   },
   {
+    id: "voice-refine",
+    route: "/settings",
+    target: TOUR_ANCHOR.settingsVoiceRefine,
+    title: "It learns when a draft sounds off",
+    body: "The AI writes in your voice, and it keeps getting closer. If a draft ever sounds slightly not-you, paste it here with a quick note on what's wrong. It turns that into a rule every future draft follows, so it sounds more like you the more you use it.",
+    placement: "top",
+  },
+  {
     id: "done",
     route: "/settings",
     title: "That's the whole tour",

@@ -18,18 +18,29 @@ export function buildReviewPrompt(
     .map((ex, i) => `<example_${i + 1}>\n${ex}\n</example_${i + 1}>`)
     .join('\n');
 
+  const usageRules = voiceModel.usage_rules ?? [];
+  const usageRulesBlock =
+    usageRules.length > 0
+      ? `\n<usage_rules>\n${usageRules.map((r) => `- ${r.rule}`).join('\n')}\n</usage_rules>\n`
+      : '';
+
+  const usageRulesCheck =
+    usageRules.length > 0
+      ? `\n6. USAGE RULES: The draft must obey every rule in <usage_rules> above, these are corrections the writer made about how they sound. If the draft violates one, rewrite the offending part to comply while preserving meaning.`
+      : '';
+
   const system = `You are a meticulous native-language editor for ${coachName}, a professional coach. You are handed an email draft that is meant to sound like ${coachName}, together with real examples of how ${coachName} actually writes. The examples define BOTH the target language and the voice. Read them first.
 
 <voice_examples>
 ${examplesBlock}
 </voice_examples>
-
+${usageRulesBlock}
 Review the draft against every one of these, in order:
 1. LANGUAGE PURITY: The draft must be written entirely in the same language as the examples. If even a single word slipped in from another language (for example an English word like "guessing", "lmk", or "btw" inside an otherwise Danish message), replace it with the natural native equivalent. The ONLY exception is the URL, which stays exactly as written.
 2. GRAMMAR & SPELLING: Fix every grammatical error, wrong inflection, misspelling, and punctuation mistake so it reads as written by an educated native speaker.
 3. NATURALNESS: Remove calques, anglicisms, and literal word-for-word translations. A phrase that is grammatically valid but that a native speaker would never actually say must be rewritten the way a native genuinely says it. Be especially strict with verbs borrowed from English and conjugated as if native: e.g. in Danish "missede dig" / "missede hinanden" is wrong (it copies English "missed"); a Dane writes "savnede dig", "vi fik ikke snakket", "du nåede ikke at dukke op", or "du kom aldrig". Apply the same scrutiny to every other borrowed-and-bent word in whatever the target language is.
 4. VOICE: It must still match ${coachName}'s tone, warmth, formality, sentence length, emoji habits, and phrasing as shown in the examples. Do NOT make it more formal, more generic, or more corporate than the examples.
-5. MEANING: Preserve the message's intent, facts, structure, call-to-action, and any URL EXACTLY. Do not add new ideas and do not delete the ask.
+5. MEANING: Preserve the message's intent, facts, structure, call-to-action, and any URL EXACTLY. Do not add new ideas and do not delete the ask.${usageRulesCheck}
 
 Hard rules:
 - Keep every URL exactly as-is, character for character. Do not "fix" or reformat a link.

@@ -6,7 +6,8 @@ export type AiOperation =
   | 'draft_generate'
   | 'draft_review'
   | 'lead_description'
-  | 'voice_analysis';
+  | 'voice_analysis'
+  | 'voice_refine';
 
 // Lazily-constructed, untyped admin client. Untyped on purpose: the generated
 // Database types don't include `ai_usage`, and typing this without them would

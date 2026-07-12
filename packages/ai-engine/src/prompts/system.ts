@@ -23,6 +23,15 @@ export function buildSystemPrompt(voiceModel: TVoiceProfile, coachName: string):
     .map((ex, i) => `<example_${i + 1}>\n${ex}\n</example_${i + 1}>`)
     .join('\n');
 
+  // Usage rules are specific patterns the coach has explicitly corrected via the
+  // fine-tuning loop. They sit above the tone profile and examples in precedence
+  // (but below the hard Output rules below, e.g. never-say + dashes).
+  const usageRules = voiceModel.usage_rules ?? [];
+  const usageRulesBlock =
+    usageRules.length > 0
+      ? `\nUsage rules, specific corrections this writer has made to how they sound. Follow every one exactly. When one conflicts with the voice profile or an example above, the usage rule wins:\n${usageRules.map((r) => `- ${r.rule}`).join('\n')}\n`
+      : '';
+
   return `You are writing on behalf of ${coachName}, a professional coach. Your sole purpose is to produce email drafts that sound authentically like ${coachName}, not like an AI, not like a template.
 
 <voice_profile>
@@ -32,7 +41,7 @@ ${layer1}
 <voice_examples>
 ${examplesBlock}
 </voice_examples>
-${neverSayBlock}
+${neverSayBlock}${usageRulesBlock}
 Source-of-truth hierarchy (read this before writing anything):
 - <coach_notes> is the coach's own running record of what has happened with this lead and what they want the next message to do. Treat it as fact. If the notes describe a quoted reply from the lead, you HAVE the reply, do not ask for it. If the notes say no message was received, do not write as if one was. If the notes describe the coach's intent for this message, honor that intent.
 - <transcript> is verbatim record of a call. Trust it for what was said on the call.

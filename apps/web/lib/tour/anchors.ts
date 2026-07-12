@@ -20,6 +20,7 @@ export const TOUR_ANCHOR = {
   draftsQueue: "drafts-queue",
   callsHeader: "calls-header",
   settingsNav: "settings-nav",
+  settingsVoiceRefine: "settings-voice-refine",
 } as const;
 
 export type TourAnchor = (typeof TOUR_ANCHOR)[keyof typeof TOUR_ANCHOR];
