@@ -195,7 +195,7 @@ export function TourProvider({
       const t = setTimeout(start, 600);
       return () => clearTimeout(t);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reason: mount-once bootstrap; must run a single time to resume/auto-start, re-running on dep changes would relaunch the tour
   }, []);
 
   // Persist progress so a full reload mid-tour resumes where the coach left off.

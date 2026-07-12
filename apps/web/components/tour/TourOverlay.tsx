@@ -92,7 +92,7 @@ export function TourOverlay() {
       window.removeEventListener("resize", onMove);
       window.removeEventListener("scroll", onMove, true);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reason: tracker re-arms only per spotlight (targetKey) or waiting change; keying on the full step object would restart the interval every render
   }, [targetKey, waiting]);
 
   // Bind a one-shot click handler for "now click X" steps once the element exists.
