@@ -16,10 +16,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { CreateLeadSchema, LeadSourceEnum } from "@client/shared/validators";
 import { toast } from "sonner";
 import { Plus } from "@phosphor-icons/react";
+import { useDictionary } from "@/lib/i18n/provider";
 
 type FieldErrors = Partial<Record<"name" | "email" | "phone" | "source" | "coach_notes", string>>;
 
 export function AddLeadSheet() {
+  const t = useDictionary();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -55,12 +57,10 @@ export function AddLeadSheet() {
     setSubmitting(false);
     if (!r.ok) {
       const data = await r.json().catch(() => ({}));
-      toast.error(
-        data.error ?? "Couldn't save this lead. Check your connection and try again."
-      );
+      toast.error(data.error ?? t.leads.addLead.saveError);
       return;
     }
-    toast.success("Lead added");
+    toast.success(t.leads.addLead.added);
     setOpen(false);
     router.refresh();
   }
@@ -70,16 +70,16 @@ export function AddLeadSheet() {
       <SheetTrigger asChild>
         <Button>
           <Plus weight="regular" className="size-4 mr-2" />
-          Add lead
+          {t.leads.addLead.trigger}
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>Add lead</SheetTitle>
+          <SheetTitle>{t.leads.addLead.title}</SheetTitle>
         </SheetHeader>
         <form onSubmit={onSubmit} noValidate className="space-y-4 mt-6">
           <div className="space-y-2">
-            <Label htmlFor="lead-name">Name</Label>
+            <Label htmlFor="lead-name">{t.leads.addLead.name}</Label>
             <Input
               id="lead-name"
               name="name"
@@ -89,7 +89,7 @@ export function AddLeadSheet() {
             {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="lead-email">Email</Label>
+            <Label htmlFor="lead-email">{t.leads.addLead.email}</Label>
             <Input
               id="lead-email"
               name="email"
@@ -100,11 +100,11 @@ export function AddLeadSheet() {
             {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="lead-phone">Phone (optional)</Label>
+            <Label htmlFor="lead-phone">{t.leads.addLead.phone}</Label>
             <Input id="lead-phone" name="phone" type="tel" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="lead-source">Source</Label>
+            <Label htmlFor="lead-source">{t.leads.addLead.source}</Label>
             <select
               id="lead-source"
               name="source"
@@ -120,17 +120,17 @@ export function AddLeadSheet() {
             </select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="lead-notes">Notes (optional)</Label>
+            <Label htmlFor="lead-notes">{t.leads.addLead.notes}</Label>
             <Textarea
               id="lead-notes"
               name="coach_notes"
-              placeholder="Private notes, injected into every AI draft for this lead."
+              placeholder={t.leads.addLead.notesPlaceholder}
               rows={4}
             />
           </div>
           <SheetFooter>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Adding…" : "Add lead"}
+              {submitting ? t.leads.addLead.submitting : t.leads.addLead.submit}
             </Button>
           </SheetFooter>
         </form>

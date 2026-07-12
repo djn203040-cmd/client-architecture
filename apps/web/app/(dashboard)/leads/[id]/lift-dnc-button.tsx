@@ -11,8 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { liftDoNotContact } from "./lift-dnc-action";
+import { useDictionary } from "@/lib/i18n/provider";
 
 export function LiftDoNotContactButton({ leadId, leadName }: { leadId: string; leadName: string }) {
+  const t = useDictionary();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -20,10 +22,10 @@ export function LiftDoNotContactButton({ leadId, leadName }: { leadId: string; l
     startTransition(async () => {
       try {
         await liftDoNotContact(leadId);
-        toast.success(`${leadName} can be contacted again, state reset to Identified.`);
+        toast.success(t.leads.liftDnc.success(leadName));
         setOpen(false);
       } catch {
-        toast.error("Couldn't lift the flag. Try again.");
+        toast.error(t.leads.liftDnc.error);
       }
     });
   }
@@ -35,24 +37,22 @@ export function LiftDoNotContactButton({ leadId, leadName }: { leadId: string; l
         onClick={() => setOpen(true)}
         className="text-xs text-destructive-foreground/70 hover:text-destructive-foreground hover:underline underline-offset-2 cursor-pointer"
       >
-        Lift
+        {t.leads.liftDnc.lift}
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Lift Do-Not-Contact for {leadName}?</DialogTitle>
+            <DialogTitle>{t.leads.liftDnc.title(leadName)}</DialogTitle>
             <DialogDescription>
-              This lead previously asked not to be contacted. Only lift this flag if
-              they have explicitly opted back in. Their state will reset to Identified
-              so you can re-engage them like a new lead.
+              {t.leads.liftDnc.description}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)} disabled={pending}>
-              Cancel
+              {t.leads.liftDnc.cancel}
             </Button>
             <Button onClick={onConfirm} disabled={pending}>
-              {pending ? "Lifting…" : "Yes, lift the flag"}
+              {pending ? t.leads.liftDnc.lifting : t.leads.liftDnc.confirm}
             </Button>
           </DialogFooter>
         </DialogContent>

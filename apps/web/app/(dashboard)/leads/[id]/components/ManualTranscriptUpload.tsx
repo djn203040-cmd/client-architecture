@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useDictionary } from "@/lib/i18n/provider";
 
 const COLLAPSED_HEIGHT = "h-[200px]";
 
@@ -40,6 +41,7 @@ export function ManualTranscriptUpload({
   latestTranscript?: StoredTranscript | null;
   priorTranscripts?: StoredTranscript[];
 }) {
+  const t = useDictionary();
   const router = useRouter();
   const existingContent = latestTranscript?.content ?? null;
   const [content, setContent] = useState(existingContent ?? "");
@@ -65,10 +67,10 @@ export function ManualTranscriptUpload({
     try {
       const r = await fetch(`/api/transcripts/${pendingDeleteId}`, { method: "DELETE" });
       if (!r.ok) {
-        toast.error("Couldn't delete the transcript. Try again.");
+        toast.error(t.leads.transcript.deleteError);
         return;
       }
-      toast.success("Transcript deleted");
+      toast.success(t.leads.transcript.deleted);
       setPendingDeleteId(null);
       // If we just deleted the currently-loaded latest, drop our local content too
       // so the page refresh shows the next-most-recent (or the empty state).
@@ -112,7 +114,7 @@ export function ManualTranscriptUpload({
         setExpanded(false);
         router.refresh();
       } else {
-        toast.error("Couldn't save the transcript. Try again.");
+        toast.error(t.leads.transcript.saveError);
       }
     } finally {
       setSaving(false);
@@ -124,17 +126,16 @@ export function ManualTranscriptUpload({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Delete {isDeletingLatest ? "the latest" : "this"} transcript?
+            {isDeletingLatest
+              ? t.leads.transcript.deleteTitleLatest
+              : t.leads.transcript.deleteTitleThis}
           </DialogTitle>
           <DialogDescription>
             {pendingDelete
-              ? `This permanently removes the transcript from ${formatDate(pendingDelete.created_at)}. ${
-                  isDeletingLatest && priorTranscripts.length > 0
-                    ? "The next-most-recent call will become the latest and drive future drafts."
-                    : isDeletingLatest
-                      ? "No transcripts will remain on this lead."
-                      : "Drafts will not be affected, they already use the latest call."
-                } This cannot be undone.`
+              ? t.leads.transcript.deleteBody(formatDate(pendingDelete.created_at), {
+                  isLatest: isDeletingLatest,
+                  hasPrior: priorTranscripts.length > 0,
+                })
               : ""}
           </DialogDescription>
         </DialogHeader>
@@ -144,10 +145,10 @@ export function ManualTranscriptUpload({
             onClick={() => setPendingDeleteId(null)}
             disabled={deleting}
           >
-            Cancel
+            {t.leads.transcript.deleteCancel}
           </Button>
           <Button variant="destructive" onClick={confirmDelete} disabled={deleting}>
-            {deleting ? "Deleting…" : "Delete transcript"}
+            {deleting ? t.leads.transcript.deleting : t.leads.transcript.deleteConfirm}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -160,9 +161,12 @@ export function ManualTranscriptUpload({
       <section className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-3">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <h2 className="text-xl font-semibold">Call Transcript</h2>
+            <h2 className="text-xl font-semibold">{t.leads.transcript.heading}</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Latest call{priorTranscripts.length > 0 ? ` · ${priorTranscripts.length + 1} total on file` : ""}
+              {t.leads.transcript.latestCall}
+              {priorTranscripts.length > 0
+                ? t.leads.transcript.totalOnFile(priorTranscripts.length + 1)
+                : ""}
             </p>
           </div>
           <div className="flex items-center gap-1">
@@ -190,7 +194,7 @@ export function ManualTranscriptUpload({
                 size="sm"
                 className="text-xs gap-1.5 text-muted-foreground hover:text-destructive"
                 onClick={() => setPendingDeleteId(latestTranscript.id)}
-                aria-label="Delete latest transcript"
+                aria-label={t.leads.transcript.deleteLatestAria}
               >
                 <Trash weight="regular" className="size-3.5" />
               </Button>
@@ -206,7 +210,7 @@ export function ManualTranscriptUpload({
         </div>
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <p className="text-xs text-muted-foreground">
-            Drafts use this latest call. Earlier calls stay on file for recap-style follow-ups.
+            {t.leads.transcript.usesLatest}
           </p>
           <Button
             variant="ghost"
@@ -219,7 +223,7 @@ export function ManualTranscriptUpload({
             }}
           >
             <Plus weight="regular" className="size-4" />
-            Add new call
+            {t.leads.transcript.addNewCall}
           </Button>
         </div>
         {priorTranscripts.length > 0 && (
@@ -230,8 +234,9 @@ export function ManualTranscriptUpload({
               className="w-full flex items-center justify-between text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
             >
               <span>
-                {historyOpen ? "Hide" : "Show"} {priorTranscripts.length} earlier{" "}
-                {priorTranscripts.length === 1 ? "call" : "calls"}
+                {historyOpen
+                  ? t.leads.transcript.hideEarlier(priorTranscripts.length)
+                  : t.leads.transcript.showEarlier(priorTranscripts.length)}
               </span>
               {historyOpen ? (
                 <CaretUp weight="regular" className="size-3.5" />
@@ -242,21 +247,21 @@ export function ManualTranscriptUpload({
             {/* fragment below holds the per-row delete confirmation */}
             {historyOpen && (
               <ul className="space-y-2 mt-2">
-                {priorTranscripts.map((t) => {
-                  const isOpen = expandedHistoryId === t.id;
+                {priorTranscripts.map((tr) => {
+                  const isOpen = expandedHistoryId === tr.id;
                   return (
                     <li
-                      key={t.id}
+                      key={tr.id}
                       className="rounded-md bg-black/10 dark:bg-white/5 border border-white/5 overflow-hidden"
                     >
                       <div className="flex items-center gap-1 px-3 py-2 hover:bg-white/5 transition-colors">
                         <button
                           type="button"
-                          onClick={() => setExpandedHistoryId(isOpen ? null : t.id)}
+                          onClick={() => setExpandedHistoryId(isOpen ? null : tr.id)}
                           className="flex-1 flex items-center justify-between text-xs"
                         >
                           <span className="text-muted-foreground">
-                            {formatDate(t.created_at)}
+                            {formatDate(tr.created_at)}
                           </span>
                           {isOpen ? (
                             <CaretUp weight="regular" className="size-3.5 text-muted-foreground" />
@@ -266,16 +271,16 @@ export function ManualTranscriptUpload({
                         </button>
                         <button
                           type="button"
-                          onClick={() => setPendingDeleteId(t.id)}
+                          onClick={() => setPendingDeleteId(tr.id)}
                           className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                          aria-label={`Delete transcript from ${formatDate(t.created_at)}`}
+                          aria-label={t.leads.transcript.deleteRowAria(formatDate(tr.created_at))}
                         >
                           <Trash weight="regular" className="size-3.5" />
                         </button>
                       </div>
                       {isOpen && (
                         <div className="px-3 pb-3 text-xs whitespace-pre-wrap font-mono leading-relaxed h-[180px] overflow-y-auto">
-                          {t.content}
+                          {tr.content}
                         </div>
                       )}
                     </li>
@@ -295,7 +300,7 @@ export function ManualTranscriptUpload({
     <>
     <section className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-4">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-xl font-semibold" id="transcript-upload-heading">Call Transcript</h2>
+        <h2 className="text-xl font-semibold" id="transcript-upload-heading">{t.leads.transcript.heading}</h2>
         {content.length > 0 && (
           <Button
             variant="ghost"
@@ -306,12 +311,12 @@ export function ManualTranscriptUpload({
             {expanded ? (
               <>
                 <ArrowsInSimple weight="regular" className="size-3.5" />
-                Collapse
+                {t.leads.transcript.collapse}
               </>
             ) : (
               <>
                 <ArrowsOutSimple weight="regular" className="size-3.5" />
-                Expand
+                {t.leads.transcript.expand}
               </>
             )}
           </Button>
@@ -322,7 +327,7 @@ export function ManualTranscriptUpload({
         aria-labelledby="transcript-upload-heading"
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="Paste transcript text or upload a .txt file..."
+        placeholder={t.leads.transcript.placeholder}
         style={{ fieldSizing: "fixed" } as React.CSSProperties}
         className={`text-sm font-mono resize-none ${expanded ? "min-h-[400px]" : COLLAPSED_HEIGHT}`}
         disabled={saving}
@@ -340,7 +345,7 @@ export function ManualTranscriptUpload({
               setExpanded(false);
             }}
           >
-            Cancel
+            {t.leads.transcript.cancel}
           </Button>
         )}
         <Button
@@ -351,7 +356,7 @@ export function ManualTranscriptUpload({
           onClick={() => fileRef.current?.click()}
         >
           <Upload weight="regular" className="size-4" />
-          Upload .txt file
+          {t.leads.transcript.uploadTxt}
         </Button>
         <input
           ref={fileRef}
@@ -373,10 +378,10 @@ export function ManualTranscriptUpload({
           {saving ? (
             <>
               <ArrowsClockwise weight="regular" className="size-4 animate-spin mr-2" />
-              Saving...
+              {t.leads.transcript.saving}
             </>
           ) : (
-            "Save transcript"
+            t.leads.transcript.save
           )}
         </Button>
       </div>

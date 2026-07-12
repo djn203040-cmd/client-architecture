@@ -1,4 +1,5 @@
 import { NotificationMatrix } from "@/app/(dashboard)/settings/notifications/NotificationMatrix";
+import { getServerDictionary } from "@/lib/i18n/server";
 
 interface Pref {
   event_type: string;
@@ -16,13 +17,14 @@ interface Props {
   integrations: Integration[];
 }
 
-export function NotificationsSection({ prefs, integrations }: Props) {
+export async function NotificationsSection({ prefs, integrations }: Props) {
+  const t = await getServerDictionary();
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold">Notifications</h2>
+        <h2 className="text-xl font-semibold">{t.settings.notifications.title}</h2>
         <p className="text-sm text-muted-foreground max-w-[65ch]">
-          Choose where you want to hear from Sonorous. Connected channels are loud by default.
+          {t.settings.notifications.description}
         </p>
       </div>
       <NotificationMatrix initialPreferences={prefs} integrations={integrations} />

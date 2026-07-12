@@ -6,6 +6,9 @@ import { verifyReviewToken } from "@/lib/review-token";
 import { adminClient } from "@/lib/supabase/admin";
 import { DraftCard } from "@/components/drafts/DraftCard";
 import { Button } from "@/components/ui/button";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { coerceLanguage } from "@client/shared/validators";
+import type { TLanguage } from "@client/shared/validators";
 import type { Database } from "@client/database";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +19,14 @@ type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
 };
 
 type State =
-  | { kind: "actionable"; draft: DraftRow; coachName: string; coachTimezone: string | null; token: string }
+  | {
+      kind: "actionable";
+      draft: DraftRow;
+      coachName: string;
+      coachTimezone: string | null;
+      coachLanguage: TLanguage;
+      token: string;
+    }
   | { kind: "already_actioned" }
   | { kind: "expired" }
   | { kind: "invalid" };
@@ -54,7 +64,7 @@ async function resolveState(token: string): Promise<State> {
 
   const { data: coach } = await adminClient
     .from("coaches")
-    .select("name, timezone")
+    .select("name, timezone, language")
     .eq("id", payload.coachId)
     .single();
 
@@ -63,11 +73,15 @@ async function resolveState(token: string): Promise<State> {
     leads: lead ? { name: lead.name } : null,
   };
 
+  const coachLanguage = coerceLanguage(coach?.language);
+  const t = getDictionary(coachLanguage);
+
   return {
     kind: "actionable",
     draft: draftWithLead,
-    coachName: coach?.name ?? "your coach",
+    coachName: coach?.name ?? t.review.coachFallback,
     coachTimezone: coach?.timezone ?? null,
+    coachLanguage,
     token,
   };
 }
@@ -166,42 +180,51 @@ export default async function ReviewPage({
   const state = await resolveState(token);
 
   if (state.kind === "expired") {
+    // No coach resolved for this token, so fall back to the default locale.
+    const t = getDictionary(coerceLanguage(null));
     return (
       <StateCard
         icon={<ClockIcon />}
-        heading="This review link has expired."
-        body="Open your dashboard for the latest drafts."
+        heading={t.review.expired.heading}
+        body={t.review.expired.body}
+        ctaLabel={t.review.cta.openDashboard}
       />
     );
   }
 
   if (state.kind === "already_actioned") {
+    const t = getDictionary(coerceLanguage(null));
     return (
       <StateCard
         icon={<CheckIcon />}
-        heading="This draft has been actioned."
-        body="The action was already taken. Visit your dashboard to see updated status."
+        heading={t.review.alreadyActioned.heading}
+        body={t.review.alreadyActioned.body}
+        ctaLabel={t.review.cta.openDashboard}
       />
     );
   }
 
   if (state.kind === "invalid") {
+    const t = getDictionary(coerceLanguage(null));
     return (
       <StateCard
         icon={<ClockIcon />}
-        heading="This link isn't valid."
-        body="It may have been copied incorrectly. Open your dashboard for the latest drafts."
+        heading={t.review.invalid.heading}
+        body={t.review.invalid.body}
+        ctaLabel={t.review.cta.openDashboard}
       />
     );
   }
 
+  const t = getDictionary(state.coachLanguage);
+
   return (
     <div className="space-y-6">
-      <p className="text-sm font-medium text-muted-foreground">Sonorous</p>
+      <p className="text-sm font-medium text-muted-foreground">{t.review.brand}</p>
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold">Review draft</h1>
+        <h1 className="text-xl font-semibold">{t.review.header.title}</h1>
         <p className="text-sm text-muted-foreground">
-          From {state.coachName}&apos;s queue
+          {t.review.header.fromQueue(state.coachName)}
         </p>
       </div>
       <DraftCard
@@ -211,7 +234,7 @@ export default async function ReviewPage({
         timeZone={state.coachTimezone}
       />
       <p className="text-xs text-muted-foreground text-center mt-8">
-        This link expires after 7 days or once you take action.
+        {t.review.footer.expiryNote}
       </p>
     </div>
   );

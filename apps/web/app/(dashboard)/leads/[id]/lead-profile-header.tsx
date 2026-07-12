@@ -3,8 +3,10 @@ import { LeadStateBadge } from "@/components/leads/LeadStateBadge";
 import { ManualStateOverride } from "./manual-state-override";
 import { DeleteLeadButton } from "./delete-lead-button";
 import { LiftDoNotContactButton } from "./lift-dnc-button";
+import { getServerDictionary } from "@/lib/i18n/server";
 
-export function LeadProfileHeader({ lead }: { lead: TLead }) {
+export async function LeadProfileHeader({ lead }: { lead: TLead }) {
+  const t = await getServerDictionary();
   return (
     <header className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
       <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -15,13 +17,13 @@ export function LeadProfileHeader({ lead }: { lead: TLead }) {
             {lead.phone ? ` · ${lead.phone}` : ""}
           </p>
           <div className="flex items-center gap-2 mt-3 flex-wrap">
-            <LeadStateBadge status={lead.status} />
+            <LeadStateBadge status={lead.status} label={t.leads.status[lead.status]} />
             <span className="text-xs px-2 py-1 rounded-md bg-secondary text-secondary-foreground">
               {lead.source}
             </span>
             {lead.do_not_contact && (
               <span className="inline-flex items-center gap-2 text-xs px-2 py-1 rounded-md bg-destructive text-destructive-foreground">
-                Do not contact
+                {t.leads.profile.doNotContact}
                 <LiftDoNotContactButton leadId={lead.id} leadName={lead.name} />
               </span>
             )}

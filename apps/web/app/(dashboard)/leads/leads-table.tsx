@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { TLead } from "@client/shared/types";
 import { LeadStateBadge } from "@/components/leads/LeadStateBadge";
+import { useDictionary } from "@/lib/i18n/provider";
 import { motion } from "framer-motion";
 
 export function LeadsTable({
@@ -11,8 +12,9 @@ export function LeadsTable({
   leads: TLead[];
   emptyVariant: "no-leads" | "filtered";
 }) {
+  const t = useDictionary();
   if (leads.length === 0) {
-    return emptyVariant === "no-leads" ? <NoLeadsEmpty /> : <FilteredEmpty />;
+    return emptyVariant === "no-leads" ? <NoLeadsEmpty t={t} /> : <FilteredEmpty t={t} />;
   }
 
   return (
@@ -23,10 +25,10 @@ export function LeadsTable({
       <table className="w-full">
         <thead className="border-b border-border">
           <tr className="text-left text-sm text-muted-foreground">
-            <th className="px-4 py-3 font-normal">Name</th>
-            <th className="px-4 py-3 font-normal">State</th>
-            <th className="px-4 py-3 font-normal">Source</th>
-            <th className="px-4 py-3 font-normal">Last activity</th>
+            <th className="px-4 py-3 font-normal">{t.leads.table.name}</th>
+            <th className="px-4 py-3 font-normal">{t.leads.table.state}</th>
+            <th className="px-4 py-3 font-normal">{t.leads.table.source}</th>
+            <th className="px-4 py-3 font-normal">{t.leads.table.lastActivity}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -44,7 +46,7 @@ export function LeadsTable({
                 </Link>
               </td>
               <td className="px-4 py-3">
-                <LeadStateBadge status={lead.status} />
+                <LeadStateBadge status={lead.status} label={t.leads.status[lead.status]} />
               </td>
               <td className="px-4 py-3 text-sm text-muted-foreground">{lead.source}</td>
               <td className="px-4 py-3 text-sm text-muted-foreground font-mono" suppressHydrationWarning>
@@ -60,23 +62,22 @@ export function LeadsTable({
   );
 }
 
-function NoLeadsEmpty() {
+function NoLeadsEmpty({ t }: { t: ReturnType<typeof useDictionary> }) {
   return (
     <div className="rounded-2xl backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 p-16 text-center">
-      <h2 className="text-xl font-semibold mb-2">No leads yet</h2>
+      <h2 className="text-xl font-semibold mb-2">{t.leads.list.emptyNoLeadsTitle}</h2>
       <p className="text-muted-foreground max-w-md mx-auto">
-        Add your first lead to get started. They can come from Calendly, Cal.com, or anywhere you
-        meet potential clients.
+        {t.leads.list.emptyNoLeadsBody}
       </p>
     </div>
   );
 }
 
-function FilteredEmpty() {
+function FilteredEmpty({ t }: { t: ReturnType<typeof useDictionary> }) {
   return (
     <div className="rounded-2xl backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 p-16 text-center">
-      <h2 className="text-xl font-semibold mb-2">No leads match this filter</h2>
-      <p className="text-muted-foreground">Try a different status or clear your search.</p>
+      <h2 className="text-xl font-semibold mb-2">{t.leads.list.emptyFilteredTitle}</h2>
+      <p className="text-muted-foreground">{t.leads.list.emptyFilteredBody}</p>
     </div>
   );
 }

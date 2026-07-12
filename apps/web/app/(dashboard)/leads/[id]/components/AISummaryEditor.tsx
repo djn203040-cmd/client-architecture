@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
 
 interface Props {
   leadId: string;
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function AISummaryEditor({ leadId, initialSummary, protected: isProtected }: Props) {
+  const t = useDictionary();
   const [summary, setSummary] = useState(initialSummary);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(initialSummary);
@@ -30,7 +32,7 @@ export function AISummaryEditor({ leadId, initialSummary, protected: isProtected
       setSummary(draft);
       setEditing(false);
     } catch {
-      toast.error("Couldn't save your edits. Try again.");
+      toast.error(t.leads.summary.saveError);
     }
   }
 
@@ -56,7 +58,7 @@ export function AISummaryEditor({ leadId, initialSummary, protected: isProtected
           onChange={(e) => setDraft(e.target.value)}
           rows={5}
           className="text-sm leading-relaxed resize-none"
-          aria-label="Edit AI lead description"
+          aria-label={t.leads.summary.editAria}
         />
         <div className="flex items-center gap-2 justify-end">
           <Button
@@ -65,7 +67,7 @@ export function AISummaryEditor({ leadId, initialSummary, protected: isProtected
             onClick={handleCancel}
             className="min-h-[44px]"
           >
-            Cancel
+            {t.leads.summary.cancel}
           </Button>
           <Button
             size="sm"
@@ -73,7 +75,7 @@ export function AISummaryEditor({ leadId, initialSummary, protected: isProtected
             disabled={saving}
             className="min-h-[44px]"
           >
-            Save
+            {t.leads.summary.save}
           </Button>
         </div>
       </div>
@@ -85,7 +87,7 @@ export function AISummaryEditor({ leadId, initialSummary, protected: isProtected
       <button
         onClick={() => { setDraft(summary); setEditing(true); }}
         className="text-sm leading-[1.5] text-foreground max-w-[65ch] text-left hover:bg-muted/40 rounded-md px-1 -mx-1 py-0.5 transition-colors w-full"
-        aria-label="Click to edit AI lead description"
+        aria-label={t.leads.summary.editClickAria}
       >
         {summary}
       </button>
@@ -93,10 +95,10 @@ export function AISummaryEditor({ leadId, initialSummary, protected: isProtected
         {isProtected ? (
           <>
             <LockSimple size={12} aria-hidden="true" />
-            Edited by you
+            {t.leads.summary.editedByYou}
           </>
         ) : (
-          "AI-written"
+          t.leads.summary.aiWritten
         )}
       </p>
     </div>

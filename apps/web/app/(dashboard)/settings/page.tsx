@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getServerDictionary } from "@/lib/i18n/server";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { SettingsNav } from "@/components/settings/SettingsNav";
 import { ProfileSection } from "@/components/settings/ProfileSection";
 import { NotificationsSection } from "@/components/settings/NotificationsSection";
@@ -26,6 +28,7 @@ export default async function SettingsPage({
   searchParams: Promise<{ connected?: string; error?: string }>;
 }) {
   const sp = await searchParams;
+  const t = await getServerDictionary();
   const supabase = await createClient();
   const {
     data: { user },
@@ -36,7 +39,7 @@ export default async function SettingsPage({
     supabase
       .from("coaches")
       .select(
-        "id, name, email, autonomous_mode, voice_model, display_name, role_title, timezone, working_hours, email_signature, public_booking_url, avatar_url, active_calendar_provider, sales_toolkit",
+        "id, name, email, language, autonomous_mode, voice_model, display_name, role_title, timezone, working_hours, email_signature, public_booking_url, avatar_url, active_calendar_provider, sales_toolkit",
       )
       .eq("id", user.id)
       .single(),
@@ -58,16 +61,16 @@ export default async function SettingsPage({
 
   return (
     <div className="space-y-6 w-full">
-      <h1 className="text-[28px] font-semibold leading-[1.2]">Settings</h1>
+      <h1 className="text-[28px] font-semibold leading-[1.2]">{t.settings.page.title}</h1>
 
       {sp.connected === "gmail" && (
         <div className="rounded-2xl bg-[oklch(60%_0.14_145)] text-white p-4 text-sm">
-          Gmail connected.
+          {t.settings.page.gmailConnected}
         </div>
       )}
       {sp.error && (
         <div className="rounded-2xl bg-destructive text-destructive-foreground p-4 text-sm">
-          {describeError(sp.error)}
+          {describeError(sp.error, t)}
         </div>
       )}
 
@@ -125,38 +128,41 @@ export default async function SettingsPage({
   );
 }
 
-function describeError(code: string): string {
+function describeError(code: string, t: Dictionary): string {
+  const e = t.settings.errors;
   switch (code) {
     case "insufficient_scopes":
-      return "We need permission to send and read emails. Please connect Gmail again and grant all requested scopes.";
+      return e.insufficientScopes;
     case "oauth_no_refresh_token":
-      return "Google didn't return a refresh token. Revoke the app in your Google account, then try connecting again.";
+      return e.oauthNoRefreshToken;
     case "oauth_vault_failed":
-      return "We couldn't securely store your tokens. Try again in a moment.";
+      return e.oauthVaultFailed;
     case "oauth_exchange_failed":
-      return "We couldn't complete the Google sign-in. Try connecting again.";
+      return e.oauthExchangeFailed;
     case "oauth_missing_params":
-      return "The connection request was malformed. Try again.";
+      return e.oauthMissingParams;
     case "calendar_unknown_provider":
-      return "That calendar provider isn't supported. Pick one from the list.";
+      return e.calendarUnknownProvider;
     case "calendar_wrong_auth_type":
-      return "That provider uses an API key instead of a sign-in flow. Open it from the calendar picker.";
+      return e.calendarWrongAuthType;
     case "calendar_oauth_not_configured":
-      return "This calendar provider isn't set up on our end yet. Try a different one for now.";
+      return e.calendarOauthNotConfigured;
     case "calendar_oauth_start_failed":
-      return "We couldn't start the calendar connection. Try again in a moment.";
+      return e.calendarOauthStartFailed;
     case "calendar_missing_params":
-      return "The calendar provider didn't send back what we needed. Try connecting again.";
+      return e.calendarMissingParams;
     case "calendar_state_invalid":
-      return "Your connection link expired. Start the calendar connection again.";
+      return e.calendarStateInvalid;
     case "calendar_oauth_exchange_failed":
-      return "We couldn't complete the calendar sign-in. Try again.";
+      return e.calendarOauthExchangeFailed;
     case "calendar_vault_failed":
-      return "We couldn't securely store your calendar credentials. Try again in a moment.";
+      return e.calendarVaultFailed;
     default:
       if (code.startsWith("calendar_oauth_")) {
-        return "Calendar connection failed: " + code.replace("calendar_oauth_", "").replace(/_/g, " ");
+        return e.calendarOauthGeneric(
+          code.replace("calendar_oauth_", "").replace(/_/g, " "),
+        );
       }
-      return "Connection failed. Try again.";
+      return e.generic;
   }
 }

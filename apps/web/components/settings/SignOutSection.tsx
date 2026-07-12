@@ -1,18 +1,20 @@
 import { Button } from "@/components/ui/button";
+import { getServerDictionary } from "@/lib/i18n/server";
 
 interface SignOutSectionProps {
   email: string;
 }
 
-export function SignOutSection({ email }: SignOutSectionProps) {
+export async function SignOutSection({ email }: SignOutSectionProps) {
+  const t = await getServerDictionary();
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-semibold leading-[1.2]">Sign out</h2>
+        <h2 className="text-xl font-semibold leading-[1.2]">{t.settings.signOut.title}</h2>
         <p className="mt-1 text-sm text-muted-foreground leading-[1.5]">
-          Signed in as{" "}
-          <span className="text-foreground font-medium">{email}</span>. Sign out
-          to switch accounts or end this session.
+          {t.settings.signOut.signedInAs}{" "}
+          <span className="text-foreground font-medium">{email}</span>.{" "}
+          {t.settings.signOut.description}
         </p>
       </div>
 
@@ -22,7 +24,7 @@ export function SignOutSection({ email }: SignOutSectionProps) {
           variant="outline"
           className="min-h-[44px] px-5"
         >
-          Sign out
+          {t.settings.signOut.button}
         </Button>
       </form>
     </div>

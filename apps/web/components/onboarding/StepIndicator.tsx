@@ -1,26 +1,17 @@
 import { STEP_ORDER, type OnboardingStep } from "@client/shared/validators";
-
-const STEP_LABELS: Record<OnboardingStep, string> = {
-  language: "Language",
-  gmail: "Gmail",
-  booking: "Booking",
-  calendar: "Calendar",
-  sales: "Selling",
-  voice: "Voice",
-  "first-lead": "First lead",
-  notifications: "Notifications",
-};
+import { getServerDictionary } from "@/lib/i18n/server";
 
 interface Props {
   currentStep: OnboardingStep;
   progress: Record<string, string | null | undefined>;
 }
 
-export function StepIndicator({ currentStep, progress }: Props) {
+export async function StepIndicator({ currentStep, progress }: Props) {
+  const t = await getServerDictionary();
   const currentIdx = STEP_ORDER.indexOf(currentStep);
 
   return (
-    <div className="flex items-center gap-2" aria-label="Onboarding progress">
+    <div className="flex items-center gap-2" aria-label={t.onboarding.indicator.ariaLabel}>
       {STEP_ORDER.map((step, idx) => {
         const isCompleted = idx < currentIdx;
         const isActive = idx === currentIdx;
@@ -45,7 +36,7 @@ export function StepIndicator({ currentStep, progress }: Props) {
                   isActive ? "text-foreground" : "text-muted-foreground",
                 ].join(" ")}
               >
-                {STEP_LABELS[step]}
+                {t.onboarding.indicator.labels[step]}
               </span>
             </div>
             {idx < STEP_ORDER.length - 1 && (

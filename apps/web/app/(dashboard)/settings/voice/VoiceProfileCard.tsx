@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowsClockwise, X, WarningCircle } from "@phosphor-icons/react";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { TVoiceProfile } from "@client/shared/validators";
 
 function ChipRow({
@@ -15,6 +16,7 @@ function ChipRow({
   onAdd: (phrase: string) => void;
   destructive?: boolean;
 }) {
+  const t = useDictionary();
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
 
@@ -37,7 +39,7 @@ function ChipRow({
           <button
             onClick={() => onRemove(i)}
             className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] -my-3 -mr-2 hover:text-destructive transition-colors"
-            aria-label={`Remove "${item}"`}
+            aria-label={t.settingsAdvanced.voice.profileCard.removePhrase(item)}
           >
             <X weight="regular" className="size-4" />
           </button>
@@ -46,9 +48,9 @@ function ChipRow({
       {adding ? (
         <input
           autoFocus
-          aria-label="New phrase"
+          aria-label={t.settingsAdvanced.voice.profileCard.newPhrase}
           className="rounded-full px-3 py-1 text-sm border border-border bg-background outline-none focus:ring-1 focus:ring-primary-soft w-32"
-          placeholder="Add phrase..."
+          placeholder={t.settingsAdvanced.voice.profileCard.addPhrasePlaceholder}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
@@ -61,7 +63,7 @@ function ChipRow({
         <button
           onClick={() => setAdding(true)}
           className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] text-sm text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Add phrase"
+          aria-label={t.settingsAdvanced.voice.profileCard.addPhrase}
         >
           +
         </button>
@@ -87,6 +89,7 @@ export function VoiceProfileCard({
   onChange: (updated: TVoiceProfile) => void;
   onReanalyze: () => void;
 }) {
+  const t = useDictionary();
   function update<K extends keyof TVoiceProfile>(key: K, value: TVoiceProfile[K]) {
     onChange({ ...profile, [key]: value });
   }
@@ -107,20 +110,20 @@ export function VoiceProfileCard({
     <div className="space-y-3">
       <div className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-5">
         <header className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Your Writing Style</h2>
+          <h2 className="text-xl font-semibold">{t.settingsAdvanced.voice.profileCard.heading}</h2>
           <Button
             variant="ghost"
             size="icon"
             className="min-h-[44px] min-w-[44px]"
             onClick={onReanalyze}
-            aria-label="Re-analyze"
+            aria-label={t.settingsAdvanced.voice.profileCard.reanalyze}
           >
             <ArrowsClockwise weight="regular" className="size-4" />
           </Button>
         </header>
 
         <div className="space-y-1">
-          <h3 className="text-sm font-bold">How you sound</h3>
+          <h3 className="text-sm font-bold">{t.settingsAdvanced.voice.profileCard.howYouSound}</h3>
           <ChipRow
             items={profile.tone_adjectives}
             onRemove={(i) => removeFrom("tone_adjectives", i)}
@@ -130,21 +133,21 @@ export function VoiceProfileCard({
 
         <div className="flex flex-wrap gap-4">
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Formality</p>
+            <p className="text-xs text-muted-foreground">{t.settingsAdvanced.voice.profileCard.formality}</p>
             <Badge label={profile.formality_level} />
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Sentences</p>
+            <p className="text-xs text-muted-foreground">{t.settingsAdvanced.voice.profileCard.sentences}</p>
             <Badge label={profile.sentence_length} />
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Emoji use</p>
+            <p className="text-xs text-muted-foreground">{t.settingsAdvanced.voice.profileCard.emojiUse}</p>
             <Badge label={profile.emoji_usage} />
           </div>
         </div>
 
         <div className="space-y-1">
-          <h3 className="text-sm font-bold">How you start</h3>
+          <h3 className="text-sm font-bold">{t.settingsAdvanced.voice.profileCard.howYouStart}</h3>
           <ChipRow
             items={profile.opener_phrases}
             onRemove={(i) => removeFrom("opener_phrases", i)}
@@ -153,7 +156,7 @@ export function VoiceProfileCard({
         </div>
 
         <div className="space-y-1">
-          <h3 className="text-sm font-bold">How you finish</h3>
+          <h3 className="text-sm font-bold">{t.settingsAdvanced.voice.profileCard.howYouFinish}</h3>
           <ChipRow
             items={profile.closer_phrases}
             onRemove={(i) => removeFrom("closer_phrases", i)}
@@ -162,7 +165,7 @@ export function VoiceProfileCard({
         </div>
 
         <div className="bg-destructive/5 dark:bg-destructive/8 border border-destructive/20 rounded-xl p-4 space-y-2">
-          <h3 className="text-sm font-bold text-destructive/70">Words I never use</h3>
+          <h3 className="text-sm font-bold text-destructive/70">{t.settingsAdvanced.voice.profileCard.wordsNeverUse}</h3>
           <ChipRow
             items={profile.never_say_list}
             onRemove={(i) => removeFrom("never_say_list", i)}
@@ -178,7 +181,7 @@ export function VoiceProfileCard({
           className="rounded-xl px-4 py-3 flex items-center gap-2 text-sm bg-accent/15 text-accent border border-accent/30"
         >
           <WarningCircle weight="regular" className="size-3.5 shrink-0" />
-          Voice model needs more examples to be reliable. Add messages above and re-analyze.
+          {t.settingsAdvanced.voice.profileCard.lowExamplesWarning}
         </div>
       )}
     </div>

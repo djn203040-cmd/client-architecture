@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { VoiceBuilderClient } from "@/app/(dashboard)/settings/voice/VoiceBuilderClient";
 import { toast } from "sonner";
 import type { TVoiceProfile } from "@client/shared/validators";
+import { useDictionary } from "@/lib/i18n/provider";
 
 interface Props {
   initialVoiceModel: TVoiceProfile | null;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function StepVoice({ initialVoiceModel, initialExampleCount }: Props) {
+  const t = useDictionary();
   const router = useRouter();
   const [exampleCount, setExampleCount] = useState(initialExampleCount);
   const [advancing, setAdvancing] = useState(false);
@@ -30,7 +32,7 @@ export function StepVoice({ initialVoiceModel, initialExampleCount }: Props) {
       });
       if (!r.ok) {
         const body = await r.json().catch(() => ({}));
-        toast.error(body.error ?? "Voice model not complete yet. Try again.");
+        toast.error(body.error ?? t.onboarding.voice.notComplete);
         return;
       }
       router.push("/onboarding/first-lead" as never);
@@ -45,8 +47,7 @@ export function StepVoice({ initialVoiceModel, initialExampleCount }: Props) {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Paste messages you&apos;ve written. The more you give it, the more accurately it captures
-          how you write.
+          {t.onboarding.voice.intro}
         </p>
         <span
           className={[
@@ -56,7 +57,7 @@ export function StepVoice({ initialVoiceModel, initialExampleCount }: Props) {
               : "bg-primary text-primary-foreground",
           ].join(" ")}
         >
-          {exampleCount} / 8 min
+          {t.onboarding.voice.counter(exampleCount)}
         </span>
       </div>
 
@@ -64,7 +65,7 @@ export function StepVoice({ initialVoiceModel, initialExampleCount }: Props) {
 
       <div className="flex justify-end pt-2">
         <Button onClick={advance} disabled={!meetsMinimum || advancing} size="sm">
-          {advancing ? "Checking…" : "Continue"}
+          {advancing ? t.onboarding.voice.checking : t.onboarding.voice.continue}
         </Button>
       </div>
     </div>

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { useAutosave } from "@/lib/settings/autosave";
+import { useDictionary } from "@/lib/i18n/provider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,6 +35,7 @@ async function patchProfile(fields: Record<string, unknown>) {
 }
 
 export function ProfileForm({ coach }: Props) {
+  const t = useDictionary();
   const [displayName, setDisplayName] = useState(coach.display_name ?? coach.name ?? "");
   const [roleTitle, setRoleTitle] = useState(coach.role_title ?? "");
   const [timezone, setTimezone] = useState(
@@ -84,14 +86,14 @@ export function ProfileForm({ coach }: Props) {
       const res = await fetch("/api/settings/profile/avatar", { method: "POST", body: form });
       if (!res.ok) {
         const { error } = await res.json();
-        toast.error(error ?? "Upload failed");
+        toast.error(error ?? t.settings.profile.uploadFailed);
         return;
       }
       const { url } = await res.json();
       setAvatarUrl(url);
-      toast.success("Avatar updated");
+      toast.success(t.settings.profile.avatarUpdated);
     } catch {
-      toast.error("Upload failed");
+      toast.error(t.settings.profile.uploadFailed);
     } finally {
       setUploading(false);
     }
@@ -103,7 +105,7 @@ export function ProfileForm({ coach }: Props) {
       <div className="flex items-center gap-4">
         <div className="size-16 rounded-full overflow-hidden bg-white/10 flex items-center justify-center text-2xl font-semibold shrink-0">
           {avatarUrl ? (
-            <img src={avatarUrl} alt="Avatar" className="size-full object-cover" />
+            <img src={avatarUrl} alt={t.settings.profile.avatarAlt} className="size-full object-cover" />
           ) : (
             <span>{(coach.display_name ?? coach.name ?? "?")[0]?.toUpperCase()}</span>
           )}
@@ -115,9 +117,9 @@ export function ProfileForm({ coach }: Props) {
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
           >
-            {uploading ? "Uploading…" : "Change photo"}
+            {uploading ? t.settings.profile.uploading : t.settings.profile.changePhoto}
           </Button>
-          <p className="text-xs text-muted-foreground mt-1">JPG, PNG or WebP · max 5 MB</p>
+          <p className="text-xs text-muted-foreground mt-1">{t.settings.profile.photoHint}</p>
         </div>
         <input
           ref={fileInputRef}
@@ -130,14 +132,14 @@ export function ProfileForm({ coach }: Props) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="pf-display-name">Display name</Label>
+          <Label htmlFor="pf-display-name">{t.settings.profile.displayName}</Label>
           <Input id="pf-display-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="pf-role-title">Role / title</Label>
+          <Label htmlFor="pf-role-title">{t.settings.profile.roleTitle}</Label>
           <Input
             id="pf-role-title"
-            placeholder="e.g. Executive Coach"
+            placeholder={t.settings.profile.roleTitlePlaceholder}
             value={roleTitle}
             onChange={(e) => setRoleTitle(e.target.value)}
           />
@@ -145,7 +147,7 @@ export function ProfileForm({ coach }: Props) {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="pf-timezone">Timezone</Label>
+        <Label htmlFor="pf-timezone">{t.settings.profile.timezone}</Label>
         <select
           id="pf-timezone"
           value={timezone}
@@ -159,7 +161,7 @@ export function ProfileForm({ coach }: Props) {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="pf-work-start">Working hours</Label>
+        <Label htmlFor="pf-work-start">{t.settings.profile.workingHours}</Label>
         <div className="flex items-center gap-3">
           <Input
             id="pf-work-start"
@@ -169,7 +171,7 @@ export function ProfileForm({ coach }: Props) {
             onBlur={saveWorkingHours}
             className="w-32"
           />
-          <span className="text-sm text-muted-foreground">to</span>
+          <span className="text-sm text-muted-foreground">{t.settings.profile.workingHoursTo}</span>
           <Input
             id="pf-work-end"
             type="time"
@@ -182,21 +184,21 @@ export function ProfileForm({ coach }: Props) {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="pf-booking-url">Public booking URL</Label>
+        <Label htmlFor="pf-booking-url">{t.settings.profile.bookingUrl}</Label>
         <Input
           id="pf-booking-url"
           type="url"
-          placeholder="https://cal.com/your-name"
+          placeholder={t.settings.profile.bookingUrlPlaceholder}
           value={bookingUrl}
           onChange={(e) => setBookingUrl(e.target.value)}
         />
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="pf-signature">Email signature</Label>
+        <Label htmlFor="pf-signature">{t.settings.profile.signature}</Label>
         <Textarea
           id="pf-signature"
-          placeholder="Appended to the bottom of outbound emails"
+          placeholder={t.settings.profile.signaturePlaceholder}
           value={signature}
           onChange={(e) => setSignature(e.target.value)}
           maxLength={2000}

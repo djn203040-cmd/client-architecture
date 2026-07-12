@@ -11,6 +11,7 @@ import { DraftDeleteButton } from "./DraftDeleteButton";
 import { toast } from "sonner";
 import type { Database } from "@client/database";
 import { formatDateTimeInTZ } from "@/lib/format/datetime";
+import { useDictionary } from "@/lib/i18n/provider";
 
 type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
   leads: { name: string } | null;
@@ -47,6 +48,7 @@ export function DraftCard({
   showSkip = true,
   timeZone,
 }: DraftCardProps) {
+  const t = useDictionary();
   const [editing, setEditing] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -80,12 +82,14 @@ export function DraftCard({
       const reason = (data as { reason?: string }).reason;
       // Surface the real failure reason instead of a generic message.
       const message = reason
-        ? `Couldn't ${status === "approved" ? "approve" : "hold"}, ${reason}.`
-        : "This action didn't go through. Refresh and try again.";
+        ? status === "approved"
+          ? t.drafts.card.approveFailed(reason)
+          : t.drafts.card.holdFailed(reason)
+        : t.drafts.card.actionFailed;
       toast.error(message);
       return;
     }
-    toast.success(status === "approved" ? "Approved" : "Held");
+    toast.success(status === "approved" ? t.drafts.card.approvedToast : t.drafts.card.heldToast);
     onAdvance?.();
   }
 
@@ -93,10 +97,10 @@ export function DraftCard({
     setIsRegenerating(true);
     const r = await fetch(`/api/drafts/${draft.id}/regenerate`, { method: "POST" });
     if (!r.ok) {
-      toast.error("Regeneration failed. Try again.");
+      toast.error(t.drafts.card.regenerateFailed);
       setIsRegenerating(false);
     } else {
-      toast.success("Regenerating draft...");
+      toast.success(t.drafts.card.regeneratingToast);
     }
   }
 
@@ -131,7 +135,7 @@ export function DraftCard({
       ref={cardRef}
       tabIndex={0}
       role="article"
-      aria-label={`Draft for ${draft.leads?.name ?? "lead"}, message ${draft.touchpoint_index} of ${draft.total_touchpoints ?? "?"}`}
+      aria-label={t.drafts.card.ariaLabel(draft.leads?.name ?? "lead", draft.touchpoint_index, draft.total_touchpoints ?? "?")}
       onKeyDown={onKeyDown}
       initial={{ x: 300, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
@@ -142,18 +146,18 @@ export function DraftCard({
       <header className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold leading-[1.25]">
-            {draft.leads?.name ?? "Unknown lead"}
+            {draft.leads?.name ?? t.drafts.card.unknownLead}
           </h2>
           {/* Send time renders in the coach's timezone (fixed, not the
               browser's) so server and client agree, no hydration mismatch. */}
           <p className="text-xs font-mono text-muted-foreground mt-1">
-            Message {draft.touchpoint_index} of {draft.total_touchpoints ?? "?"} &middot;{" "}
+            {t.drafts.card.messageOf(draft.touchpoint_index, draft.total_touchpoints ?? "?")} &middot;{" "}
             {formatDateTimeInTZ(sched, timeZone)}
           </p>
           {draft.confidence_level === "low" && (
             <span className="inline-flex items-center gap-1 mt-2 text-xs px-2 py-1 rounded-md bg-[oklch(72%_0.12_70)] text-[oklch(40%_0.10_65)] dark:bg-[oklch(25%_0.08_65)] dark:text-[oklch(85%_0.08_65)]">
               <WarningCircle weight="fill" className="size-3" />
-              Voice model needs more examples
+              {t.drafts.card.lowConfidence}
             </span>
           )}
         </div>
@@ -167,7 +171,7 @@ export function DraftCard({
                     size="icon"
                     onClick={regenerate}
                     disabled={isRegenerating}
-                    aria-label="Regenerate draft"
+                    aria-label={t.drafts.card.regenerateAria}
                     className="min-h-[44px] min-w-[44px]"
                   >
                     <ArrowsClockwise
@@ -177,7 +181,7 @@ export function DraftCard({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {isRegenerating ? "Generating new draft..." : "Regenerate draft"}
+                  {isRegenerating ? t.drafts.card.regenerating : t.drafts.card.regenerate}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -187,7 +191,7 @@ export function DraftCard({
               variant="ghost"
               size="icon"
               onClick={() => setEditing(true)}
-              aria-label="Edit draft"
+              aria-label={t.drafts.card.editAria}
               className="min-h-[44px] min-w-[44px]"
             >
               <PencilSimple weight="regular" className="size-4" />
@@ -197,7 +201,7 @@ export function DraftCard({
       </header>
 
       {draft.subject && (
-        <p className="text-sm font-medium mt-4">Subject: {draft.subject}</p>
+        <p className="text-sm font-medium mt-4">{t.drafts.card.subject(draft.subject)}</p>
       )}
       <p className="mt-4 whitespace-pre-wrap text-sm leading-[1.5] max-w-[65ch]">
         {draft.body}
@@ -207,17 +211,17 @@ export function DraftCard({
         <footer className="flex items-center gap-3 mt-6">
           <ApproveButton className="min-h-[44px]" onClick={() => setStatus("approved")}>
             <CheckCircle weight="regular" className="size-4 mr-2" />
-            Approve <KeyBadge k="A" />
+            {t.drafts.card.approve} <KeyBadge k="A" />
           </ApproveButton>
           {showSkip && (
             <Button className="min-h-[44px]" variant="outline" onClick={onAdvance}>
               <SkipForward weight="regular" className="size-4 mr-2" />
-              Skip <KeyBadge k="S" />
+              {t.drafts.card.skip} <KeyBadge k="S" />
             </Button>
           )}
           <Button className="min-h-[44px]" variant="outline" onClick={() => setStatus("held")}>
             <PauseCircle weight="regular" className="size-4 mr-2" />
-            Hold <KeyBadge k="H" />
+            {t.drafts.card.hold} <KeyBadge k="H" />
           </Button>
         </footer>
       )}

@@ -6,15 +6,10 @@ import { ApproveButton } from "@/components/ui/approve-button";
 import { CalendarX, PhoneCall, Sparkle } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { formatDateTimeInTZ } from "@/lib/format/datetime";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { CallOutcomeRow } from "./call-outcome-realtime";
 
 type Outcome = "no_show" | "completed" | "converted";
-
-const RESOLVED_LABEL: Record<string, string> = {
-  no_show: "No show",
-  completed: "Call completed",
-  converted: "Converted",
-};
 
 interface Props {
   outcome: CallOutcomeRow;
@@ -32,6 +27,7 @@ export function CallOutcomeCard({
   variant = "awaiting",
   timeZone,
 }: Props) {
+  const t = useDictionary();
   const [pending, setPending] = useState<Outcome | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
@@ -54,8 +50,8 @@ export function CallOutcomeCard({
         // 409 = already resolved elsewhere (Slack, another tab). Realtime will
         // drop the card; surface the real reason so the coach isn't confused.
         const message = data.reason
-          ? `Couldn't record, ${data.reason}.`
-          : "This call was already recorded. The card will update shortly.";
+          ? t.calls.card.toastCouldntRecord(data.reason)
+          : t.calls.card.toastAlreadyRecorded;
         toast.error(message);
         setPending(null);
         return;
@@ -63,10 +59,12 @@ export function CallOutcomeCard({
       // 200: realtime flips the row to `resolved` and drops the card. Keep the
       // buttons disabled (pending stays set) so a double-click can't re-fire.
       toast.success(
-        value === "converted" ? "Converted 🎉" : `Recorded: ${RESOLVED_LABEL[value]}`,
+        value === "converted"
+          ? t.calls.card.toastConverted
+          : t.calls.card.toastRecorded(t.calls.card.resolvedLabel[value] ?? value),
       );
     } catch {
-      toast.error("Network hiccup. Refresh and try again.");
+      toast.error(t.calls.card.toastNetwork);
       setPending(null);
     }
   }
@@ -76,7 +74,7 @@ export function CallOutcomeCard({
 
   if (variant === "readonly") {
     const resolved = outcome.outcome
-      ? RESOLVED_LABEL[outcome.outcome] ?? outcome.outcome
+      ? t.calls.card.resolvedLabel[outcome.outcome] ?? outcome.outcome
       : null;
     return (
       <div className="rounded-2xl p-5 backdrop-blur-md bg-card dark:bg-white/5 border border-border dark:border-white/10 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
@@ -100,7 +98,7 @@ export function CallOutcomeCard({
       ref={cardRef}
       tabIndex={0}
       role="article"
-      aria-label={`How did the call with ${leadName} go?`}
+      aria-label={t.calls.card.question(leadName)}
       initial={reduce ? { opacity: 0 } : { x: 300, opacity: 0 }}
       animate={reduce ? { opacity: 1 } : { x: 0, opacity: 1 }}
       exit={reduce ? { opacity: 0 } : { x: -300, opacity: 0 }}
@@ -109,7 +107,7 @@ export function CallOutcomeCard({
     >
       <header>
         <h2 className="text-xl font-semibold leading-[1.25]">
-          How did the call with {leadName} go?
+          {t.calls.card.question(leadName)}
         </h2>
         <p className="text-xs font-mono text-muted-foreground mt-1">{whenLabel}</p>
       </header>
@@ -119,29 +117,29 @@ export function CallOutcomeCard({
           className="min-h-[44px] flex-1"
           onClick={() => record("completed")}
           disabled={pending !== null}
-          aria-label="Call completed"
+          aria-label={t.calls.card.completed}
         >
           <PhoneCall weight="regular" className="size-4 mr-2" />
-          Call completed
+          {t.calls.card.completed}
         </ApproveButton>
         <Button
           variant="outline"
           className="min-h-[44px] flex-1"
           onClick={() => record("no_show")}
           disabled={pending !== null}
-          aria-label="No show"
+          aria-label={t.calls.card.noShow}
         >
           <CalendarX weight="regular" className="size-4 mr-2" />
-          No show
+          {t.calls.card.noShow}
         </Button>
         <Button
           className="min-h-[44px] flex-1 bg-[oklch(80%_0.14_85)] text-[oklch(32%_0.10_75)] hover:bg-[oklch(83%_0.14_85)] dark:bg-[oklch(72%_0.13_85)] dark:text-[oklch(25%_0.08_75)] dark:hover:bg-[oklch(76%_0.13_85)]"
           onClick={() => record("converted")}
           disabled={pending !== null}
-          aria-label="Converted"
+          aria-label={t.calls.card.resolvedLabel.converted}
         >
           <Sparkle weight="fill" className="size-4 mr-2" />
-          Converted 🎉
+          {t.calls.card.converted}
         </Button>
       </footer>
     </motion.div>

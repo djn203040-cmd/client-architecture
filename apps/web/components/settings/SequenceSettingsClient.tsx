@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function SequenceSettingsClient({ sequenceConfig }: Props) {
+  const t = useDictionary();
   const router = useRouter();
   const [noShowDelays, setNoShowDelays] = useState(
     sequenceConfig.no_show_delays.join(", ")
@@ -34,10 +36,10 @@ export function SequenceSettingsClient({ sequenceConfig }: Props) {
         }),
       });
       if (!r.ok) throw new Error("Save failed");
-      toast.success("Cadence saved.");
+      toast.success(t.settings.sequence.saved);
       router.refresh();
     } catch {
-      toast.error("Couldn't save. Try again.");
+      toast.error(t.settings.sequence.saveError);
     } finally {
       setSaving(false);
     }
@@ -46,10 +48,10 @@ export function SequenceSettingsClient({ sequenceConfig }: Props) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Days from sequence start for each touchpoint. Comma-separated.
+        {t.settings.sequence.description}
       </p>
       <div className="space-y-2">
-        <label htmlFor="seq-no-show" className="text-sm font-medium">No-show touchpoints</label>
+        <label htmlFor="seq-no-show" className="text-sm font-medium">{t.settings.sequence.noShowLabel}</label>
         <Input
           id="seq-no-show"
           value={noShowDelays}
@@ -58,7 +60,7 @@ export function SequenceSettingsClient({ sequenceConfig }: Props) {
         />
       </div>
       <div className="space-y-2">
-        <label htmlFor="seq-call-completed" className="text-sm font-medium">Call-completed touchpoints</label>
+        <label htmlFor="seq-call-completed" className="text-sm font-medium">{t.settings.sequence.callCompletedLabel}</label>
         <Input
           id="seq-call-completed"
           value={callCompletedDelays}
@@ -67,7 +69,7 @@ export function SequenceSettingsClient({ sequenceConfig }: Props) {
         />
       </div>
       <Button onClick={save} disabled={saving}>
-        {saving ? "Saving…" : "Save cadence"}
+        {saving ? t.settings.sequence.saving : t.settings.sequence.save}
       </Button>
     </div>
   );

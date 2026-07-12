@@ -5,35 +5,23 @@ import { toast } from "sonner";
 import { WarningCircle } from "@phosphor-icons/react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { ApiMode } from "@/lib/autonomous-mode";
 import { AutonomousModeAConfirmModal } from "./AutonomousModeAConfirmModal";
 
-const OPTIONS: { value: ApiMode; label: string; description: string }[] = [
-  {
-    value: "manual",
-    label: "Manual",
-    description: "Every draft waits for your review. Recommended.",
-  },
-  {
-    value: "mode_b",
-    label: "Auto-send after 24h",
-    description:
-      "Drafts you don't act on send automatically when their scheduled time arrives. You still see them in the queue.",
-  },
-  {
-    value: "mode_a",
-    label: "Send without review",
-    description: "Drafts skip the queue and send immediately. Not recommended.",
-  },
-];
-
-const SUCCESS_COPY: Record<ApiMode, string> = {
-  manual: "Manual review enabled.",
-  mode_a: "Autonomous send enabled.",
-  mode_b: "Auto-send after 24h enabled.",
-};
-
 export function AutonomousModeCard({ initialMode }: { initialMode: ApiMode }) {
+  const t = useDictionary();
+  const copy = t.settingsAdvanced.autonomous.card;
+  const OPTIONS: { value: ApiMode; label: string; description: string }[] = [
+    { value: "manual", label: copy.manualLabel, description: copy.manualDescription },
+    { value: "mode_b", label: copy.modeBLabel, description: copy.modeBDescription },
+    { value: "mode_a", label: copy.modeALabel, description: copy.modeADescription },
+  ];
+  const SUCCESS_COPY: Record<ApiMode, string> = {
+    manual: copy.manualEnabled,
+    mode_a: copy.modeAEnabled,
+    mode_b: copy.modeBEnabled,
+  };
   const [mode, setMode] = useState<ApiMode>(initialMode);
   const [previousMode, setPreviousMode] = useState<ApiMode>(initialMode);
   const [modeAOpen, setModeAOpen] = useState(false);
@@ -47,7 +35,7 @@ export function AutonomousModeCard({ initialMode }: { initialMode: ApiMode }) {
       body: JSON.stringify({ mode: next, confirmation_phrase: confirmationPhrase }),
     });
     if (!r.ok) {
-      toast.error("Couldn't save. Try again.");
+      toast.error(copy.saveFailed);
       setMode(previousMode);
       return false;
     }
@@ -85,7 +73,7 @@ export function AutonomousModeCard({ initialMode }: { initialMode: ApiMode }) {
   return (
     <>
       <div className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-4">
-        <h2 className="text-xl font-semibold">Autonomous mode</h2>
+        <h2 className="text-xl font-semibold">{copy.heading}</h2>
         <AnimatePresence>
           {mode === "mode_a" && (
             <motion.div
@@ -98,7 +86,7 @@ export function AutonomousModeCard({ initialMode }: { initialMode: ApiMode }) {
               <Alert className="bg-amber-100/70 dark:bg-amber-900/30 border-amber-300/40 text-amber-900 dark:text-amber-100">
                 <WarningCircle className="size-3.5 mr-2" weight="regular" />
                 <AlertDescription>
-                  Autonomous send is active. Messages send without review.
+                  {copy.activeBanner}
                 </AlertDescription>
               </Alert>
             </motion.div>

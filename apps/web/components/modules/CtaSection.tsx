@@ -4,6 +4,7 @@ import { CalBookingEmbed } from "./CalBookingEmbed";
 interface CtaSectionProps {
   id?: string;
   headline: string;
+  pickTimeLabel: string;
   calLink: string;
   calNamespace: string;
   secondaryMailto: string;
@@ -13,6 +14,7 @@ interface CtaSectionProps {
 export function CtaSection({
   id,
   headline,
+  pickTimeLabel,
   calLink,
   calNamespace,
   secondaryMailto,
@@ -26,7 +28,7 @@ export function CtaSection({
             {headline}
           </h2>
           <p className="mt-4 text-sm text-muted-foreground">
-            Pick a time that works.{" "}
+            {pickTimeLabel}{" "}
             <a
               href={secondaryMailto}
               className="font-medium text-accent underline-offset-4 hover:underline"

@@ -1,18 +1,8 @@
 import type { ReactNode } from "react";
 import type { OnboardingStep } from "@client/shared/validators";
+import { getServerDictionary } from "@/lib/i18n/server";
 import { StepIndicator } from "./StepIndicator";
 import { TimezoneCapture } from "./TimezoneCapture";
-
-const STEP_HEADINGS: Record<OnboardingStep, string> = {
-  language: "Vælg sprog · Choose language",
-  gmail: "Connect your Gmail",
-  booking: "Add your booking link",
-  calendar: "Connect your calendar",
-  sales: "How you sell",
-  voice: "Teach the AI your voice",
-  "first-lead": "Your first AI draft",
-  notifications: "Where should we reach you?",
-};
 
 interface Props {
   currentStep: OnboardingStep;
@@ -22,7 +12,8 @@ interface Props {
   children: ReactNode;
 }
 
-export function WizardShell({ currentStep, progress, coachTimezone, children }: Props) {
+export async function WizardShell({ currentStep, progress, coachTimezone, children }: Props) {
+  const t = await getServerDictionary();
   return (
     <div className="min-h-screen flex flex-col items-center justify-start pt-8 pb-16 px-4">
       {!coachTimezone && <TimezoneCapture />}
@@ -30,7 +21,7 @@ export function WizardShell({ currentStep, progress, coachTimezone, children }: 
         {/* Header */}
         <div className="flex flex-col items-center gap-6">
           <div className="flex items-center justify-center gap-2">
-            <span className="font-semibold tracking-tight text-base">The Client Architecture</span>
+            <span className="font-semibold tracking-tight text-base">{t.onboarding.shell.brand}</span>
           </div>
           <StepIndicator currentStep={currentStep} progress={progress} />
         </div>
@@ -38,7 +29,7 @@ export function WizardShell({ currentStep, progress, coachTimezone, children }: 
         {/* Card */}
         <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-md shadow-sm dark:bg-white/5 dark:border-white/10 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
           <div className="px-8 pt-8 pb-2">
-            <h1 className="text-2xl font-semibold leading-snug">{STEP_HEADINGS[currentStep]}</h1>
+            <h1 className="text-2xl font-semibold leading-snug">{t.onboarding.shell.headings[currentStep]}</h1>
           </div>
           <div className="px-8 pb-8 pt-4">{children}</div>
         </div>
@@ -46,9 +37,9 @@ export function WizardShell({ currentStep, progress, coachTimezone, children }: 
         {/* Dev-only skip link */}
         {process.env.NODE_ENV !== "production" && (
           <p className="text-center text-xs text-muted-foreground">
-            <span className="opacity-50">Dev only, </span>
+            <span className="opacity-50">{t.onboarding.shell.devOnly}</span>
             <a href="/dashboard" className="underline underline-offset-2 hover:text-foreground">
-              Skip onboarding
+              {t.onboarding.shell.skipOnboarding}
             </a>
           </p>
         )}

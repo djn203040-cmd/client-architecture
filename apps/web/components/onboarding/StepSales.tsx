@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { SalesToolkitForm } from "@/components/settings/SalesToolkitForm";
 import type { TSalesToolkit } from "@client/shared/validators";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
 
 interface Props {
   initialToolkit: TSalesToolkit;
 }
 
 export function StepSales({ initialToolkit }: Props) {
+  const t = useDictionary();
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
@@ -27,7 +29,7 @@ export function StepSales({ initialToolkit }: Props) {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        toast.error(body.error ?? "Couldn't advance. Try again.");
+        toast.error(body.error ?? t.onboarding.sales.advanceFailed);
         return;
       }
       router.refresh();
@@ -40,20 +42,17 @@ export function StepSales({ initialToolkit }: Props) {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground leading-relaxed">
-        Start by picking the sales approach that sounds most like you, that part takes about
-        a minute. If you want, add your programs and how you handle objections too, so the AI
-        can bridge the gap the way you would when a lead hesitates. The whole thing takes
-        about 3 to 5 minutes, and you can skip it now and finish later in Settings.
+        {t.onboarding.sales.intro}
       </p>
 
       <SalesToolkitForm initial={initialToolkit} />
 
       <div className="flex items-center justify-between pt-2">
         <Button variant="ghost" size="sm" onClick={advance} disabled={submitting}>
-          I&apos;ll add this later
+          {t.onboarding.sales.later}
         </Button>
         <Button size="sm" onClick={advance} disabled={submitting}>
-          {submitting ? "Saving…" : "Continue"}
+          {submitting ? t.onboarding.sales.saving : t.onboarding.sales.continue}
         </Button>
       </div>
     </div>

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle, ArrowSquareOut } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { CalendarProviderConfig } from "@/lib/calendar/providers";
 
 interface Props {
@@ -15,6 +16,8 @@ interface Props {
 }
 
 export function ApiKeyForm({ provider, onConnected }: Props) {
+  const t = useDictionary();
+  const copy = t.settingsAdvanced.calendar.apiKeyForm;
   const router = useRouter();
   const [apiKey, setApiKey] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -34,7 +37,7 @@ export function ApiKeyForm({ provider, onConnected }: Props) {
       });
       const body = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; detail?: string };
       if (!res.ok || !body.ok) {
-        const msg = body.error === "invalid_api_key" ? "That key didn't work, double-check it and try again." : body.error ?? "Connection failed.";
+        const msg = body.error === "invalid_api_key" ? copy.invalidKey : body.error ?? copy.connectionFailed;
         toast.error(msg);
         setTested(true);
         setTestOk(false);
@@ -43,9 +46,9 @@ export function ApiKeyForm({ provider, onConnected }: Props) {
       if (dryRun) {
         setTested(true);
         setTestOk(true);
-        toast.success("Key works.");
+        toast.success(copy.keyWorks);
       } else {
-        toast.success(`${provider.label} connected.`);
+        toast.success(copy.connected(provider.label));
         onConnected?.();
         router.refresh();
       }
@@ -68,7 +71,7 @@ export function ApiKeyForm({ provider, onConnected }: Props) {
             setTested(false);
           }}
           disabled={submitting}
-          placeholder="Paste your key here"
+          placeholder={copy.pasteKeyPlaceholder}
         />
         <a
           href={provider.apiKey.helpUrl}
@@ -76,7 +79,7 @@ export function ApiKeyForm({ provider, onConnected }: Props) {
           rel="noreferrer noopener"
           className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
         >
-          Where do I find this?
+          {copy.whereFind}
           <ArrowSquareOut weight="regular" className="size-3" />
         </a>
       </div>
@@ -84,16 +87,16 @@ export function ApiKeyForm({ provider, onConnected }: Props) {
       {tested && testOk && (
         <div className="flex items-center gap-1.5 text-xs text-[oklch(60%_0.14_145)]">
           <CheckCircle weight="fill" className="size-3.5" />
-          Key verified.
+          {copy.keyVerified}
         </div>
       )}
 
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" disabled={submitting || !apiKey.trim()} onClick={() => send(true)}>
-          Test
+          {copy.test}
         </Button>
         <Button size="sm" disabled={submitting || !apiKey.trim()} onClick={() => send(false)}>
-          {submitting ? "Saving…" : "Save & connect"}
+          {submitting ? copy.saving : copy.saveConnect}
         </Button>
       </div>
     </div>

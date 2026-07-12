@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
+import { useDictionary } from "@/lib/i18n/provider";
 import { CallOutcomeCard } from "./CallOutcomeCard";
 import {
   CallCelebrationEmptyState,
@@ -27,6 +28,7 @@ export function CallQueueScaffold({
   /** Coach's IANA timezone, renders call windows in their local clock. */
   timeZone?: string | null;
 }) {
+  const t = useDictionary();
   const [activeTab, setActiveTab] = useState<Tab>("awaiting");
 
   const { outcomes: awaiting, loading: awaitingLoading } = useCallOutcomeRealtime(
@@ -42,13 +44,14 @@ export function CallQueueScaffold({
     initialOutcomes: initialHistory,
   });
 
-  const nameOf = (o: CallOutcomeRow) => o.leads?.name ?? "your lead";
+  const nameOf = (o: CallOutcomeRow) =>
+    o.leads?.name ?? t.calls.queue.leadFallback;
 
   return (
     <div className="space-y-4">
       <div
         role="tablist"
-        aria-label="Call queue sections"
+        aria-label={t.calls.queue.tablistLabel}
         className="flex items-center gap-1 border-b border-border pb-3"
       >
         <TabButton
@@ -58,7 +61,7 @@ export function CallQueueScaffold({
           onClick={() => setActiveTab("awaiting")}
           badge={awaiting.length > 0 ? awaiting.length : undefined}
         >
-          Awaiting
+          {t.calls.queue.tabAwaiting}
         </TabButton>
         <TabButton
           id="tab-upcoming"
@@ -67,7 +70,7 @@ export function CallQueueScaffold({
           onClick={() => setActiveTab("upcoming")}
           badge={upcoming.length > 0 ? upcoming.length : undefined}
         >
-          Upcoming
+          {t.calls.queue.tabUpcoming}
         </TabButton>
         <TabButton
           id="tab-history"
@@ -75,7 +78,7 @@ export function CallQueueScaffold({
           active={activeTab === "history"}
           onClick={() => setActiveTab("history")}
         >
-          History
+          {t.calls.queue.tabHistory}
         </TabButton>
       </div>
 
@@ -93,7 +96,7 @@ export function CallQueueScaffold({
         ) : (
           <>
             <p className="text-sm text-muted-foreground mb-4" aria-live="polite">
-              {awaiting.length} call{awaiting.length === 1 ? "" : "s"} awaiting an outcome
+              {t.calls.queue.awaitingCount(awaiting.length)}
             </p>
             <div className="space-y-4">
               <AnimatePresence mode="popLayout">

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Trash } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
 
 export function DeleteLeadButton({
   leadId,
@@ -21,6 +22,7 @@ export function DeleteLeadButton({
   leadId: string;
   leadName: string;
 }) {
+  const t = useDictionary();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -31,10 +33,10 @@ export function DeleteLeadButton({
     setDeleting(false);
     if (!r.ok) {
       const data = await r.json().catch(() => ({}));
-      toast.error(data.error ?? "Couldn't delete this lead. Try again.");
+      toast.error(data.error ?? t.leads.deleteLead.error);
       return;
     }
-    toast.success(`${leadName} deleted`);
+    toast.success(t.leads.deleteLead.success(leadName));
     setOpen(false);
     router.push("/leads");
     router.refresh();
@@ -45,23 +47,22 @@ export function DeleteLeadButton({
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10">
           <Trash weight="regular" className="size-4 mr-2" />
-          Delete lead
+          {t.leads.deleteLead.trigger}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete {leadName}?</DialogTitle>
+          <DialogTitle>{t.leads.deleteLead.title(leadName)}</DialogTitle>
           <DialogDescription>
-            This permanently removes the lead and all of their timeline, drafts, transcripts,
-            and notes. This cannot be undone.
+            {t.leads.deleteLead.description}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={deleting}>
-            Cancel
+            {t.leads.deleteLead.cancel}
           </Button>
           <Button variant="destructive" onClick={onConfirm} disabled={deleting}>
-            {deleting ? "Deleting…" : "Delete lead"}
+            {deleting ? t.leads.deleteLead.deleting : t.leads.deleteLead.confirm}
           </Button>
         </DialogFooter>
       </DialogContent>

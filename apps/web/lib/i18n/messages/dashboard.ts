@@ -1,7 +1,95 @@
 import { defineMessages } from "./util";
 
-/** The dashboard home page and its widgets. Filled during the Stage 2 sweep. */
+/** The app shell, dashboard home page and its widgets. */
 export const dashboard = defineMessages({
-  en: {},
-  da: {},
+  en: {
+    shell: {
+      skipToContent: "Skip to content",
+      unlockMore: "Unlock more",
+      learnMore: "Learn more →",
+      module2Title: "The Threshold Experience",
+      module2Subtitle: "Your client's first 48 hours, built from your sales call.",
+      module3Title: "The Continuation",
+      module3Subtitle: "Thirty days before they leave, we remind them why they stayed.",
+      primaryNavLabel: "Primary",
+      mobileNavLabel: "Mobile navigation",
+      themeToggle: "Toggle theme",
+      switchToDark: "Switch to dark mode",
+      switchToLight: "Switch to light mode",
+    },
+    home: {
+      title: "Dashboard",
+      leads: "Leads",
+      viewLeads: "View leads",
+      draftsPending: "Drafts pending review",
+      reviewDrafts: "Review drafts",
+      draftsHint: "Drafts appear 24 hours before they're scheduled to send.",
+    },
+    pendingActions: {
+      heading: "Pending Actions",
+      unknownLead: "Unknown Lead",
+      done: "Done.",
+      failed: "Couldn't complete this action. Try again.",
+      callPrompt: "How did the call go?",
+      startFollowUp: "Start follow-up",
+      starting: "Starting…",
+      closed: "Closed",
+      rescheduled: "Rescheduled",
+      intakePrompt: (email: string) => `${email} emailed you, start their intake sequence?`,
+      startSequence: "Yes, start sequence",
+      dismiss: "Dismiss",
+      dismissing: "Dismissing…",
+    },
+    onboarding: {
+      finishSetup: "Finish setup,",
+      stepsRemaining: (remaining: number, total: number) =>
+        `${remaining} of ${total} step${remaining !== 1 ? "s" : ""} remaining`,
+      resume: "Resume",
+    },
+  },
+  da: {
+    shell: {
+      skipToContent: "Spring til indhold",
+      unlockMore: "Lås mere op",
+      learnMore: "Læs mere →",
+      module2Title: "The Threshold Experience",
+      module2Subtitle: "Din klients første 48 timer, bygget ud fra din salgssamtale.",
+      module3Title: "The Continuation",
+      module3Subtitle: "Tredive dage før de forlader dig, minder vi dem om, hvorfor de blev.",
+      primaryNavLabel: "Primær",
+      mobileNavLabel: "Mobilnavigation",
+      themeToggle: "Skift tema",
+      switchToDark: "Skift til mørk visning",
+      switchToLight: "Skift til lys visning",
+    },
+    home: {
+      title: "Overblik",
+      leads: "Leads",
+      viewLeads: "Se leads",
+      draftsPending: "Udkast til gennemsyn",
+      reviewDrafts: "Gennemse udkast",
+      draftsHint: "Udkast dukker op 24 timer før, de er planlagt til at blive sendt.",
+    },
+    pendingActions: {
+      heading: "Handlinger der venter",
+      unknownLead: "Ukendt lead",
+      done: "Klaret.",
+      failed: "Vi kunne ikke gennemføre handlingen. Prøv igen.",
+      callPrompt: "Hvordan gik samtalen?",
+      startFollowUp: "Start opfølgning",
+      starting: "Starter…",
+      closed: "Lukket",
+      rescheduled: "Flyttet",
+      intakePrompt: (email: string) => `${email} har skrevet til dig — skal vi starte deres forløb?`,
+      startSequence: "Ja, start forløbet",
+      dismiss: "Afvis",
+      dismissing: "Afviser…",
+    },
+    onboarding: {
+      finishSetup: "Gør opsætningen færdig,",
+      stepsRemaining: (remaining: number, total: number) =>
+        `${remaining} af ${total} trin tilbage`,
+      resume: "Fortsæt",
+    },
+  },
 });

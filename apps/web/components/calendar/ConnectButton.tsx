@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ArrowSquareOut } from "@phosphor-icons/react";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { CalendarProviderConfig } from "@/lib/calendar/providers";
 
 interface Props {
@@ -11,8 +12,10 @@ interface Props {
 }
 
 export function ConnectButton({ provider, oauthConfigured, disabled }: Props) {
+  const t = useDictionary();
+  const copy = t.settingsAdvanced.calendar.connectButton;
   const href = `/api/auth/calendar/${provider.id}/authorize`;
-  const label = `Sign in with ${provider.label}`;
+  const label = copy.signInWith(provider.label);
 
   if (!oauthConfigured) {
     return (
@@ -21,15 +24,15 @@ export function ConnectButton({ provider, oauthConfigured, disabled }: Props) {
           {label}
         </Button>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          {provider.label} sign-in isn&apos;t configured on our end yet. Set{" "}
+          {copy.notConfigured(provider.label)}{" "}
           <code className="font-mono text-[10px] px-1 py-0.5 rounded bg-muted">
             {provider.oauth?.clientIdEnv}
           </code>{" "}
-          and{" "}
+          {copy.andThen}{" "}
           <code className="font-mono text-[10px] px-1 py-0.5 rounded bg-muted">
             {provider.oauth?.clientSecretEnv}
           </code>{" "}
-          in your env, then restart the dev server.
+          {copy.inYourEnv}
         </p>
       </div>
     );

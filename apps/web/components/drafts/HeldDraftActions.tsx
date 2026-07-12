@@ -5,6 +5,7 @@ import { ApproveButton } from "@/components/ui/approve-button";
 import { PaperPlaneTilt, PencilSimple } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { InlineDraftEditor } from "./InlineDraftEditor";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { Database } from "@client/database";
 
 type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function HeldDraftActions({ draft, onAdvance }: Props) {
+  const t = useDictionary();
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -31,19 +33,19 @@ export function HeldDraftActions({ draft, onAdvance }: Props) {
       });
       if (!r.ok) {
         const { reason } = await r.json().catch(() => ({ reason: "unknown" }));
-        toast.error(`Couldn't approve. ${reason}.`);
+        toast.error(t.drafts.heldActions.approveFailed(reason));
         return;
       }
       const sentAt = new Date().toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
       });
-      toast.success(`Approved. Sent at ${sentAt}.`);
+      toast.success(t.drafts.heldActions.sentAt(sentAt));
       onAdvance?.();
     } finally {
       setBusy(false);
     }
-  }, [draft.id, onAdvance]);
+  }, [draft.id, onAdvance, t]);
 
   const cancel = useCallback(async () => {
     setBusy(true);
@@ -54,16 +56,16 @@ export function HeldDraftActions({ draft, onAdvance }: Props) {
         body: JSON.stringify({ status: "cancelled" }),
       });
       if (!r.ok) {
-        toast.error("Couldn't cancel. Try again.");
+        toast.error(t.drafts.heldActions.cancelFailed);
         return;
       }
-      toast.success("Draft cancelled.");
+      toast.success(t.drafts.heldActions.cancelledToast);
       onAdvance?.();
     } finally {
       setBusy(false);
       setConfirmingCancel(false);
     }
-  }, [draft.id, onAdvance]);
+  }, [draft.id, onAdvance, t]);
 
   // Keyboard shortcuts R / E / C
   useEffect(() => {
@@ -90,10 +92,10 @@ export function HeldDraftActions({ draft, onAdvance }: Props) {
             body: JSON.stringify({ body }),
           });
           if (!r.ok) {
-            toast.error("Save failed. Try again.");
+            toast.error(t.drafts.heldActions.saveFailed);
             return;
           }
-          toast.success("Draft saved.");
+          toast.success(t.drafts.heldActions.savedToast);
           setEditing(false);
           onAdvance?.();
         }}
@@ -104,7 +106,7 @@ export function HeldDraftActions({ draft, onAdvance }: Props) {
   if (confirmingCancel) {
     return (
       <div className="flex items-center justify-between gap-3 pt-4 border-t border-border">
-        <span className="text-sm text-foreground">Cancel this draft?</span>
+        <span className="text-sm text-foreground">{t.drafts.heldActions.confirmCancel}</span>
         <div className="flex gap-2">
           <Button
             variant="ghost"
@@ -112,7 +114,7 @@ export function HeldDraftActions({ draft, onAdvance }: Props) {
             onClick={() => setConfirmingCancel(false)}
             disabled={busy}
           >
-            Keep on hold
+            {t.drafts.heldActions.keepOnHold}
           </Button>
           <Button
             variant="destructive"
@@ -120,7 +122,7 @@ export function HeldDraftActions({ draft, onAdvance }: Props) {
             onClick={cancel}
             disabled={busy}
           >
-            Yes, cancel
+            {t.drafts.heldActions.yesCancel}
           </Button>
         </div>
       </div>
@@ -131,7 +133,7 @@ export function HeldDraftActions({ draft, onAdvance }: Props) {
     <div className="flex items-center justify-between gap-3 pt-4 border-t border-border">
       <ApproveButton onClick={reapprove} disabled={busy} className="min-h-[44px]">
         <PaperPlaneTilt className="size-4 mr-2" weight="regular" />
-        Re-approve
+        {t.drafts.heldActions.reapprove}
         <span className="ml-2 text-xs font-mono text-muted-foreground/60 hidden md:inline">
           R
         </span>
@@ -144,7 +146,7 @@ export function HeldDraftActions({ draft, onAdvance }: Props) {
           className="min-h-[44px]"
         >
           <PencilSimple className="size-4 mr-2" weight="regular" />
-          Edit
+          {t.drafts.heldActions.edit}
           <span className="ml-2 text-xs font-mono text-muted-foreground/60 hidden md:inline">
             E
           </span>
@@ -155,7 +157,7 @@ export function HeldDraftActions({ draft, onAdvance }: Props) {
           disabled={busy}
           className="min-h-[44px] hover:text-destructive"
         >
-          Cancel
+          {t.drafts.heldActions.cancel}
           <span className="ml-2 text-xs font-mono text-muted-foreground/60 hidden md:inline">
             C
           </span>

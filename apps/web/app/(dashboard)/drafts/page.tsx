@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { DraftQueueScaffold } from "@/components/drafts/DraftQueueScaffold";
+import { getServerDictionary } from "@/lib/i18n/server";
 import type { Database } from "@client/database";
 
 type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
@@ -8,6 +9,7 @@ type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
 
 export default async function DraftsPage() {
   const supabase = await createClient();
+  const t = await getServerDictionary();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -40,7 +42,7 @@ export default async function DraftsPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-[28px] font-semibold leading-[1.2]">Drafts</h1>
+      <h1 className="text-[28px] font-semibold leading-[1.2]">{t.drafts.page.title}</h1>
       <DraftQueueScaffold
         coachId={user!.id}
         initialDrafts={(draftsResult.data ?? []) as DraftRow[]}

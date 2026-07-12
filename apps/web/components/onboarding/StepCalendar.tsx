@@ -13,6 +13,7 @@ import {
   type CalendarProviderId,
 } from "@/lib/calendar/providers";
 import { toast } from "sonner";
+import { useDictionary } from "@/lib/i18n/provider";
 
 interface Props {
   // Provider currently connected for this coach, if any.
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export function StepCalendar({ activeProvider, oauthConfigured }: Props) {
+  const t = useDictionary();
   const router = useRouter();
   const [selected, setSelected] = useState<CalendarProviderId | null>(activeProvider);
   const [advancing, setAdvancing] = useState(false);
@@ -40,11 +42,11 @@ export function StepCalendar({ activeProvider, oauthConfigured }: Props) {
       });
       if (!advanceRes.ok) {
         const body = (await advanceRes.json().catch(() => ({}))) as { error?: string };
-        toast.error(body.error ?? "Couldn't advance. Try again.");
+        toast.error(body.error ?? t.onboarding.calendar.advanceFailed);
         return;
       }
       if (skip) {
-        toast.message("Skipped, you can connect a calendar later from Settings.");
+        toast.message(t.onboarding.calendar.skippedToast);
       }
       router.refresh();
       router.push("/onboarding/voice" as never);
@@ -56,9 +58,7 @@ export function StepCalendar({ activeProvider, oauthConfigured }: Props) {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground leading-relaxed">
-        Connect your calendar so we can pick up no-shows, post-call completions, and new bookings, 
-        and start the right follow-up automatically. Pick the tool you actually use; you can switch
-        later from Settings.
+        {t.onboarding.calendar.intro}
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -98,11 +98,11 @@ export function StepCalendar({ activeProvider, oauthConfigured }: Props) {
       {selectedConfig && isConnected && (
         <div className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-4">
           <div>
-            <h3 className="text-sm font-semibold">{selectedConfig.label}, connected</h3>
+            <h3 className="text-sm font-semibold">{t.onboarding.calendar.connectedHeading(selectedConfig.label)}</h3>
             <p className="text-xs text-muted-foreground mt-1">
               {selectedConfig.webhook.mode === "auto"
-                ? "We'll start receiving bookings + no-shows automatically."
-                : "Finish wiring the webhook below so we start receiving events."}
+                ? t.onboarding.calendar.autoReady
+                : t.onboarding.calendar.manualReady}
             </p>
           </div>
           <WebhookSetupPanel providerId={selectedConfig.id} />
@@ -111,10 +111,14 @@ export function StepCalendar({ activeProvider, oauthConfigured }: Props) {
 
       <div className="flex items-center justify-between pt-2">
         <Button variant="ghost" size="sm" onClick={() => advance(true)} disabled={advancing}>
-          I&apos;ll do this later
+          {t.onboarding.calendar.later}
         </Button>
         <Button size="sm" onClick={() => advance(false)} disabled={advancing}>
-          {advancing ? "Saving…" : isConnected ? "Continue" : "Continue without calendar"}
+          {advancing
+            ? t.onboarding.calendar.saving
+            : isConnected
+              ? t.onboarding.calendar.continue
+              : t.onboarding.calendar.continueWithout}
         </Button>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { TourLauncher } from "@/components/tour/TourLauncher";
 import { IntegrationHealthCard } from "@/components/health/IntegrationHealthCard";
 import { TOUR_ANCHOR } from "@/lib/tour/anchors";
+import { getServerDictionary } from "@/lib/i18n/server";
 
 export async function AppShell({
   children,
@@ -12,13 +13,14 @@ export async function AppShell({
   children: React.ReactNode;
   coachName: string;
 }) {
+  const t = await getServerDictionary();
   return (
     <div className="min-h-[100dvh] grid grid-cols-1 lg:grid-cols-[240px_1fr]">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-1.5 focus:rounded-lg focus:bg-background focus:text-foreground focus:text-sm focus:border focus:border-border"
       >
-        Skip to content
+        {t.dashboard.shell.skipToContent}
       </a>
 
       <aside
@@ -40,7 +42,7 @@ export async function AppShell({
               type="submit"
               className="text-xs text-muted-foreground hover:text-foreground transition-colors w-full text-left"
             >
-              Sign out
+              {t.nav.signOut}
             </button>
           </form>
         </div>

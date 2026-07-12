@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, CircleNotch } from "@phosphor-icons/react";
 import { useTour } from "./TourProvider";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { TourPlacement } from "@/lib/tour/steps";
 
 interface Rect {
@@ -42,6 +43,7 @@ function sameRect(a: Rect | null, b: Rect): boolean {
 
 export function TourOverlay() {
   const { step, stepNumber, totalSteps, next, back, stop, waiting } = useTour();
+  const t = useDictionary();
 
   const [rect, setRect] = useState<Rect | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -162,7 +164,7 @@ export function TourOverlay() {
           ref={tipRef}
           role="dialog"
           aria-modal="false"
-          aria-label={step.title}
+          aria-label={t.tour.steps[step.id]?.title ?? step.title}
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
@@ -176,28 +178,30 @@ export function TourOverlay() {
               <div className="flex items-center gap-3 py-2">
                 <CircleNotch className="size-5 animate-spin text-neutral-400" />
                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                  Preparing your demo lead…
+                  {t.tour.preparingDemo}
                 </p>
               </div>
             ) : (
               <>
                 <div className="mb-3 flex items-center justify-between">
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-                    Step {stepNumber} of {totalSteps}
+                    {t.tour.stepLabel(stepNumber, totalSteps)}
                   </span>
                   <button
                     type="button"
                     onClick={stop}
-                    aria-label="Close tour"
+                    aria-label={t.tour.closeTour}
                     className="-mr-1 -mt-1 rounded-md p-1 text-neutral-400 transition-colors hover:bg-black/5 hover:text-neutral-700 dark:hover:bg-white/10 dark:hover:text-neutral-200"
                   >
                     <X className="size-4" />
                   </button>
                 </div>
 
-                <h3 className="text-[17px] font-semibold leading-snug">{step.title}</h3>
+                <h3 className="text-[17px] font-semibold leading-snug">
+                  {t.tour.steps[step.id]?.title ?? step.title}
+                </h3>
                 <p className="mt-2 text-[13.5px] leading-relaxed text-neutral-600 dark:text-neutral-300">
-                  {step.body}
+                  {t.tour.steps[step.id]?.body ?? step.body}
                 </p>
 
                 <div className="mt-6 flex flex-wrap items-center gap-1.5" aria-hidden>
@@ -220,7 +224,7 @@ export function TourOverlay() {
                       onClick={stop}
                       className="text-sm text-neutral-400 transition-colors hover:text-neutral-600 dark:hover:text-neutral-200"
                     >
-                      Skip tour
+                      {t.tour.skipTour}
                     </button>
                   ) : (
                     <span />
@@ -232,7 +236,7 @@ export function TourOverlay() {
                         onClick={back}
                         className="rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-black/5 dark:text-neutral-300 dark:hover:bg-white/10"
                       >
-                        Back
+                        {t.tour.back}
                       </button>
                     )}
                     <button
@@ -240,7 +244,7 @@ export function TourOverlay() {
                       onClick={next}
                       className="rounded-lg bg-[var(--color-primary,#1E3A2E)] px-4 py-1.5 text-sm font-semibold text-[var(--color-primary-foreground,#F5F0E5)] transition-opacity hover:opacity-90"
                     >
-                      {isLast ? "Finish" : step.clickToAdvance ? "Next chapter →" : "Next"}
+                      {isLast ? t.tour.finish : step.clickToAdvance ? t.tour.nextChapter : t.tour.next}
                     </button>
                   </div>
                 </div>

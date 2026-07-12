@@ -2,6 +2,7 @@
 import { AnimatePresence } from "framer-motion";
 import { DraftCard } from "@/components/drafts/DraftCard";
 import { useDraftRealtime } from "@/components/drafts/draft-realtime";
+import { useDictionary } from "@/lib/i18n/provider";
 import type { Database } from "@client/database";
 
 type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
@@ -36,6 +37,7 @@ export function LeadDraftsPanel({
   initialHeld,
   timeZone,
 }: Props) {
+  const t = useDictionary();
   const { drafts: pendingRaw, removeDraft: removePending } = useDraftRealtime(coachId, {
     status: "pending",
     leadId,
@@ -57,9 +59,9 @@ export function LeadDraftsPanel({
   if (pending.length === 0 && held.length === 0) return null;
 
   return (
-    <section data-tour="lead-drafts" className="space-y-3" aria-label="Drafts awaiting review">
+    <section data-tour="lead-drafts" className="space-y-3" aria-label={t.leads.drafts.aria}>
       <h2 className="text-sm font-medium text-muted-foreground">
-        Drafts awaiting review
+        {t.leads.drafts.heading}
       </h2>
       <div className="space-y-4">
         <AnimatePresence mode="popLayout">
