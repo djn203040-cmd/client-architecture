@@ -16,7 +16,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { TLeadStatus } from "@client/shared/types";
 import type { CallOutcomeRow } from "@/components/calls/call-outcome-realtime";
 import { buildSequenceView, type TSequenceConfig } from "@/lib/sequences/progress";
-import { getServerDictionary } from "@/lib/i18n/server";
+import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 
 export default async function LeadProfilePage({
   params,
@@ -26,6 +26,7 @@ export default async function LeadProfilePage({
   const { id } = await params;
   const supabase = await createClient();
   const t = await getServerDictionary();
+  const dateLocale = (await getServerLocale()) === "da" ? "da-DK" : "en-US";
 
   const {
     data: { user },
@@ -111,7 +112,12 @@ export default async function LeadProfilePage({
       ? buildSequenceView(
           sequenceRow,
           (coachResult.data?.sequence_config as TSequenceConfig) ?? null,
-          { drafts: sequenceDrafts, timeZone: coachResult.data?.timezone }
+          {
+            drafts: sequenceDrafts,
+            timeZone: coachResult.data?.timezone,
+            labels: t.leads.sequenceProgress,
+            locale: dateLocale,
+          }
         )
       : null;
 

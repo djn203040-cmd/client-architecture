@@ -40,9 +40,12 @@ function describe(e: Event, t: Dictionary): string {
   switch (e.event_type) {
     case "state_changed": {
       const p = (e.payload ?? {}) as { from?: string; to?: string };
+      // Localize the raw state enum values (e.g. "replied" → "Svaret").
+      const label = (s?: string) =>
+        s ? (t.leads.status[s as keyof typeof t.leads.status] ?? s) : undefined;
       return t.leads.timeline.stateChanged(
-        p.to ?? t.leads.timeline.stateChangedUnknown,
-        p.from
+        label(p.to) ?? t.leads.timeline.stateChangedUnknown,
+        label(p.from)
       );
     }
     case "note_added":
@@ -53,6 +56,10 @@ function describe(e: Event, t: Dictionary): string {
       return t.leads.timeline.emailOpened;
     case "replied":
       return t.leads.timeline.replied;
+    case "bounced":
+      return t.leads.timeline.bounced;
+    case "call_booked":
+      return t.leads.timeline.callBooked;
     case "call_converted":
       return t.leads.timeline.converted;
     default:

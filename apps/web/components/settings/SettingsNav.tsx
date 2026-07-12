@@ -11,6 +11,7 @@ const SECTION_IDS = [
   "calendar",
   "integrations",
   "session",
+  "language",
   "danger",
 ] as const;
 
@@ -26,6 +27,7 @@ export function SettingsNav() {
     calendar: t.settings.nav.calendar,
     integrations: t.settings.nav.integrations,
     session: t.settings.nav.session,
+    language: t.settings.nav.language,
     danger: t.settings.nav.danger,
   };
 
