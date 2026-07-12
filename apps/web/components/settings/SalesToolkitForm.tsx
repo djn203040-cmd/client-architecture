@@ -17,10 +17,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { Plus, Trash, Check, Info } from "@phosphor-icons/react";
 
 interface Props {
@@ -106,20 +106,21 @@ function StylePicker({
                 </p>
               </button>
 
-              {/* Info affordance: shows a concrete example of how this style sounds,
-                  answering the same objection as the other two for easy comparison. */}
-              <Popover>
-                <PopoverTrigger asChild>
+              {/* Info affordance: on hover (or keyboard focus) shows a concrete
+                  example of how this style sounds, answering the same objection as
+                  the other two for easy comparison. */}
+              <HoverCard>
+                <HoverCardTrigger asChild>
                   <button
                     type="button"
-                    aria-label={`See an example of ${style.label}`}
+                    aria-label={`Example of how ${style.label} sounds`}
                     onClick={(e) => e.stopPropagation()}
                     className="absolute right-2 top-2 grid size-6 place-items-center rounded-full text-muted-foreground hover:text-foreground hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <Info className="size-4" />
                   </button>
-                </PopoverTrigger>
-                <PopoverContent align="end" className="w-80 space-y-2">
+                </HoverCardTrigger>
+                <HoverCardContent align="end" className="w-80 space-y-2">
                   <p className="text-sm font-medium">{style.label} in action</p>
                   <p className="text-xs text-muted-foreground italic">
                     {SALES_STYLE_SCENARIO}
@@ -127,8 +128,8 @@ function StylePicker({
                   <div className="rounded-lg bg-white/5 border border-white/10 p-2.5">
                     <p className="text-sm leading-relaxed">{style.example}</p>
                   </div>
-                </PopoverContent>
-              </Popover>
+                </HoverCardContent>
+              </HoverCard>
             </div>
           );
         })}
