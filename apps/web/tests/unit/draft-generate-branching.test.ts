@@ -7,7 +7,7 @@ const LEAD_NAME = "Jane Doe";
 const NOW = "2026-05-20T12:00:00.000Z";
 
 describe("buildDraftOutcome (04-08 draft dispatch branching)", () => {
-  describe("mode_a — auto-approve, send immediately", () => {
+  describe("mode_a, auto-approve, send immediately", () => {
     it("returns status=approved", () => {
       const { status } = buildDraftOutcome("mode_a", DRAFT_ID, COACH_ID, LEAD_NAME, "high", NOW);
       expect(status).toBe("approved");
@@ -21,7 +21,7 @@ describe("buildDraftOutcome (04-08 draft dispatch branching)", () => {
     });
   });
 
-  describe("mode_b — pending with 24h auto-send timer", () => {
+  describe("mode_b, pending with 24h auto-send timer", () => {
     it("returns status=pending", () => {
       const { status } = buildDraftOutcome("mode_b", DRAFT_ID, COACH_ID, LEAD_NAME, "high", NOW);
       expect(status).toBe("pending");
@@ -43,7 +43,7 @@ describe("buildDraftOutcome (04-08 draft dispatch branching)", () => {
     });
   });
 
-  describe("off / null / unknown — manual review flow", () => {
+  describe("off / null / unknown, manual review flow", () => {
     const modes = ["off", null, undefined, "manual"] as const;
 
     it.each(modes)("returns status=pending for mode=%s", (mode) => {

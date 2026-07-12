@@ -3,7 +3,7 @@
 // API-key validation endpoint, webhook setup mode, display copy.
 //
 // The 7 receivers in apps/web/app/api/webhooks/calendar/*/route.ts are the inbound
-// side — already live. This registry powers the connect side built in 06-04.
+// side, already live. This registry powers the connect side built in 06-04.
 
 export type CalendarProviderId =
   | "calendly"
@@ -23,7 +23,7 @@ export interface OAuthConfig {
   scopes: string[];
   // Extra query-string params for the auth request (e.g. Microsoft's response_mode).
   extraAuthParams?: Record<string, string>;
-  // Env var names — we check presence to know whether the OAuth app has been registered.
+  // Env var names, we check presence to know whether the OAuth app has been registered.
   clientIdEnv: string;
   clientSecretEnv: string;
   // Token-revoke endpoint (POST with access_token); some providers don't support this.
@@ -44,10 +44,10 @@ export interface ApiKeyConfig {
 
 export interface WebhookConfig {
   mode: WebhookSetupMode;
-  // For "manual" providers — markdown rendered in WebhookSetupPanel telling the
+  // For "manual" providers, markdown rendered in WebhookSetupPanel telling the
   // coach exactly where to paste our URL + secret.
   instructions?: string;
-  // For "auto" providers — name of the registerFn in apps/web/lib/calendar/webhooks/.
+  // For "auto" providers, name of the registerFn in apps/web/lib/calendar/webhooks/.
   registerFnName?: string;
 }
 
@@ -66,7 +66,7 @@ export interface CalendarProviderConfig {
 }
 
 // ---------------------------------------------------------------------------
-// Webhook receiver URL builder — matches apps/web/app/api/webhooks/calendar/*
+// Webhook receiver URL builder, matches apps/web/app/api/webhooks/calendar/*
 // ---------------------------------------------------------------------------
 
 /**
@@ -182,7 +182,7 @@ export const CALENDAR_PROVIDERS: Record<CalendarProviderId, CalendarProviderConf
         "1. Sign in to your Setmore account and open **Apps & Integrations → Webhooks**.",
         "2. Click **Add webhook** and paste the URL above.",
         "3. Subscribe to: `BOOKING_CREATED`, `BOOKING_UPDATED`, `BOOKING_DELETED`.",
-        "4. Save. Test by creating a fake booking — it should appear on your dashboard within seconds.",
+        "4. Save. Test by creating a fake booking, it should appear on your dashboard within seconds.",
       ].join("\n"),
     },
   },

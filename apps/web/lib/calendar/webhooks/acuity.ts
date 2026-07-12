@@ -7,9 +7,9 @@ import type { RegisterWebhookArgs, RegisteredWebhook } from "./index";
 // https://developers.acquityscheduling.com/reference/post_api-v1-webhooks
 //
 // Acuity signs payloads with HMAC-SHA256 of (rawBody) using the *API user's key*
-// as the secret — not a per-webhook secret. We rely on the env-level ACUITY_API_KEY
+// as the secret, not a per-webhook secret. We rely on the env-level ACUITY_API_KEY
 // at the receiver (apps/web/lib/calendar/index.ts verifyAcuitySignature).
-// OAuth-installed apps: signature uses the OAuth client secret instead — left as
+// OAuth-installed apps: signature uses the OAuth client secret instead, left as
 // a follow-up in #ACUITY-FOLLOWUP if Daniel reports signature failures during §2.5.
 export async function registerAcuityWebhook(args: RegisterWebhookArgs): Promise<RegisteredWebhook | null> {
   const { coachId, provider, accessToken } = args;

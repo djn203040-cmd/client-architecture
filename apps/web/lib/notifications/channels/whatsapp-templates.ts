@@ -20,7 +20,7 @@ export const WHATSAPP_TEMPLATES = {
     category: "UTILITY" as const,
     contentSidEnvVar: "TWILIO_WHATSAPP_DRAFT_READY_CONTENT_SID",
     bodyForReview:
-      "Draft ready for {{1}} — scheduled to send at {{2}}. Review: {{3}}",
+      "Draft ready for {{1}}, scheduled to send at {{2}}. Review: {{3}}",
   },
   draft_followup: {
     name: "draft_followup_v1",

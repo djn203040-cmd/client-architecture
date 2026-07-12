@@ -1,6 +1,6 @@
-// SCAFFOLD ONLY — implementation Phase 2+
+// SCAFFOLD ONLY, implementation Phase 2+
 // Webhook verification endpoint for Meta app review (INFRA-010)
-// Uses Instagram Graph API (NOT Basic Display API — EOL December 4, 2024)
+// Uses Instagram Graph API (NOT Basic Display API, EOL December 4, 2024)
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -15,6 +15,6 @@ export async function GET(request: Request) {
 }
 
 export async function POST(_request: Request) {
-  // Scaffold only — return 200 to satisfy Meta webhook ping
+  // Scaffold only, return 200 to satisfy Meta webhook ping
   return new Response("OK", { status: 200 });
 }

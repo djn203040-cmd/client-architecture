@@ -2,12 +2,12 @@ import type { TLeadStatus } from "../types";
 
 /**
  * D-01 (Phase 7): "converted" is a LIVE client, not a dead lead. It must stay
- * fully sendable (reply-driven + approved drafts still go out) — it is only
+ * fully sendable (reply-driven + approved drafts still go out), it is only
  * excluded from AUTO-nurture / re-engagement enrollment. So the old single
  * TERMINAL_STATES list is split into two explicit sets:
  *
- *   - SEND_BLOCK_STATES   — hard-blocks OUTBOUND SEND. "converted" is ABSENT.
- *   - NURTURE_BLOCK_STATES — blocks AUTO-ENROLLMENT. "converted" is PRESENT.
+ *   - SEND_BLOCK_STATES, hard-blocks OUTBOUND SEND. "converted" is ABSENT.
+ *   - NURTURE_BLOCK_STATES, blocks AUTO-ENROLLMENT. "converted" is PRESENT.
  *
  * Use SEND_BLOCK_STATES for outbound-send gates (runPreSendSafetyCheck);
  * use NURTURE_BLOCK_STATES for auto-enrollment / re-engagement / "start a new

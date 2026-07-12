@@ -24,7 +24,7 @@ type StepTools = {
 };
 
 /**
- * Extracted handler — exported so integration tests can invoke it without the
+ * Extracted handler, exported so integration tests can invoke it without the
  * Inngest dev server.
  *
  * D-13: arm on LEAD_CALL_BOOKED, sleep until ends_at + per-coach buffer, then
@@ -32,7 +32,7 @@ type StepTools = {
  * is CAS-guarded (WHERE status='scheduled') so the D-14 poller can never
  * double-flip the same row (T-07-08). A reschedule/cancel cancels this run via
  * cancelOn; the reschedule branch in process-event.ts re-emits LEAD_CALL_BOOKED
- * with the new window, which re-arms a fresh monitor — no extra handling here.
+ * with the new window, which re-arms a fresh monitor, no extra handling here.
  */
 export async function callOutcomeMonitorHandler({
   event,
@@ -43,7 +43,7 @@ export async function callOutcomeMonitorHandler({
 }) {
   const { coachId, leadId, callOutcomeId, eventEndAt } = event.data;
 
-  // A booking without an outcome row or end time can't be monitored — bail
+  // A booking without an outcome row or end time can't be monitored, bail
   // rather than sleep forever or NaN the target.
   if (!callOutcomeId || !eventEndAt) {
     return { skipped: true, reason: "missing_outcome_or_end" };
@@ -88,7 +88,7 @@ export async function callOutcomeMonitorHandler({
 export const callOutcomeMonitor = inngest.createFunction(
   {
     id: "call-outcome-monitor",
-    name: "Call outcome monitor — prompt the coach after the call ends",
+    name: "Call outcome monitor, prompt the coach after the call ends",
     triggers: [{ event: LEAD_CALL_BOOKED }],
     cancelOn: [
       {

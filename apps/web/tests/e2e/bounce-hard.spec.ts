@@ -2,7 +2,7 @@ import { test, expect } from "../fixtures";
 import { createLead } from "../fixtures/createLead";
 import { admin } from "../fixtures/createCoach";
 
-// 06-PLAN.md §1.4 — Hard bounce → sequence paused + multi-channel notification fired.
+// 06-PLAN.md §1.4, Hard bounce → sequence paused + multi-channel notification fired.
 // We exercise the bounce-handler path by directly recording a bounce event and
 // asserting state changes. Real Resend webhook signature is covered separately
 // at the integration level (resend-svix.test.ts).

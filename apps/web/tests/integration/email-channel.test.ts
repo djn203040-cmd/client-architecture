@@ -241,7 +241,7 @@ describe("email-channel (Phase 4 / NOTIFY-002)", () => {
       unsubscribeUrl: "https://app.sonorous.com/unsubscribe",
     });
     expect(html).toContain("Voice model has limited examples");
-    // Warm amber colors only — no neon green, no dark purple
+    // Warm amber colors only, no neon green, no dark purple
     expect(html).not.toContain("#00FF00");
     expect(html).not.toContain("#00ff00");
     expect(html).not.toContain("#1a0033");

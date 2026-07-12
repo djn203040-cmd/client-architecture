@@ -31,12 +31,12 @@ export async function PATCH(req: NextRequest) {
 
   const { event_type, channel, enabled } = parsed.data;
 
-  // D-13: Dashboard is always ON — reject attempts to disable it
+  // D-13: Dashboard is always ON, reject attempts to disable it
   if (channel === "dashboard" && !enabled) {
     return NextResponse.json({ ok: false, reason: "dashboard_always_on" }, { status: 400 });
   }
 
-  // D-15: Hard bounce × SMS is locked ON — reject attempts to disable it
+  // D-15: Hard bounce × SMS is locked ON, reject attempts to disable it
   if (event_type === "hard_bounce" && channel === "sms" && !enabled) {
     return NextResponse.json({ ok: false, reason: "hard_bounce_sms_always_on" }, { status: 400 });
   }

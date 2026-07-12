@@ -14,37 +14,37 @@ const FAKE_VOICE_MODEL = {
   selected_examples: Array.from({ length: 8 }, (_, i) => `Example message ${i + 1} from this coach.`),
 };
 
-test("full onboarding wizard golden path — all steps complete", async ({ coach, page }) => {
+test("full onboarding wizard golden path, all steps complete", async ({ coach, page }) => {
   await page.context().addCookies(coach.cookies);
 
-  // Step 1: gmail — mock the OAuth row, then complete step
+  // Step 1: gmail, mock the OAuth row, then complete step
   await mockOauthCallback("gmail", coach.id);
   const gmailRes = await page.request.patch(`/api/onboarding/complete-step`, {
     data: { step: "gmail" },
   });
   expect(gmailRes.status()).toBe(200);
 
-  // Steps booking + calendar — no server-side gate, just record progress.
+  // Steps booking + calendar, no server-side gate, just record progress.
   // STEP_ORDER requires all six steps before onboarding is marked complete.
   for (const step of ["booking", "calendar"] as const) {
     const res = await page.request.patch(`/api/onboarding/complete-step`, { data: { step } });
     expect(res.status()).toBe(200);
   }
 
-  // Step 2: voice — seed 8 examples via admin, then complete step
+  // Step 2: voice, seed 8 examples via admin, then complete step
   await admin.from("coaches").update({ voice_model: FAKE_VOICE_MODEL }).eq("id", coach.id);
   const voiceRes = await page.request.patch(`/api/onboarding/complete-step`, {
     data: { step: "voice" },
   });
   expect(voiceRes.status()).toBe(200);
 
-  // Step 3: first-lead — seed demo lead+draft via admin (bypasses Anthropic call),
+  // Step 3: first-lead, seed demo lead+draft via admin (bypasses Anthropic call),
   // then demo-approve via API (plain DB update, no external calls)
   const { data: demoLead } = await admin
     .from("leads")
     .insert({
       coach_id: coach.id,
-      name: "Demo Lead — Alex Rivera",
+      name: "Demo Lead, Alex Rivera",
       email: `demo+${coach.id}@sonorous.test`,
       source: "manual",
       status: "call_completed",
@@ -58,7 +58,7 @@ test("full onboarding wizard golden path — all steps complete", async ({ coach
     .insert({
       coach_id: coach.id,
       lead_id: demoLead!.id,
-      body: "Test draft — standing in for AI-generated content.",
+      body: "Test draft, standing in for AI-generated content.",
       subject: "Following up",
       status: "pending",
       generation_context: { demo: true },
@@ -77,7 +77,7 @@ test("full onboarding wizard golden path — all steps complete", async ({ coach
   });
   expect(firstLeadRes.status()).toBe(200);
 
-  // Step 4: notifications — acknowledge dashboard-only, then complete step
+  // Step 4: notifications, acknowledge dashboard-only, then complete step
   await admin
     .from("coaches")
     .update({ notification_settings: { dashboard_only_acknowledged: true } })
@@ -125,6 +125,6 @@ test("dashboard visit without onboarding complete redirects to /onboarding (no l
 
   await page.goto("/dashboard");
   expect(page.url()).toContain("/onboarding");
-  // At most one redirect — no redirect loop
+  // At most one redirect, no redirect loop
   expect(redirects.length).toBeLessThanOrEqual(2);
 });

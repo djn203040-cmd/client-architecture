@@ -1,6 +1,6 @@
 /**
  * Resend SDK mock for Phase 4 channel tests.
- * No network — tests assert against `mockResend.emails.send.mock.calls`.
+ * No network, tests assert against `mockResend.emails.send.mock.calls`.
  */
 
 import { vi } from "vitest";

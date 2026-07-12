@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 // Lifts the sticky do_not_contact flag and returns the lead to 'identified'
 // so the coach can re-engage. Logs an event for the timeline. Only invoked
-// from a confirmation dialog — coaches should rarely use this.
+// from a confirmation dialog, coaches should rarely use this.
 export async function liftDoNotContact(leadId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

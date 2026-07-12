@@ -46,7 +46,7 @@ export function isKnownProviderOrigin(origin: string | null | undefined): boolea
 }
 
 /**
- * Webhooks: deny browser CORS entirely. Always return null headers — no
+ * Webhooks: deny browser CORS entirely. Always return null headers, no
  * Access-Control-Allow-Origin, no Allow-Methods.
  */
 export const WEBHOOK_CORS_HEADERS: Record<string, string> = {

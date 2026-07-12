@@ -25,7 +25,7 @@ export function CoachNotesField({
       if (r.ok) setSavedAt(new Date());
       else
         toast.error(
-          "Notes couldn't be saved. Your changes are still here — try again."
+          "Notes couldn't be saved. Your changes are still here, try again."
         );
     });
   }
@@ -39,7 +39,7 @@ export function CoachNotesField({
   return (
     <section className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
       <Label htmlFor="coach-notes" className="block mb-2">
-        Private notes — injected into every AI draft for this lead.
+        Private notes, injected into every AI draft for this lead.
       </Label>
       <Textarea
         id="coach-notes"

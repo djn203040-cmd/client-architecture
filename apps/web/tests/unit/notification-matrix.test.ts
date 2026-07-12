@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 
-// Mock phosphor-icons and UI components — not testing rendering here
+// Mock phosphor-icons and UI components, not testing rendering here
 vi.mock("@phosphor-icons/react", () => ({
   LockSimple: () => null, SquaresFour: () => null, Envelope: () => null,
   ChatCircle: () => null, WhatsappLogo: () => null, DeviceMobile: () => null,
@@ -23,7 +23,7 @@ const withTwilio = [{ provider: "twilio", status: "connected" }];
 const disconnectedSlack = [{ provider: "slack", status: "disconnected" }];
 
 describe("notification-matrix logic", () => {
-  describe("getLockedOn — D-13 dashboard always on", () => {
+  describe("getLockedOn, D-13 dashboard always on", () => {
     it("returns tooltip for dashboard column on any event type", () => {
       expect(getLockedOn("draft_ready", "dashboard")).toBeTruthy();
       expect(getLockedOn("lead_replied", "dashboard")).toBeTruthy();
@@ -45,7 +45,7 @@ describe("notification-matrix logic", () => {
     });
   });
 
-  describe("isConnected — channel connection checks", () => {
+  describe("isConnected, channel connection checks", () => {
     it("dashboard is always connected", () => {
       expect(isConnected("dashboard", noIntegrations)).toBe(true);
     });
@@ -71,7 +71,7 @@ describe("notification-matrix logic", () => {
     });
   });
 
-  describe("matrix shape — 4 event rows × 5 channel columns = 20 cells", () => {
+  describe("matrix shape, 4 event rows × 5 channel columns = 20 cells", () => {
     const EVENT_TYPES = ["draft_ready", "lead_replied", "integration_broken", "hard_bounce"] as const;
     const CHANNELS = ["dashboard", "email", "slack", "whatsapp", "sms"] as const;
 

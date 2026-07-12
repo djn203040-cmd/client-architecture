@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 // Approve action button. The brighter colour fills like a progress bar: on
-// click it crawls toward — but never reaches — full while the approval request
+// click it crawls toward, but never reaches, full while the approval request
 // is in flight, then completes the instant the action resolves (the "Approved"
 // toast). The sweep is the loading indicator, timed to the real work.
 type Phase = "idle" | "loading" | "done"

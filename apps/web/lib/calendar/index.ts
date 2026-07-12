@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import type { TCalendarEvent } from "@client/shared/types";
 
 // ---------------------------------------------------------------------------
-// Signature verification helpers — all use timingSafeEqual to prevent timing oracle (T-03-01)
+// Signature verification helpers, all use timingSafeEqual to prevent timing oracle (T-03-01)
 // ---------------------------------------------------------------------------
 
 export function verifyCalendlySignature(
@@ -65,13 +65,13 @@ export function verifySquareSignature(
 }
 
 // Setmore, Microsoft Bookings and TidyCal offer NO HMAC webhook signature. They
-// are verified instead by a per-coach URL token — see
+// are verified instead by a per-coach URL token, see
 // lib/calendar/verify-webhook-token.ts and issue #82. (The old accept-all stub
 // verifiers were removed: they made coachId the only gate, which is a locator,
 // not a secret.)
 
 // ---------------------------------------------------------------------------
-// Payload normalizers — return TCalendarEvent | null (null = unknown event type, ignore)
+// Payload normalizers, return TCalendarEvent | null (null = unknown event type, ignore)
 // ---------------------------------------------------------------------------
 
 interface CalendlyPayload {

@@ -82,7 +82,7 @@ function TranscriptRow({
 
   const selectedLead = leads.find((l) => l.id === selectedLeadId);
 
-  // Check if transcript content suggests a lead (simple heuristic — first word match)
+  // Check if transcript content suggests a lead (simple heuristic, first word match)
   const suggestion = transcript.matched_by === null
     ? leads.find((l) => transcript.content.toLowerCase().includes(l.name.split(" ")[0]?.toLowerCase() ?? ""))
     : null;

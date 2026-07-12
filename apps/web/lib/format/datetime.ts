@@ -1,7 +1,7 @@
 // Timezone-aware date/time formatting for coach-facing send times.
 //
 // Send instants are stored in UTC. Coaches must see them in their own local
-// wall clock, never the Vercel server zone (UTC) — a Danish coach should read
+// wall clock, never the Vercel server zone (UTC), a Danish coach should read
 // "sends tomorrow at 14:40", not "12:40". Every send/scheduled time shown to a
 // coach goes through these helpers with the coach's `timezone` (an IANA string
 // like "Europe/Copenhagen", stored on the coaches row).
@@ -40,7 +40,7 @@ export function formatTimeInTZ(d: Date, tz?: string | null): string {
 /**
  * Calendar-day difference (b − a) measured in `tz`, ignoring time-of-day. Done
  * via civil dates projected onto a UTC midnight so DST transitions can't skew
- * the count — what matters is whether the coach's calendar flipped, not the
+ * the count, what matters is whether the coach's calendar flipped, not the
  * elapsed hours.
  */
 function civilDayDiff(a: Date, b: Date, tz: string): number {

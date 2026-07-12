@@ -153,7 +153,7 @@ function ActionCard({ action, email }: { action: ActionConfig; email: string }) 
 
 export function DangerZone({ coach }: Props) {
   const email = coach.email ?? "";
-  // buildActions depends only on email — stable across renders
+  // buildActions depends only on email, stable across renders
   const actions = useMemo(() => buildActions(email), [email]);
 
   return (

@@ -3,7 +3,7 @@ import { createLead } from "../fixtures/createLead";
 import { admin } from "../fixtures/createCoach";
 import { createHmac } from "node:crypto";
 
-// 06-PLAN.md §1.4 — Unsubscribe link: click → lead state = `unsubscribed` → no future drafts queued.
+// 06-PLAN.md §1.4, Unsubscribe link: click → lead state = `unsubscribed` → no future drafts queued.
 
 // Mirror lib/unsubscribe-token.ts exactly: base64url(JSON{leadId,coachId,t}) + "." + hex HMAC,
 // keyed on UNSUBSCRIBE_SECRET (the same env the route's verifier reads).

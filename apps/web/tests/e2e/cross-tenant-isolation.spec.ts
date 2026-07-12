@@ -30,7 +30,7 @@ test("coach A cannot PATCH coach B drafts (returns 4xx)", async ({ coach, second
 test("coach A settings PATCH cannot update coach B (scoped to auth.uid)", async ({ coach, secondCoach, page }) => {
   await page.context().addCookies(coach.cookies);
 
-  // The settings route reads coach_id from auth.uid() — ignores any body coach_id
+  // The settings route reads coach_id from auth.uid(), ignores any body coach_id
   const res = await page.request.patch(`/api/settings/profile`, {
     data: { display_name: "Hacked", coach_id: secondCoach.id },
   });

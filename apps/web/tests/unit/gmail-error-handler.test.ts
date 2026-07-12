@@ -38,7 +38,7 @@ beforeEach(() => {
   mockSend.mockResolvedValue(undefined as never);
 });
 
-describe("handleInvalidGrant — integration_broken emission", () => {
+describe("handleInvalidGrant, integration_broken emission", () => {
   it("emits notification/integration_broken for the broken Gmail connection", async () => {
     await handleInvalidGrant("coach-1");
 

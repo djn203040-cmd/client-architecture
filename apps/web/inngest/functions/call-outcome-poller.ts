@@ -14,7 +14,7 @@ type StepTools = {
 };
 
 /**
- * Extracted handler — exported for integration tests.
+ * Extracted handler, exported for integration tests.
  *
  * D-14 resilience: a lost call-outcome-monitor sleepUntil run would strand a
  * call forever (T-07-10). Every 15 min this poller finds scheduled rows whose
@@ -22,7 +22,7 @@ type StepTools = {
  * JS (the SQL can't join coaches.sequence_config cheaply), and flips them to
  * awaiting_outcome + notifies. The CAS guard (status='scheduled' AND
  * prompted_at IS NULL) makes it idempotent and safe against monitor double-flip
- * (T-07-08). No PII is logged — IDs only (CALL-016).
+ * (T-07-08). No PII is logged, IDs only (CALL-016).
  */
 export async function callOutcomePollerHandler({ step }: { event: PollerEvent; step: StepTools }) {
   // Candidate rows: call ended, still scheduled, never prompted. The partial
@@ -46,7 +46,7 @@ export async function callOutcomePollerHandler({ step }: { event: PollerEvent; s
       getCallOutcomeBufferMinutes(row.coach_id),
     );
 
-    // Never prompt before ends_at + buffer — the poller respects the same
+    // Never prompt before ends_at + buffer, the poller respects the same
     // timing the monitor would have used.
     const dueAt = new Date(row.ends_at).getTime() + buffer * 60_000;
     if (Date.now() < dueAt) continue;
@@ -82,7 +82,7 @@ export async function callOutcomePollerHandler({ step }: { event: PollerEvent; s
 export const callOutcomePoller = inngest.createFunction(
   {
     id: "call-outcome-poller",
-    name: "Call outcome poller — recover stranded prompts (D-14)",
+    name: "Call outcome poller, recover stranded prompts (D-14)",
     // Inngest-native cron (every 15 min) is the live cadence: Vercel Hobby rejects
     // sub-daily crons, and Inngest's scheduler has no such limit. The event trigger
     // is retained so /api/cron/call-outcome-poll still works as a manual fast-path.

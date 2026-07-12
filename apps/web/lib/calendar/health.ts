@@ -3,18 +3,18 @@ import { getCalendarProvider, type CalendarProviderId } from "@/lib/calendar/pro
 import { refreshAccessToken } from "@/lib/oauth/shared";
 import { isCalendarAuthDeadError, handleCalendarIntegrationBroken } from "./error-handler";
 
-// #64 — proactive calendar OAuth health check.
+// #64, proactive calendar OAuth health check.
 //
 // Calendar integrations are webhook-inbound: after connect-time webhook
 // registration nothing makes an authenticated outbound call, so a revoked
 // grant was invisible until bookings silently stopped arriving. Refreshing
 // the token against the provider's token endpoint is the one authenticated,
-// unambiguous probe we have — and it keeps a live access token in Vault as a
+// unambiguous probe we have, and it keeps a live access token in Vault as a
 // side effect.
 
 // OAuth2 calendar providers whose token endpoint supports
 // grant_type=refresh_token. Setmore, TidyCal and Cal.com are API-key
-// integrations (different failure mode — out of scope for #64). Acuity is
+// integrations (different failure mode, out of scope for #64). Acuity is
 // OAuth2 but issues non-expiring tokens without a refresh_token; the
 // vault-shape guard below skips those rows naturally if no refresh_token
 // was ever issued.
@@ -25,7 +25,7 @@ export const REFRESHABLE_CALENDAR_PROVIDERS = [
   "ms_bookings",
 ] as const satisfies readonly CalendarProviderId[];
 
-// Refresh anything expiring inside this window — or with unknown expiry.
+// Refresh anything expiring inside this window, or with unknown expiry.
 // The check runs daily, so 72h guarantees at least one authenticated probe
 // before a token actually lapses, with slack for a missed run.
 const REFRESH_WINDOW_SECONDS = 72 * 60 * 60;
@@ -60,14 +60,14 @@ export async function checkCalendarIntegration(
   const config = getCalendarProvider(providerId);
   if (!config || config.authType !== "oauth2" || !config.oauth) return "skipped";
 
-  // Vault read — same RPC the connect flow writes through (store_calendar_tokens
+  // Vault read, same RPC the connect flow writes through (store_calendar_tokens
   // in 20260525000001_calendar_active_provider.sql).
   const { data } = await adminClient.schema("private").rpc("get_calendar_tokens", {
     p_coach_id: coachId,
     p_provider: providerId,
   });
   const tokens = (data ?? null) as Record<string, unknown> | null;
-  if (!tokens) return "skipped"; // nothing in Vault — the connect flow owns this state
+  if (!tokens) return "skipped"; // nothing in Vault, the connect flow owns this state
 
   const refreshToken = typeof tokens["refresh_token"] === "string" ? tokens["refresh_token"] : "";
   if (!refreshToken) return "skipped"; // e.g. Acuity non-expiring token: nothing to probe
@@ -81,14 +81,14 @@ export async function checkCalendarIntegration(
     refreshed = await refreshAccessToken({ provider: config, refreshToken });
   } catch (e) {
     if (isCalendarAuthDeadError(e)) {
-      // Authenticated invalid_grant/401 from the provider's token endpoint —
+      // Authenticated invalid_grant/401 from the provider's token endpoint, 
       // the grant is dead. Mark disconnected + notify (dedup lives in the
       // handler: it only emits on the connected → disconnected transition).
       await handleCalendarIntegrationBroken(coachId, providerId);
       return "broken";
     }
     // Transient (network, 5xx, 429, provider hiccup): leave the integration
-    // connected — flipping status on ambiguous noise is exactly what #64
+    // connected, flipping status on ambiguous noise is exactly what #64
     // forbids. Stamp last_checked_at so the dashboard shows the probe ran.
     await adminClient
       .from("integrations")
@@ -106,7 +106,7 @@ export async function checkCalendarIntegration(
     ...(refreshed.raw as Record<string, unknown>),
     refresh_token: refreshed.refresh_token ?? refreshToken,
   };
-  // Stamp an absolute expiry for the next run — but never clobber a
+  // Stamp an absolute expiry for the next run, but never clobber a
   // provider-supplied ISO `expires_at` (Square) with our computed epoch value.
   if (typeof merged["expires_at"] !== "string" && refreshed.expires_at) {
     merged["expires_at"] = refreshed.expires_at;

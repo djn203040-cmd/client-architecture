@@ -34,7 +34,7 @@ function mockLeads(leads: ReturnType<typeof makeLead>[]) {
 
 beforeEach(() => vi.clearAllMocks());
 
-describe("matchTranscriptToLead — email matching", () => {
+describe("matchTranscriptToLead, email matching", () => {
   it("returns leadId + matchedBy=email on exact email match (case-insensitive)", async () => {
     mockLeads([makeLead({ id: "lead-1", email: "Jane@Example.COM" })]);
     const result = await matchTranscriptToLead({
@@ -58,10 +58,10 @@ describe("matchTranscriptToLead — email matching", () => {
   });
 });
 
-describe("matchTranscriptToLead — name+timestamp fuzzy matching", () => {
+describe("matchTranscriptToLead, name+timestamp fuzzy matching", () => {
   it("returns high confidence match when name matches and call is within 3 days of lead created_at", async () => {
     const created = new Date();
-    created.setDate(created.getDate() - 1); // 1 day ago — within window
+    created.setDate(created.getDate() - 1); // 1 day ago, within window
     mockLeads([makeLead({ id: "lead-2", name: "John Smith", email: "other@x.com", created_at: created.toISOString() })]);
     const result = await matchTranscriptToLead({
       coachId: "coach-1",
@@ -74,7 +74,7 @@ describe("matchTranscriptToLead — name+timestamp fuzzy matching", () => {
 
   it("returns low confidence suggestion when name matches but timestamp is outside 3 day window", async () => {
     const created = new Date();
-    created.setDate(created.getDate() - 10); // 10 days ago — outside window
+    created.setDate(created.getDate() - 10); // 10 days ago, outside window
     mockLeads([makeLead({ id: "lead-3", name: "Alice Brown", email: "other@x.com", created_at: created.toISOString() })]);
     const result = await matchTranscriptToLead({
       coachId: "coach-1",

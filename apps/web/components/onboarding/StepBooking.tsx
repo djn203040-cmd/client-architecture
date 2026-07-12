@@ -116,7 +116,7 @@ export function StepBooking({ initialUrl }: Props) {
               </li>
             ))}
             <li className="text-muted-foreground italic">
-              Any other provider works too — just paste the public booking URL.
+              Any other provider works too, just paste the public booking URL.
             </li>
           </ul>
         )}

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/supabase/admin";
 import { healthLimiter, enforce, ipFromRequest } from "@/lib/security/ratelimit";
 
-// 06-PLAN.md §1.10 — Health check with per-dependency status.
+// 06-PLAN.md §1.10, Health check with per-dependency status.
 // Public endpoint; rate-limited at the edge (Upstash). No PII leaked.
 
 export const dynamic = "force-dynamic";

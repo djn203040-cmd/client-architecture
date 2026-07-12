@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.fixme("HEALTH-001: connected state shows 'Gmail connected'", async ({ page }) => {
-  // Requires authenticated coach + integration row connected — Wave 5 fixture
+  // Requires authenticated coach + integration row connected, Wave 5 fixture
 });
 
 test.fixme("HEALTH-002: disconnected state shows red + reconnect button", async ({ page }) => {

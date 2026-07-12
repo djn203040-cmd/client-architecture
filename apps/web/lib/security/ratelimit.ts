@@ -15,7 +15,7 @@ import { Redis } from "@upstash/redis";
  * Plus existing limiters: admin invite, lead create.
  *
  * When Upstash credentials are absent (tests, local dev without Redis), every
- * limiter is `null` and call sites short-circuit to allow — never to deny — so
+ * limiter is `null` and call sites short-circuit to allow, never to deny, so
  * the dev loop is uninterrupted. Production must have Redis configured (CI
  * env-check guards this).
  */
@@ -46,10 +46,10 @@ export const reviewTokenLimiter = make("review-token", 5, "5 m");
 export const unsubscribeLimiter = make("unsubscribe", 10, "60 s");
 export const healthLimiter = make("health", 30, "60 s");
 
-// GDPR — 1 export per hour per coach (large response, prevents abuse)
+// GDPR, 1 export per hour per coach (large response, prevents abuse)
 export const gdprExportLimiter = make("gdpr-export", 1, "1 h");
 
-// Open-tracking pixel (#86) — public unauthenticated GET that does up to two DB
+// Open-tracking pixel (#86), public unauthenticated GET that does up to two DB
 // reads + an insert per hit. Generous per-IP cap: legit email clients may
 // re-fetch the pixel, and the write is idempotent, so this only exists to blunt
 // a scripted flood of DB-write amplification. Throttled hits still serve the GIF.

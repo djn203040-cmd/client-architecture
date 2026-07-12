@@ -5,7 +5,7 @@ import type { TThreadEmail } from "@/lib/gmail/thread";
 // node environment.
 
 /**
- * From a Gmail thread, return the lead's trailing unanswered message(s) — every
+ * From a Gmail thread, return the lead's trailing unanswered message(s), every
  * message from the lead that arrived after our most recent outbound message. If
  * the lead sent three emails before we replied, all three come back (oldest
  * first) so the draft answers the whole burst, not just the last one. Returns

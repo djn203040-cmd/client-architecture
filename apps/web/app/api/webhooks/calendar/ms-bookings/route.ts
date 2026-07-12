@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   const coachId = url.searchParams.get("coachId");
   if (!coachId) return new Response("Missing coachId", { status: 400 });
 
-  // Microsoft Bookings offers no HMAC signature — verify the per-coach URL token (#82).
+  // Microsoft Bookings offers no HMAC signature, verify the per-coach URL token (#82).
   const token = url.searchParams.get("token");
   if (!(await verifyCalendarWebhookToken(coachId, "ms_bookings", token))) {
     return new Response("Unauthorized", { status: 401 });

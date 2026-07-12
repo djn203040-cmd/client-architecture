@@ -45,7 +45,7 @@ export async function unregisterCalendarWebhook(
   switch (provider.id) {
     case "cal_com":
       return (await import("./cal-com")).unregisterCalComWebhook(coachId);
-    // calendly/acuity teardown not yet implemented — best-effort no-op for now.
+    // calendly/acuity teardown not yet implemented, best-effort no-op for now.
     default:
       return;
   }

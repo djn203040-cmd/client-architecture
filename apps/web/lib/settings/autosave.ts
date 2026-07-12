@@ -25,7 +25,7 @@ export function useAutosave<T>(
     timerRef.current = setTimeout(() => {
       saveRef.current(value).then(
         () => toast.success("Saved"),
-        () => toast.error("Couldn't save — try again"),
+        () => toast.error("Couldn't save, try again"),
       );
     }, debounceMs);
 

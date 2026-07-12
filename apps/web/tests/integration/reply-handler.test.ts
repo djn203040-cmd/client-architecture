@@ -8,7 +8,7 @@ const isRealSupabase =
   !url.includes("test.supabase.co") &&
   !serviceKey.startsWith("test-");
 
-// 06-PLAN.md §1.3 — reply-handler pauses sequence + cancels pending drafts + fires reply draft.
+// 06-PLAN.md §1.3, reply-handler pauses sequence + cancels pending drafts + fires reply draft.
 describe.skipIf(!isRealSupabase)("STATE-005: reply-handler 4-step pause + cancel + draft", () => {
   const client = createTestClient();
   let coachId: string;

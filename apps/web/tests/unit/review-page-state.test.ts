@@ -65,7 +65,7 @@ describe("review-page-state file export check", () => {
     expect(content).toContain("This draft has been actioned.");
     expect(content).toContain("This link expires after 7 days or once you take action.");
     expect(content).not.toContain("AppShell");
-    // Server component — no "use client"
+    // Server component, no "use client"
     expect(content).not.toContain('"use client"');
   });
 

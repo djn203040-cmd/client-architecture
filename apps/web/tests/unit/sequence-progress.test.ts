@@ -188,7 +188,7 @@ describe("buildSequenceView (real draft data)", () => {
   });
 
   it("flags an approved step whose send time passed without delivering as overdue", () => {
-    // Approved, scheduled May 31, but it's June 1 and sent_at is still null —
+    // Approved, scheduled May 31, but it's June 1 and sent_at is still null, 
     // the scheduled send never fired. Don't keep claiming "sends <past time>".
     const view = buildSequenceView(
       { track: "no_show", status: "active", created_at: START },
@@ -235,7 +235,7 @@ describe("buildSequenceView (real draft data)", () => {
 
 describe("buildSequenceView (halted sequences)", () => {
   // The lead replied at step 2: step 1 sent, sequence paused. The stepper must
-  // NOT project "Sends tomorrow" — it has to show the paused state.
+  // NOT project "Sends tomorrow", it has to show the paused state.
   it("a paused sequence advertises no next send and marks remaining steps paused", () => {
     const view = buildSequenceView(
       { track: "no_show", status: "paused", created_at: START },
@@ -251,7 +251,7 @@ describe("buildSequenceView (halted sequences)", () => {
     expect(view.nextSendLabel).toBeNull();
     const next = view.steps.find((s) => s.state === "next")!;
     expect(next.tone).toBe("paused");
-    expect(next.detail).toBe("Paused — lead replied");
+    expect(next.detail).toBe("Paused, lead replied");
     // Downstream steps don't claim a future send date.
     const upcoming = view.steps.filter((s) => s.state === "upcoming");
     expect(upcoming.length).toBeGreaterThan(0);

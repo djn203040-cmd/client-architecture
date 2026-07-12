@@ -24,7 +24,7 @@ export async function runPreSendSafetyCheck(
 
   // The sequence-active guard only applies to sequence-attached drafts.
   // Standalone drafts (sequence_id = null, generated ad-hoc from the lead
-  // profile — #41) have no sequence to be inactive; their lead-level hard-block
+  // profile, #41) have no sequence to be inactive; their lead-level hard-block
   // states are already enforced above. Without this guard a null sequenceId
   // queries sequences by id=null, returns no row, and wrongly blocks every
   // standalone approval with "sequence_inactive" (the Slack/review-link paths).

@@ -17,7 +17,7 @@ export async function GET(
     return NextResponse.redirect(new URL("/settings?error=calendar_unknown_provider", APP_URL));
   }
   if (config.authType !== "oauth2") {
-    // API-key providers don't go through authorize/callback — they use the api-key route.
+    // API-key providers don't go through authorize/callback, they use the api-key route.
     return NextResponse.redirect(new URL("/settings?error=calendar_wrong_auth_type", APP_URL));
   }
 

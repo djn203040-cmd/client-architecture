@@ -31,7 +31,7 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
       if (status === "error") {
         toast.error("Draft generation failed. Try again.");
       } else {
-        toast.success("Draft ready — review it below.");
+        toast.success("Draft ready, review it below.");
       }
     };
 
@@ -66,13 +66,13 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
       if (status && status !== "generating") finish(status);
     }, 2000);
 
-    // Hard timeout — stop showing the spinner after 90s no matter what
+    // Hard timeout, stop showing the spinner after 90s no matter what
     const timeout = setTimeout(() => {
       if (settled) return;
       settled = true;
       setGenerating(false);
       setDraftId(null);
-      toast.error("Still generating — refresh the queue in a moment.");
+      toast.error("Still generating, refresh the queue in a moment.");
     }, 90_000);
 
     return () => {
@@ -82,7 +82,7 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
     };
   }, [draftId]);
 
-  // D-16: Hard-blocked states — hide entirely. Must happen AFTER all hooks
+  // D-16: Hard-blocked states, hide entirely. Must happen AFTER all hooks
   // to keep hook order stable across renders when status flips.
   if (HARD_BLOCK_STATES.includes(leadStatus)) return null;
 

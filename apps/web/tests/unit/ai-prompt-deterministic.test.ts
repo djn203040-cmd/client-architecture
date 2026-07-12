@@ -8,7 +8,7 @@ import { buildSystemPrompt } from "@client/ai-engine/prompts/system";
 import type { DraftGenerationParams } from "@client/ai-engine/types";
 import type { TVoiceProfile } from "@client/shared/validators";
 
-// 06-PLAN.md §1.2 — "AI engine prompt generation deterministic given fixed seed inputs"
+// 06-PLAN.md §1.2, "AI engine prompt generation deterministic given fixed seed inputs"
 //
 // Determinism guarantee: identical params produce byte-identical prompts.
 // Anthropic's sampling layer is the only nondeterministic step; everything before

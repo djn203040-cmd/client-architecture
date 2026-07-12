@@ -18,7 +18,7 @@ export function SocialProofSection({ quote, attribution, isPlaceholder }: Social
             &ldquo;{quote}&rdquo;
           </blockquote>
           <figcaption className="mt-6 text-sm text-muted-foreground">
-            — {attribution}
+            {attribution}
           </figcaption>
         </figure>
       </div>

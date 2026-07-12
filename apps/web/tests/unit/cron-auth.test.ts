@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { assertCronAuth } from "../../lib/security/cron-auth";
 
-// #84 — cron auth must fail CLOSED on a missing secret and use a timing-safe
+// #84, cron auth must fail CLOSED on a missing secret and use a timing-safe
 // compare. These cover the exact bypass the old inline `!==` check allowed.
 
 function req(auth?: string): Request {

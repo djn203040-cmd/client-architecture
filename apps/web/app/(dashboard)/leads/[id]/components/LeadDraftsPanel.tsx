@@ -14,13 +14,13 @@ interface Props {
   leadName: string;
   initialPending: DraftRow[];
   initialHeld: DraftRow[];
-  /** Coach's IANA timezone — renders draft send times in their local clock. */
+  /** Coach's IANA timezone, renders draft send times in their local clock. */
   timeZone?: string | null;
 }
 
 /**
  * Approve / hold surface for ad-hoc (standalone, sequence_id=null) drafts that
- * a coach generates straight from the lead profile — #41. Mirrors the dashboard
+ * a coach generates straight from the lead profile, #41. Mirrors the dashboard
  * queue's affordances via the shared DraftCard, scoped to this one lead through
  * the realtime hook's leadId filter. Skip is hidden: there is no "next" here.
  *
@@ -47,7 +47,7 @@ export function LeadDraftsPanel({
     initialDrafts: initialHeld,
   });
 
-  // Realtime payloads carry the raw drafts row with no joined lead — backfill
+  // Realtime payloads carry the raw drafts row with no joined lead, backfill
   // the name we already know so DraftCard never renders "Unknown lead".
   const withLead = (rows: DraftRow[]) =>
     rows.map((d) => ({ ...d, leads: d.leads ?? { name: leadName } }));

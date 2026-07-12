@@ -41,7 +41,7 @@ export function StepNotifications({ initialPrefs, integrations }: Props) {
         );
         return;
       }
-      toast.success("Notifications set — you can change these anytime in Settings.");
+      toast.success("Notifications set, you can change these anytime in Settings.");
       router.push("/dashboard");
     } finally {
       setAdvancing(false);

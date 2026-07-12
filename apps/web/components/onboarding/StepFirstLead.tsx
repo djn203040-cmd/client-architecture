@@ -92,7 +92,7 @@ export function StepFirstLead() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground leading-relaxed">
-        Here&apos;s what the AI drafted for a sample lead — in your voice, based on what they shared
+        Here&apos;s what the AI drafted for a sample lead, in your voice, based on what they shared
         on the call. Review it, then approve to see what happens next.
       </p>
       <DemoLeadDraft

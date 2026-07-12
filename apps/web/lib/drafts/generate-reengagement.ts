@@ -28,16 +28,16 @@ export type GenerateReengagementResult =
 /**
  * Bespoke framing for a silence-gated re-engagement nudge. The conversation went
  * quiet AFTER a real reply, so this is neither a cold first-touch nor a response
- * to a fresh message — it reopens an existing thread. Passed via framingOverride
+ * to a fresh message, it reopens an existing thread. Passed via framingOverride
  * so we don't have to mint a new lead_status enum value.
  */
 export function buildReengagementFraming(attempt: number, maxAttempts: number): string {
   const base =
-    "The lead replied earlier and you had a real exchange, but the conversation has since gone quiet — they have not responded for several days and there is NO new message from them to answer. Write a warm, low-pressure nudge that gently reopens the thread. Reference something specific from the prior conversation in <conversation_history> so it reads as a genuine continuation, not a cold template. Do NOT guilt-trip about the silence, do NOT sound desperate, and do NOT write as if they just messaged you. Offer one clear, easy way forward. Keep it short.";
+    "The lead replied earlier and you had a real exchange, but the conversation has since gone quiet, they have not responded for several days and there is NO new message from them to answer. Write a warm, low-pressure nudge that gently reopens the thread. Reference something specific from the prior conversation in <conversation_history> so it reads as a genuine continuation, not a cold template. Do NOT guilt-trip about the silence, do NOT sound desperate, and do NOT write as if they just messaged you. Offer one clear, easy way forward. Keep it short.";
   if (attempt >= maxAttempts) {
     return (
       base +
-      " This is the FINAL re-engagement attempt — keep it especially light, give them an easy out (e.g. \"no pressure at all if the timing isn't right\"), and leave the door open without asking again."
+      " This is the FINAL re-engagement attempt, keep it especially light, give them an easy out (e.g. \"no pressure at all if the timing isn't right\"), and leave the door open without asking again."
     );
   }
   return base;

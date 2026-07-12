@@ -99,7 +99,7 @@ export async function sendEmail(
         settingsUrl: `${process.env.NEXT_PUBLIC_APP_URL}/leads`,
       });
     } else {
-      // integration_broken — name the provider when we know it.
+      // integration_broken, name the provider when we know it.
       const what = payload.provider
         ? `Your ${payload.provider} connection`
         : "One of your integrations";
@@ -107,8 +107,8 @@ export async function sendEmail(
         subject: payload.provider
           ? `Your ${payload.provider} connection needs attention`
           : "Sonorous integration needs attention",
-        html: `<p>${what} needs attention — please reconnect it from your Sonorous dashboard.</p>`,
-        text: `${what} needs attention — please reconnect it from your Sonorous dashboard.`,
+        html: `<p>${what} needs attention, please reconnect it from your Sonorous dashboard.</p>`,
+        text: `${what} needs attention, please reconnect it from your Sonorous dashboard.`,
       };
     }
 

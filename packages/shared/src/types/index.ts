@@ -10,7 +10,7 @@ export type TLeadEvent = Database["public"]["Tables"]["lead_events"]["Row"];
 export type TDraft = Database["public"]["Tables"]["drafts"]["Row"];
 export type TSequence = Database["public"]["Tables"]["sequences"]["Row"];
 export type TDraftEdit = Database["public"]["Tables"]["draft_edits"]["Row"];
-// Call Outcomes (Phase 7) — types resolve once packages/database is regenerated
+// Call Outcomes (Phase 7), types resolve once packages/database is regenerated
 // after the 20260603* migrations are pushed (D-10).
 export type TCallOutcome = Database["public"]["Tables"]["call_outcomes"]["Row"];
 export type TCallOutcomeInsert = Database["public"]["Tables"]["call_outcomes"]["Insert"];

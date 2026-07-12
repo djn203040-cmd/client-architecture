@@ -29,8 +29,8 @@ interface CspOptions {
  *   cal.com / app.cal.com.
  * - style-src: 'unsafe-inline' is required by Tailwind/shadcn for inline
  *   style attributes on hover/transition primitives. (Documented compromise.)
- * - frame-src: only Cal.com — Module 2/3 sell-page embeds.
- * - frame-ancestors: 'none' — defense against clickjacking.
+ * - frame-src: only Cal.com, Module 2/3 sell-page embeds.
+ * - frame-ancestors: 'none', defense against clickjacking.
  */
 export function buildCsp({ nonce, isDev = false }: CspOptions): string {
   const supabaseHost = "https://*.supabase.co";

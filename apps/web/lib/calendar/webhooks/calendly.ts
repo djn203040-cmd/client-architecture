@@ -27,7 +27,7 @@ export async function registerCalendlyWebhook(args: RegisterWebhookArgs): Promis
   const userUri = me.resource.uri;
   const orgUri = me.resource.current_organization;
 
-  // 2. Per-coach signing key — Calendly generates one when we POST, but we also store
+  // 2. Per-coach signing key, Calendly generates one when we POST, but we also store
   //    a separately generated random secret in case we add HMAC layering later.
   const localSecret = randomBytes(32).toString("hex");
 

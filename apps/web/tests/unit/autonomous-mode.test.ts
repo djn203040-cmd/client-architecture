@@ -33,10 +33,10 @@ describe("autonomous-mode (Phase 4 / DRAFT-009)", () => {
     // Exact match → accepted
     expect(setAutonomousMode("mode_a", "send without review")).toEqual({ ok: true });
 
-    // Mode B — no phrase needed
+    // Mode B, no phrase needed
     expect(setAutonomousMode("mode_b")).toEqual({ ok: true });
 
-    // Manual — no phrase needed
+    // Manual, no phrase needed
     expect(setAutonomousMode("manual")).toEqual({ ok: true });
   });
 });

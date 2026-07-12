@@ -70,7 +70,7 @@ export function buildApprovedBlocks(sentAt: string): unknown[] {
   return [
     {
       type: "section",
-      text: { type: "mrkdwn", text: `:white_check_mark: Approved — sent at ${sentAt}` },
+      text: { type: "mrkdwn", text: `:white_check_mark: Approved, sent at ${sentAt}` },
     },
   ];
 }
@@ -79,7 +79,7 @@ export function buildEditedApprovedBlocks(sentAt: string): unknown[] {
   return [
     {
       type: "section",
-      text: { type: "mrkdwn", text: `:pencil2: Edited and approved — sent at ${sentAt}` },
+      text: { type: "mrkdwn", text: `:pencil2: Edited and approved, sent at ${sentAt}` },
     },
   ];
 }
@@ -88,7 +88,7 @@ export function buildHeldBlocks(): unknown[] {
   return [
     {
       type: "section",
-      text: { type: "mrkdwn", text: ":pause_button: Held — visit your dashboard to re-approve." },
+      text: { type: "mrkdwn", text: ":pause_button: Held, visit your dashboard to re-approve." },
     },
   ];
 }
@@ -100,7 +100,7 @@ export function buildApprovedElsewhereBlocks(): unknown[] {
   return [
     {
       type: "section",
-      text: { type: "mrkdwn", text: ":white_check_mark: Approved — sending shortly." },
+      text: { type: "mrkdwn", text: ":white_check_mark: Approved, sending shortly." },
     },
   ];
 }
@@ -109,13 +109,13 @@ export function buildCancelledBlocks(): unknown[] {
   return [
     {
       type: "section",
-      text: { type: "mrkdwn", text: ":x: Cancelled — no message was sent." },
+      text: { type: "mrkdwn", text: ":x: Cancelled, no message was sent." },
     },
   ];
 }
 
 // ---------------------------------------------------------------------------
-// Call Outcomes (Phase 7, D-18) — groundwork. STABLE export imported by both
+// Call Outcomes (Phase 7, D-18), groundwork. STABLE export imported by both
 // wave-2 plans (07-02 dispatcher posts the prompt; 07-03 extends interactivity).
 // Mirrors buildDraftReadyBlocks: action_id carries intent, value carries the id.
 // ---------------------------------------------------------------------------
@@ -163,7 +163,7 @@ export function buildCallOutcomeBlocks(args: {
 }
 
 // Retire-state blocks (no buttons) for the chat.update once an outcome is
-// recorded — mirrors buildApprovedBlocks / buildHeldBlocks.
+// recorded, mirrors buildApprovedBlocks / buildHeldBlocks.
 export function buildCallOutcomeResolvedBlocks(
   outcome: "no_show" | "completed" | "converted",
 ): unknown[] {

@@ -18,9 +18,9 @@ export const gmailMonitor = inngest.createFunction(
 
     for (const { coach_id, metadata } of coaches) {
       const meta = metadata as { last_history_id?: string } | null;
-      if (!meta?.last_history_id) continue; // No baseline — skip until watch establishes one
+      if (!meta?.last_history_id) continue; // No baseline, skip until watch establishes one
 
-      // SEQ-004: processHistoryUpdate returns eventsToFire — fire via step.sendEvent(), never inngest.send()
+      // SEQ-004: processHistoryUpdate returns eventsToFire, fire via step.sendEvent(), never inngest.send()
       const { eventsToFire } = await step.run(`poll-coach-${coach_id}`, async () => {
         try {
           return await processHistoryUpdate(coach_id, meta.last_history_id!);

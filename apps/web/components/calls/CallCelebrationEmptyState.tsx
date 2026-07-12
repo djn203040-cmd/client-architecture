@@ -16,7 +16,7 @@ const LINE: Record<NonNullable<Props["bucket"]>, string> = {
 };
 
 /**
- * Calls-queue empty state — a quiet celebration rather than a dead-end, mirroring
+ * Calls-queue empty state, a quiet celebration rather than a dead-end, mirroring
  * the drafts {@link CelebrationEmptyState}. The Awaiting tab reaching zero means
  * the coach has triaged everything, so the tone is congratulatory.
  */

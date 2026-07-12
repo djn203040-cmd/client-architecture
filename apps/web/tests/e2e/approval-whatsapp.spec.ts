@@ -3,7 +3,7 @@ import { createLead } from "../fixtures/createLead";
 import { createDraft } from "../fixtures/createDraft";
 import { admin } from "../fixtures/createCoach";
 
-// 06-PLAN.md §1.4 — approval-whatsapp: Twilio inbound quick-reply approve → status='approved'.
+// 06-PLAN.md §1.4, approval-whatsapp: Twilio inbound quick-reply approve → status='approved'.
 
 test("WhatsApp quick-reply approve: inbound webhook flips draft status", async ({ coach, page }) => {
   const lead = await createLead(coach.id);

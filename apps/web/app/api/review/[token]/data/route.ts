@@ -5,7 +5,7 @@ import { adminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
-// Read-only — explicitly does NOT import or call consumeReviewToken
+// Read-only, explicitly does NOT import or call consumeReviewToken
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ token: string }> },

@@ -90,7 +90,7 @@ export function CalendarSection({ activeProvider, integrations, oauthConfigured 
     if (config.authType === "oauth2") {
       window.location.assign(`/api/auth/calendar/${provider}/authorize`);
     } else {
-      // API-key — surface the picker form inline.
+      // API-key, surface the picker form inline.
       setPicker(provider);
     }
   }
@@ -250,7 +250,7 @@ export function CalendarSection({ activeProvider, integrations, oauthConfigured 
   );
 }
 
-// Native <select> for switching — minimal, no extra primitive to import.
+// Native <select> for switching, minimal, no extra primitive to import.
 function SwitchPicker({
   activeProvider,
   onSelect,

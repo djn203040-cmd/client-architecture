@@ -29,7 +29,7 @@ export type GenerateTouchpointResult =
 /**
  * Generates one sequence touchpoint draft and persists it with its sequence
  * linkage and fixed send time. Runs server-side (admin client) from the
- * sequence Inngest functions — NOT the manual "Generate Draft" path, which
+ * sequence Inngest functions, NOT the manual "Generate Draft" path, which
  * stays unscheduled.
  *
  * The draft is created `pending` (awaits review) unless the coach is in
@@ -78,7 +78,7 @@ export async function generateTouchpointDraft(
   const transcript = latestTranscript?.content ?? null;
 
   // Conversation history must be scoped to THIS sequence's already-sent
-  // touchpoints — not every draft ever sent to the lead. Otherwise touchpoint 1
+  // touchpoints, not every draft ever sent to the lead. Otherwise touchpoint 1
   // (which should read as a fresh outreach) picks up unrelated prior messages
   // and the model writes a mid-conversation reply instead. For touchpoint 1 this
   // is empty by definition, so the "FIRST outreach" framing holds.
@@ -163,7 +163,7 @@ export async function generateTouchpointDraft(
     return { ok: false, reason: "insert_failed" };
   }
 
-  // Best-effort lead summary refresh — mirrors the manual route; a failure here
+  // Best-effort lead summary refresh, mirrors the manual route; a failure here
   // must never invalidate the draft we just persisted.
   if (!lead.ai_summary_protected) {
     try {

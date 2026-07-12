@@ -40,7 +40,7 @@ test("Approve+Next on seeded draft completes Gmail send path", async ({ page }) 
   // Trigger approve via keyboard shortcut (A key per Phase 4 DraftCard)
   await page.keyboard.press("KeyA");
 
-  // Poll DB — status should transition to 'approved' within 10s
+  // Poll DB, status should transition to 'approved' within 10s
   await expect
     .poll(
       async () => {

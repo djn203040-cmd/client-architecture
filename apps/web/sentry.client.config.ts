@@ -1,4 +1,4 @@
-// 06-02 Task 6 — Sentry client config with PII-redacting beforeSend.
+// 06-02 Task 6, Sentry client config with PII-redacting beforeSend.
 //
 // The actual @sentry/nextjs init is gated by the SDK + DSN. This module
 // exports both a stable `beforeSend` (now backed by the redactor in

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// #83 — the reconciler finds coach-approved sequence drafts whose fixed send
+// #83, the reconciler finds coach-approved sequence drafts whose fixed send
 // time has passed but which never went out (a lost Inngest timer), and re-emits
 // the single send event. Idempotency lives in send-via-gmail (skips status='sent'),
 // so here we assert the selection predicate and that each stranded draft emits

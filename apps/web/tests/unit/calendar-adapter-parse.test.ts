@@ -10,7 +10,7 @@ import {
   normalizeTidyCalPayload,
 } from "@/lib/calendar";
 
-// 06-PLAN.md §1.2 — "Calendar adapters: all 7 providers parse webhook payloads into TCalendarEvent"
+// 06-PLAN.md §1.2, "Calendar adapters: all 7 providers parse webhook payloads into TCalendarEvent"
 // Each adapter accepts (body, coachId) and returns TCalendarEvent | null.
 
 const COACH = "coach-uuid-1";

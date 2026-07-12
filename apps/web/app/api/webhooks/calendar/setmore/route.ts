@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   const coachId = url.searchParams.get("coachId");
   if (!coachId) return new Response("Missing coachId", { status: 400 });
 
-  // Setmore offers no HMAC signature — verify the per-coach URL token instead (#82).
+  // Setmore offers no HMAC signature, verify the per-coach URL token instead (#82).
   const token = url.searchParams.get("token");
   if (!(await verifyCalendarWebhookToken(coachId, "setmore", token))) {
     return new Response("Unauthorized", { status: 401 });

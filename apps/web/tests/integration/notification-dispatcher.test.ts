@@ -114,7 +114,7 @@ describe("notification-dispatcher (Phase 4 / DRAFT-001 + DRAFT-002 + NOTIFY-006)
 
   it("dispatches all channels in parallel (Promise.allSettled, not serial)", async () => {
     mockComputeEnabledChannels.mockResolvedValue(allEnabled);
-    // Make slack throw — Promise.allSettled means others still succeed
+    // Make slack throw, Promise.allSettled means others still succeed
     mockSendSlack.mockRejectedValue(new Error("slack_down"));
 
     const { result } = await runDispatcher("notification/draft_ready", {

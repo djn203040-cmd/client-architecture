@@ -83,7 +83,7 @@ export function HeldDraftActions({ draft, onAdvance }: Props) {
         draft={draft}
         onCancel={() => setEditing(false)}
         onSaveAndApprove={async (body) => {
-          // Body-only save for held drafts — do not approve
+          // Body-only save for held drafts, do not approve
           const r = await fetch(`/api/drafts/${draft.id}`, {
             method: "PATCH",
             headers: { "content-type": "application/json" },

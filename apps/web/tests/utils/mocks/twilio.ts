@@ -1,6 +1,6 @@
 /**
  * Twilio SDK mock for Phase 4 SMS + WhatsApp tests.
- * No network — assert against `mockTwilioClient.messages.create.mock.calls`.
+ * No network, assert against `mockTwilioClient.messages.create.mock.calls`.
  */
 
 import { vi } from "vitest";

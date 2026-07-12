@@ -34,7 +34,7 @@ beforeAll(async () => {
 const NON_COACH_SCOPED_DENY_ALL = new Set<string>(["webhook_events"]);
 
 /**
- * Tables expected to exist in public schema. Drives the coverage assertion —
+ * Tables expected to exist in public schema. Drives the coverage assertion, 
  * adding a new table will fail this test unless explicitly listed.
  */
 const EXPECTED_TABLES = [
@@ -114,7 +114,7 @@ describe("RLS pen-test (static schema)", () => {
       // Skip vault internals
       if (!tableName) continue;
       if (tableName.startsWith("vault_")) continue;
-      // Allow `*_vault_id`, `*_secret_id` UUID references — they hold UUIDs.
+      // Allow `*_vault_id`, `*_secret_id` UUID references, they hold UUIDs.
       const sanitized = (body ?? "").replace(/\w+_(vault|secret)_id\s+UUID/gi, "");
       expect(forbidden.test(sanitized), `${tableName} has a plaintext token column`).toBe(false);
     }

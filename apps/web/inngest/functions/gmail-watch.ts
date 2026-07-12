@@ -28,7 +28,7 @@ export const gmailWatch = inngest.createFunction(
         } catch (e) {
           if (isInvalidGrantError(e)) {
             await handleInvalidGrant(coach_id);
-            return; // Don't rethrow — continue to next coach
+            return; // Don't rethrow, continue to next coach
           }
           throw e;
         }

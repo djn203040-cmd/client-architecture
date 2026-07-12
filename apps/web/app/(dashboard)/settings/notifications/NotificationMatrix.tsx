@@ -49,7 +49,7 @@ const CHANNEL_COLS: {
   { key: "dashboard", label: "Dashboard", Icon: SquaresFour },
   { key: "email",     label: "Email",     Icon: Envelope },
   { key: "slack",     label: "Slack",     Icon: ChatCircle,    connectHref: "/api/auth/slack/install" },
-  // WhatsApp/SMS connect via Twilio, which has no per-coach OAuth flow yet — no Connect link until that ships.
+  // WhatsApp/SMS connect via Twilio, which has no per-coach OAuth flow yet, no Connect link until that ships.
   { key: "whatsapp",  label: "WhatsApp",  Icon: WhatsappLogo },
   { key: "sms",       label: "SMS",       Icon: DeviceMobile },
 ];
@@ -201,7 +201,7 @@ export function NotificationMatrix({
           </table>
         </div>
         <p className="text-xs text-muted-foreground">
-          Dashboard notifications can&apos;t be turned off — your queue is the source of truth.
+          Dashboard notifications can&apos;t be turned off, your queue is the source of truth.
         </p>
       </div>
     </TooltipProvider>

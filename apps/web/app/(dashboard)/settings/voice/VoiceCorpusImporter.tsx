@@ -19,7 +19,7 @@ const CHANNELS = [
   {
     key: "gmail" as const,
     label: "Gmail exports",
-    placeholder: "Paste Gmail exports here — any emails you've written to leads or clients.",
+    placeholder: "Paste Gmail exports here, any emails you've written to leads or clients.",
     accept: ".txt",
     acceptLabel: ".txt",
   },
@@ -236,7 +236,7 @@ export function VoiceCorpusImporter({
           </Button>
           {isAnalyzing && (
             <p className="text-xs text-muted-foreground leading-relaxed" role="status">
-              This can take 2–5 minutes. You can leave this tab open — we&apos;ll
+              This can take 2-5 minutes. You can leave this tab open, we&apos;ll
               show your writing style as soon as it&apos;s ready.
             </p>
           )}
@@ -319,7 +319,7 @@ function ChannelCard(props: ChannelCardProps) {
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs font-medium text-amber-700 dark:text-amber-400">
                 <User weight="regular" className="size-3.5" />
-                {speakers.length} speakers found — which are you?
+                {speakers.length} speakers found, which are you?
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {speakers.map(({ name, count }) => {
@@ -451,7 +451,7 @@ function ChannelCard(props: ChannelCardProps) {
           Upload {acceptLabel} files
         </Button>
         <span className="text-xs text-muted-foreground">
-          Select one or many — successive uploads add to what&apos;s already here.
+          Select one or many, successive uploads add to what&apos;s already here.
         </span>
         <input
           ref={fileInputRef}

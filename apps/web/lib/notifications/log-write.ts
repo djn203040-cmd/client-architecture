@@ -16,10 +16,10 @@ interface INotificationLogRow {
 /**
  * Insert a notification_log row, surfacing insert failures instead of dropping
  * them. supabase-js returns { error } rather than throwing, and the channel
- * adapters historically ignored it — which is how a missing event_type column
+ * adapters historically ignored it, which is how a missing event_type column
  * silently swallowed every slack/sms/whatsapp/dashboard log row in prod for
  * weeks (#77). Best-effort by design (a lost log row must never fail the send
- * that produced it), but never silent. IDs only in the log line — no PII.
+ * that produced it), but never silent. IDs only in the log line, no PII.
  */
 export async function writeNotificationLog(row: INotificationLogRow): Promise<void> {
   const { error } = await adminClient.from("notification_log").insert(row);

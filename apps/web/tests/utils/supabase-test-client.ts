@@ -49,7 +49,7 @@ export async function withRlsAs(
   });
 
   if (error) {
-    throw new Error(`withRlsAs: failed to set RLS context — ${error.message}`);
+    throw new Error(`withRlsAs: failed to set RLS context, ${error.message}`);
   }
 }
 
@@ -70,7 +70,7 @@ export async function seedCoach(
   const id = input.id ?? crypto.randomUUID();
   const { data, error } = await client
     .from("coaches")
-    // coaches.name is NOT NULL — seed a default so the insert satisfies the schema.
+    // coaches.name is NOT NULL, seed a default so the insert satisfies the schema.
     .insert({ id, email: input.email, name: "Test Coach" })
     .select("id, email")
     .single();

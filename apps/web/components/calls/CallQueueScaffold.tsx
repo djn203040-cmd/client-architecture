@@ -24,7 +24,7 @@ export function CallQueueScaffold({
   initialAwaiting: CallOutcomeRow[];
   initialUpcoming: CallOutcomeRow[];
   initialHistory: CallOutcomeRow[];
-  /** Coach's IANA timezone — renders call windows in their local clock. */
+  /** Coach's IANA timezone, renders call windows in their local clock. */
   timeZone?: string | null;
 }) {
   const [activeTab, setActiveTab] = useState<Tab>("awaiting");

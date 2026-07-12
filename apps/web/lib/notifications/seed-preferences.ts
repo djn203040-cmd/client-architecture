@@ -30,7 +30,7 @@ const DEFAULT_MATRIX: Array<{
   { event_type: "hard_bounce",        channel: "slack",     enabled: true },
   { event_type: "hard_bounce",        channel: "whatsapp",  enabled: false },
   { event_type: "hard_bounce",        channel: "sms",       enabled: true },
-  // D-16: the call-outcome prompt (interactive Slack buttons) mirrors lead_replied —
+  // D-16: the call-outcome prompt (interactive Slack buttons) mirrors lead_replied, 
   // an action-required prompt where Slack is the headline surface.
   { event_type: "call_outcome_pending", channel: "dashboard", enabled: true },
   { event_type: "call_outcome_pending", channel: "email",     enabled: true },

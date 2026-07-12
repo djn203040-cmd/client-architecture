@@ -77,7 +77,7 @@ export async function replyHandlerFn({
   });
 
   // D-16 step 4: Generate the AI reply draft (AI-008).
-  // There is NO Inngest consumer for a "draft/generate" event — every other
+  // There is NO Inngest consumer for a "draft/generate" event, every other
   // generation path calls a function synchronously inside a step (see
   // generateTouchpointDraft). Do the same here so a reply actually produces a
   // draft instead of firing a dead event. The AI engine applies the 'replied'
@@ -146,7 +146,7 @@ export const replyHandler = inngest.createFunction(
     id: "reply-handler",
     // Coalesce a burst of replies (lead fires several emails before we answer)
     // into a single run per lead. The run then pulls the whole Gmail thread, so
-    // the one draft it produces answers every outstanding message — instead of
+    // the one draft it produces answers every outstanding message, instead of
     // generating (and cancelling) a fresh draft per inbound email.
     debounce: { key: "event.data.leadId", period: "2m" },
     triggers: [{ event: LEAD_REPLIED }],

@@ -98,7 +98,7 @@ export async function notificationDispatcherHandler({
     };
   }
 
-  // Build all channel step promises without awaiting — distinct step ids avoid Pitfall 8
+  // Build all channel step promises without awaiting, distinct step ids avoid Pitfall 8
   const channelSteps = [
     enabled.dashboard && step.run("send-dashboard", () => sendDashboard(data)),
     enabled.email     && step.run("send-email",     () => sendEmail(data)),
@@ -122,14 +122,14 @@ export async function notificationDispatcherHandler({
 export const notificationDispatcher = inngest.createFunction(
   {
     id: "notification-dispatcher",
-    name: "Notification dispatcher — fan out to enabled channels",
+    name: "Notification dispatcher, fan out to enabled channels",
     triggers: [
       { event: "notification/draft_ready" },
       { event: "notification/draft_followup" },
       { event: "notification/lead_replied" },
       { event: "notification/integration_broken" },
       { event: "notification/hard_bounce" },
-      // D-16: Call Outcomes prompt — fans out like draft_ready. The Slack channel
+      // D-16: Call Outcomes prompt, fans out like draft_ready. The Slack channel
       // posts buildCallOutcomeBlocks (07-01); 07-03's sync finds the message ts
       // via the call_outcome_pending notification_log row (payload.callOutcomeId).
       { event: "notification/call_outcome_pending" },

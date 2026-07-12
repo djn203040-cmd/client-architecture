@@ -36,7 +36,7 @@ export async function POST(
 
   if (!pendingAction) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Idempotency: already dismissed — return success without re-running side effects
+  // Idempotency: already dismissed, return success without re-running side effects
   if (pendingAction.dismissed_at) {
     return NextResponse.json({ ok: true, already: "dismissed" });
   }

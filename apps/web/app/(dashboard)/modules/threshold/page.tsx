@@ -6,7 +6,7 @@ import { SocialProofSection } from "@/components/modules/SocialProofSection";
 import { CtaSection } from "@/components/modules/CtaSection";
 
 export const metadata = {
-  title: "The Threshold Experience — The Client Architecture",
+  title: "The Threshold Experience, The Client Architecture",
 };
 
 export default function ThresholdPage() {
@@ -29,13 +29,13 @@ export default function ThresholdPage() {
           <>
             <p>
               Most coaches have a great sales call. Then their client goes quiet for 48 hours, and
-              the doubt sets in. That silence is expensive — it&apos;s where momentum dies and
+              the doubt sets in. That silence is expensive, it&apos;s where momentum dies and
               refund requests are born.
             </p>
             <p>
               The Threshold Experience closes that gap. Using the transcript and notes from your
-              sales call, we craft a sequence of highly personalised touchpoints — delivered in your
-              voice — that welcome your client across the threshold and into the work.
+              sales call, we craft a sequence of highly personalised touchpoints, delivered in your
+              voice, that welcome your client across the threshold and into the work.
             </p>
             <p>
               By the time they show up to session one, they&apos;re not just enrolled. They&apos;re
@@ -55,7 +55,7 @@ export default function ThresholdPage() {
           {
             n: 2,
             title: "We craft 48 hours of touchpoints",
-            body: "Emails, follow-ups, and micro-moments — sequenced and written in your exact voice — arrive at precisely the right intervals.",
+            body: "Emails, follow-ups, and micro-moments, sequenced and written in your exact voice, arrive at precisely the right intervals.",
           },
           {
             n: 3,
@@ -73,7 +73,7 @@ export default function ThresholdPage() {
           <p>
             The first two days after a coaching sale are the highest-risk window in the entire
             engagement. A client who feels unseen or unguided will quietly begin to second-guess
-            their decision — and that doubt compounds. The Threshold Experience doesn&apos;t just
+            their decision, and that doubt compounds. The Threshold Experience doesn&apos;t just
             prevent churn; it accelerates the transformation they paid for, making every subsequent
             session more effective.
           </p>
@@ -82,7 +82,7 @@ export default function ThresholdPage() {
 
       <SocialProofSection
         quote="I used to dread the post-call silence. Now my clients feel held from the first hour. Session one is completely different."
-        attribution="Early access coach — name to be confirmed before launch"
+        attribution="Early access coach, name to be confirmed before launch"
         isPlaceholder
       />
 

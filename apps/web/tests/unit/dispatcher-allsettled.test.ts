@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
 
-// 06-PLAN.md §1.2 — "Multi-channel dispatcher: Promise.allSettled semantics —
+// 06-PLAN.md §1.2, "Multi-channel dispatcher: Promise.allSettled semantics, 
 // one channel failure does not block others."
 //
 // The dispatcher fans out via Promise.allSettled across the 5 channels (dashboard,
@@ -43,7 +43,7 @@ describe("Notification-Dispatcher: allSettled fan-out semantics", () => {
     expect(results).toEqual([]);
   });
 
-  it("rejection reason is preserved per channel — call site can log per-channel failure", async () => {
+  it("rejection reason is preserved per channel, call site can log per-channel failure", async () => {
     const channelTags = ["dashboard", "email", "slack", "whatsapp", "sms"];
     const results = await Promise.allSettled(
       channelTags.map((tag, i) =>

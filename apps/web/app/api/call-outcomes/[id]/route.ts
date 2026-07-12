@@ -49,7 +49,7 @@ export async function PATCH(
   }
 
   // Fetch the row up front so ownership is enforced BEFORE any mutation (T-07-13
-  // / CALL-009 — no IDOR). adminClient bypasses RLS, so the coach_id check is the
+  // / CALL-009, no IDOR). adminClient bypasses RLS, so the coach_id check is the
   // only authorization gate here.
   const { data: row } = await adminClient
     .from("call_outcomes")
@@ -62,7 +62,7 @@ export async function PATCH(
 
   const { outcome, notes } = parsed.data;
 
-  // Optional coach note about the call — persist before the atomic flip so it is
+  // Optional coach note about the call, persist before the atomic flip so it is
   // present once the row is resolved.
   if (notes !== undefined) {
     await adminClient.from("call_outcomes").update({ notes }).eq("id", id);
@@ -70,7 +70,7 @@ export async function PATCH(
 
   // CAS resolve: only succeeds when status='awaiting_outcome'. A duplicate /
   // late resolve (double-click, provider no_show after a manual pick) no-ops and
-  // returns 409 — the downstream below never double-fires (T-07-16).
+  // returns 409, the downstream below never double-fires (T-07-16).
   const result = await recordCallOutcomeAtomic(id, outcome, "dashboard");
   if (!result.ok) {
     return NextResponse.json(
@@ -88,7 +88,7 @@ export async function PATCH(
     payload: { source: "dashboard", callOutcomeId: id },
   });
 
-  // Drive the correct downstream track (no_show / completed / converted) — from
+  // Drive the correct downstream track (no_show / completed / converted), from
   // 07-02; idempotent so even a racing duplicate would be safe (already 409'd).
   await fireCallOutcomeDownstream({
     outcome,

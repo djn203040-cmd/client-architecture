@@ -1,7 +1,7 @@
 import { test, expect } from "../fixtures";
 import crypto from "node:crypto";
 
-// 06-PLAN.md §1.4 — All 7 calendar providers: synthetic webhook → lead state updated.
+// 06-PLAN.md §1.4, All 7 calendar providers: synthetic webhook → lead state updated.
 // Each provider has its own signature scheme. We exercise the receive endpoint per
 // provider with a valid signature and assert non-401 acceptance.
 

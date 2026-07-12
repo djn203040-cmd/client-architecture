@@ -44,7 +44,7 @@ export function HeroSection({ eyebrow, title, tagline, primaryCta, secondaryCta 
         </div>
       </div>
 
-      {/* Warm ambient glow — editorial art direction */}
+      {/* Warm ambient glow, editorial art direction */}
       <div
         aria-hidden
         className="pointer-events-none absolute -right-40 -top-40 h-[600px] w-[600px] rounded-full bg-primary/8 blur-[120px]"

@@ -15,7 +15,8 @@ export function buildLeadDescriptionPrompt(params: LeadDescriptionParams): {
 Rules:
 - Write facts only. Never invent pain points, goals, or biographical details not evidenced in the provided context.
 - Write in third person, plainly. No AI-cliché phrases.
-- Target ~150–200 words. One paragraph.
+- NEVER use the em-dash ("—") or en-dash ("–"). Not for pauses, asides, or ranges. Rewrite with a comma, a period, parentheses, or the word "to". Ordinary hyphens inside compound words ("follow-up", "check-in") are fine.
+- Target ~150-200 words. One paragraph.
 - Cover: what they do or where they are in life, stated goals, implied challenges, emotional signals from the conversation, and anything unusual or notable.
 - If information is sparse, write what you know and no more.`;
 
@@ -37,7 +38,7 @@ Rules:
   const user = `${blocks.join('\n\n')}
 
 <instruction>
-Synthesize the information above into a single plain-text paragraph describing ${params.leadName}. Cover their situation, goals, and emotional signals where evident. Facts only — do not fabricate.
+Synthesize the information above into a single plain-text paragraph describing ${params.leadName}. Cover their situation, goals, and emotional signals where evident. Facts only, do not fabricate.
 </instruction>`;
 
   return { system, user };

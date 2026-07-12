@@ -38,7 +38,7 @@ export function extractHeader(
 /**
  * Fetch a single Gmail message by its internal id (the id Gmail history hands us
  * for an inbound reply). Used as the authoritative ground truth for a reply
- * draft — we answer THIS message, not a guess scraped from the send-thread.
+ * draft, we answer THIS message, not a guess scraped from the send-thread.
  * Returns null on any failure so callers can degrade gracefully.
  */
 export async function fetchMessageById(

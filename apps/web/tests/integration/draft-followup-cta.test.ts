@@ -11,7 +11,7 @@ vi.mock("@/lib/drafts/approve-atomic", () => ({
   holdDraftAtomic: mockHoldDraftAtomic,
 }));
 
-// Draft status returns — controlled per-test via mockFrom
+// Draft status returns, controlled per-test via mockFrom
 let draftStatusSequence: Array<string | null> = [];
 let draftStatusCallCount = 0;
 

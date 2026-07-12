@@ -4,7 +4,7 @@ import { createDraft } from "../fixtures/createDraft";
 import { admin } from "../fixtures/createCoach";
 import { createHmac } from "node:crypto";
 
-// 06-PLAN.md §1.4 — approval-email-token: load review page → approve → status updates;
+// 06-PLAN.md §1.4, approval-email-token: load review page → approve → status updates;
 // second click → "already used" (single-use nonce rotates in consume_review_token).
 
 // Mirror lib/review-token.ts: base64url(JSON{draftId,coachId,nonce,exp}) + "." + hex HMAC,
@@ -39,7 +39,7 @@ test("approval from review token: first use approves, second use rejected", asyn
   });
   expect([200, 204]).toContain(first.status());
 
-  // Second use must be rejected — the nonce rotated on first consume (410 Gone).
+  // Second use must be rejected, the nonce rotated on first consume (410 Gone).
   const second = await page.request.patch(`/api/review/${token}`, {
     data: { status: "approved" },
   });

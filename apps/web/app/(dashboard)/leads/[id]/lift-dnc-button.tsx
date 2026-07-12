@@ -20,7 +20,7 @@ export function LiftDoNotContactButton({ leadId, leadName }: { leadId: string; l
     startTransition(async () => {
       try {
         await liftDoNotContact(leadId);
-        toast.success(`${leadName} can be contacted again — state reset to Identified.`);
+        toast.success(`${leadName} can be contacted again, state reset to Identified.`);
         setOpen(false);
       } catch {
         toast.error("Couldn't lift the flag. Try again.");

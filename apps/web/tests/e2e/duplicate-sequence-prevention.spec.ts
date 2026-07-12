@@ -6,11 +6,11 @@ import { admin } from "../fixtures/createCoach";
 test("only one active sequence allowed per coach+lead+track (DB invariant)", async ({ coach }) => {
   const lead = await createLead(coach.id, { status: "no_show" });
 
-  // First active sequence — should succeed
+  // First active sequence, should succeed
   const seq1 = await createSequence(coach.id, lead.id, { track: "no_show", status: "active" });
   expect(seq1.id).toBeTruthy();
 
-  // Second active sequence for same (coach, lead, track) — must fail due to unique partial index
+  // Second active sequence for same (coach, lead, track), must fail due to unique partial index
   const { error } = await admin
     .from("sequences")
     .insert({ coach_id: coach.id, lead_id: lead.id, module: 1, track: "no_show", status: "active" });

@@ -3,7 +3,7 @@ import { inngest } from "@/inngest/client";
 
 export class OAuthInvalidGrantError extends Error {
   constructor(public readonly coachId: string) {
-    super(`Gmail OAuth invalid_grant for coach ${coachId} — token revoked or expired`);
+    super(`Gmail OAuth invalid_grant for coach ${coachId}, token revoked or expired`);
     this.name = "OAuthInvalidGrantError";
   }
 }
@@ -20,7 +20,7 @@ export function isInvalidGrantError(e: unknown): boolean {
 export async function handleInvalidGrant(coachId: string): Promise<void> {
   // 1. Mark integration disconnected
   await adminClient.from("integrations")
-    .update({ status: "disconnected", error_message: "OAuth revoked — reconnect required" })
+    .update({ status: "disconnected", error_message: "OAuth revoked, reconnect required" })
     .eq("coach_id", coachId)
     .eq("provider", "gmail");
 
@@ -31,7 +31,7 @@ export async function handleInvalidGrant(coachId: string): Promise<void> {
     .eq("status", "active");
 
   // 3. Tell the coach their Gmail connection broke so they can reconnect.
-  // This fires notification/integration_broken — the same matrix-driven fan-out
+  // This fires notification/integration_broken, the same matrix-driven fan-out
   // every other notification uses (the dispatcher already registers this event,
   // and email/slack/sms each render an integration_broken branch). Previously
   // this only wrote a perpetually-"pending" notification_log row that nothing
@@ -47,7 +47,7 @@ export async function handleInvalidGrant(coachId: string): Promise<void> {
       },
     });
   } catch {
-    // Swallow — the integration is already marked disconnected and sequences
+    // Swallow, the integration is already marked disconnected and sequences
     // paused; the coach will also see the broken state in the dashboard.
   }
 }

@@ -93,4 +93,37 @@ describe("VOICE-001: VoiceProfileSchema", () => {
     const result = VoiceProfileSchema.safeParse(withoutTone);
     expect(result.success).toBe(false);
   });
+
+  it("accepts a profile with no usage_rules (backward compatible)", () => {
+    const result = VoiceProfileSchema.safeParse(validProfile);
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.usage_rules).toBeUndefined();
+  });
+
+  it("accepts valid usage_rules with source and added_at", () => {
+    const result = VoiceProfileSchema.safeParse({
+      ...validProfile,
+      usage_rules: [
+        { rule: "LMK is only used as a sign-off, never mid-sentence", source: "feedback", added_at: "2026-07-12T00:00:00.000Z" },
+        { rule: "Avoid 'smutter forbi' constructions", source: "feedback", added_at: "2026-07-12T00:00:00.000Z" },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a usage_rule with an invalid source", () => {
+    const result = VoiceProfileSchema.safeParse({
+      ...validProfile,
+      usage_rules: [{ rule: "x", source: "manual", added_at: "2026-07-12T00:00:00.000Z" }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a usage_rule with an empty rule string", () => {
+    const result = VoiceProfileSchema.safeParse({
+      ...validProfile,
+      usage_rules: [{ rule: "", source: "feedback", added_at: "2026-07-12T00:00:00.000Z" }],
+    });
+    expect(result.success).toBe(false);
+  });
 });

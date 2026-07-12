@@ -29,7 +29,7 @@ describe.skipIf(skipIf)("INFRA-003: Vault SECURITY DEFINER functions are private
 
   it("service role can store + retrieve via private RPC", async () => {
     const tokens = { access_token: "test-at", refresh_token: "test-rt", expiry_date: Date.now() + 3600_000 };
-    // private schema RPC not in generated types — using untyped client (INFRA-003)
+    // private schema RPC not in generated types, using untyped client (INFRA-003)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: vaultId, error: storeErr } = await (admin.schema("private") as any).rpc("store_gmail_tokens", { p_coach_id: coachId, p_tokens: tokens });
     expect(storeErr).toBeNull();

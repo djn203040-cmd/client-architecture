@@ -17,5 +17,5 @@ test.fixme("GMAIL-001: authenticated /api/auth/gmail/authorize redirects to acco
 });
 
 test.fixme("GMAIL-001: callback with insufficient scopes redirects with error", async ({ request: _request }) => {
-  // Cannot fully simulate without mocking Google — leave as fixme; Phase 5 Playwright suite implements with token mock
+  // Cannot fully simulate without mocking Google, leave as fixme; Phase 5 Playwright suite implements with token mock
 });

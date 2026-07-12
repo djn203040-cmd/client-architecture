@@ -45,7 +45,7 @@ beforeEach(() => {
   vi.mocked(evictSlackClientCache).mockReset();
 });
 
-describe("handleSlackIntegrationBroken — integration_broken emission", () => {
+describe("handleSlackIntegrationBroken, integration_broken emission", () => {
   it("emits notification/integration_broken for the broken Slack connection", async () => {
     await handleSlackIntegrationBroken("coach-1");
 

@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/settings?error=oauth_exchange_failed", APP_URL));
   }
 
-  // GMAIL-002: refresh_token missing — likely missing prompt=consent or already-consented session.
+  // GMAIL-002: refresh_token missing, likely missing prompt=consent or already-consented session.
   // Refuse: without refresh_token, sequences will die in 1h. Ask the coach to revoke + retry.
   if (!tokens.refresh_token) {
     return NextResponse.redirect(new URL("/settings?error=oauth_no_refresh_token", APP_URL));

@@ -9,7 +9,7 @@ import { injectTrackingPixel } from "@/lib/email/template";
 const SENDABLE_STATUSES = ["approved", "edited"] as const;
 
 // ----------------------------------------------------------------------------
-// Pure helpers — MIME assembly. No IO, unit-testable.
+// Pure helpers, MIME assembly. No IO, unit-testable.
 // ----------------------------------------------------------------------------
 
 /** Escape the five HTML-significant characters for safe interpolation. */
@@ -116,7 +116,7 @@ export function buildRawEmail(params: BuildRawEmailParams): string {
 }
 
 // ----------------------------------------------------------------------------
-// Orchestration — split into load / deliver / record so the Inngest function
+// Orchestration, split into load / deliver / record so the Inngest function
 // can wrap each in a memoized step (deliver must never re-run on retry).
 // ----------------------------------------------------------------------------
 
@@ -202,11 +202,11 @@ export async function loadSendContext(
     // Keep the thread's subject line stable; only add Re: once.
     subject = ensureReSubject(priorSubject || draft.subject || "Following up");
   } else {
-    // Fresh conversation — the AI-generated subject is the source of truth.
+    // Fresh conversation, the AI-generated subject is the source of truth.
     subject = draft.subject || "Following up";
   }
 
-  // No unsubscribe footer (see buildRawEmail) — keep the email indistinguishable
+  // No unsubscribe footer (see buildRawEmail), keep the email indistinguishable
   // from a personal one. Open-tracking pixel is retained.
   const textBody = draft.body;
   const rawHtml = `<!DOCTYPE html><html><body><div style="font-family:-apple-system,Segoe UI,sans-serif;font-size:15px;line-height:1.5;color:#1a1a1a">${textToHtml(
@@ -263,7 +263,7 @@ export async function deliverDraft(ctx: SendContext): Promise<Delivery> {
   const gmailId = sent.data.id ?? "";
   const gmailThreadId = sent.data.threadId ?? ctx.threadId ?? "";
 
-  // Read back the RFC 822 Message-ID Gmail assigned — this is what reply
+  // Read back the RFC 822 Message-ID Gmail assigned, this is what reply
   // detection correlates against, so store the authoritative value.
   let rfcMessageId = "";
   if (gmailId) {

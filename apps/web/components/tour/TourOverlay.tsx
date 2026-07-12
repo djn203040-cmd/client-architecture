@@ -19,7 +19,7 @@ const PAD = 8; // breathing room around the spotlighted element
 const TIP_W = 360;
 const MARGIN = 20; // min distance from viewport edge
 
-/** Picks the first *rendered* match — several anchors (nav items) exist in both
+/** Picks the first *rendered* match, several anchors (nav items) exist in both
  *  the desktop sidebar and the mobile bar; only one is visible at a time. */
 function findVisible(anchor: string): HTMLElement | null {
   const els = document.querySelectorAll<HTMLElement>(`[data-tour="${anchor}"]`);
@@ -92,7 +92,7 @@ export function TourOverlay() {
       window.removeEventListener("resize", onMove);
       window.removeEventListener("scroll", onMove, true);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reason: tracker re-arms only per spotlight (targetKey) or waiting change; keying on the full step object would restart the interval every render
   }, [targetKey, waiting]);
 
   // Bind a one-shot click handler for "now click X" steps once the element exists.

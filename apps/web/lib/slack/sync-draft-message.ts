@@ -32,13 +32,13 @@ function blocksFor(state: SlackDraftState): { blocks: unknown[]; text: string } 
 
 /**
  * Retire the interactive buttons on the Slack message we posted for a draft when
- * that draft transitions outside of Slack — approved/held/cancelled from the
+ * that draft transitions outside of Slack, approved/held/cancelled from the
  * dashboard or review link, or auto-sent by a Mode-B timer. Without this the
  * original DM keeps its Approve/Edit/Hold buttons forever even though the draft
  * is already resolved, so the coach sees stale buttons (and can double-act).
  *
  * Best-effort and self-contained: every failure path (no Slack message for this
- * draft, Slack disconnected, chat.update error) is swallowed — a stale button is
+ * draft, Slack disconnected, chat.update error) is swallowed, a stale button is
  * never worth failing the approval that triggered this.
  */
 export async function syncSlackDraftMessage(args: {
@@ -79,7 +79,7 @@ export async function syncSlackDraftMessage(args: {
 
     const { blocks, text } = blocksFor(state);
     const slack = await getSlackClientForCoach(coachId);
-    // chat.update needs the DM channel id (D…) — the stored external_account_id
+    // chat.update needs the DM channel id (D…), the stored external_account_id
     // is the coach's USER id (U…), which chat.update rejects (#77).
     const channel = await resolveSlackDmChannel(
       slack,

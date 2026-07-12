@@ -29,11 +29,11 @@ interface DraftCardProps {
   onDeleted?: () => void;
   /**
    * Skip is a queue-only concept (defer to the next card without changing
-   * status). On the lead profile page there is no "next" — pass false to hide
+   * status). On the lead profile page there is no "next", pass false to hide
    * it and disable the `s` shortcut. #41.
    */
   showSkip?: boolean;
-  /** Coach's IANA timezone — renders the scheduled send time in their clock. */
+  /** Coach's IANA timezone, renders the scheduled send time in their clock. */
   timeZone?: string | null;
 }
 
@@ -80,7 +80,7 @@ export function DraftCard({
       const reason = (data as { reason?: string }).reason;
       // Surface the real failure reason instead of a generic message.
       const message = reason
-        ? `Couldn't ${status === "approved" ? "approve" : "hold"} — ${reason}.`
+        ? `Couldn't ${status === "approved" ? "approve" : "hold"}, ${reason}.`
         : "This action didn't go through. Refresh and try again.";
       toast.error(message);
       return;
@@ -145,7 +145,7 @@ export function DraftCard({
             {draft.leads?.name ?? "Unknown lead"}
           </h2>
           {/* Send time renders in the coach's timezone (fixed, not the
-              browser's) so server and client agree — no hydration mismatch. */}
+              browser's) so server and client agree, no hydration mismatch. */}
           <p className="text-xs font-mono text-muted-foreground mt-1">
             Message {draft.touchpoint_index} of {draft.total_touchpoints ?? "?"} &middot;{" "}
             {formatDateTimeInTZ(sched, timeZone)}
@@ -227,7 +227,7 @@ export function DraftCard({
       )}
 
       {/* Delete is intentionally separated from the primary actions and kept
-          quiet — operator escape hatch only. Hidden on the public review
+          quiet, operator escape hatch only. Hidden on the public review
           surface (a tokenized link shouldn't destroy records). */}
       {!isReview && (
         <div className="mt-5 flex justify-end border-t border-border/40 pt-3">

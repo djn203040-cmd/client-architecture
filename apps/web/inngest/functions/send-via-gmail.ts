@@ -19,7 +19,7 @@ type StepTools = {
 };
 
 /**
- * Consumes `draft/send_via_gmail` — the single send pipeline every approval
+ * Consumes `draft/send_via_gmail`, the single send pipeline every approval
  * path funnels into (dashboard, Slack, tokenized review link, autonomous
  * Mode A/B). Sends the approved draft as the coach via the Gmail API.
  *

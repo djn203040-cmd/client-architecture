@@ -149,7 +149,7 @@ describe("slack-channel (Phase 4 / NOTIFY-003)", () => {
   });
 
   it("confidence badge only rendered when confidence_level === 'low'", async () => {
-    // High confidence — no warning badge
+    // High confidence, no warning badge
     setupDefaultMocks("high");
     await sendSlack({
       coachId: COACH_ID,
@@ -170,7 +170,7 @@ describe("slack-channel (Phase 4 / NOTIFY-003)", () => {
     vi.clearAllMocks();
     resetSlackMock();
 
-    // Low confidence — badge present
+    // Low confidence, badge present
     setupDefaultMocks("low");
     await sendSlack({
       coachId: COACH_ID,

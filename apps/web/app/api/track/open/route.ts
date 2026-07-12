@@ -4,7 +4,7 @@ import { enforce, ipFromRequest, trackOpenLimiter } from "@/lib/security/ratelim
 
 export const dynamic = "force-dynamic";
 
-// 1×1 transparent GIF — standard tracking pixel (GMAIL-006)
+// 1×1 transparent GIF, standard tracking pixel (GMAIL-006)
 const TRANSPARENT_GIF = Buffer.from(
   "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
   "base64"
@@ -21,8 +21,8 @@ export async function GET(request: Request) {
   // Always return the pixel regardless of processing outcome (GMAIL-007)
   const token = new URL(request.url).searchParams.get("d");
 
-  // Rate-limit the DB work per IP (#86). A throttled hit still gets the GIF —
-  // real clients never see an error — but we skip the reads + insert entirely,
+  // Rate-limit the DB work per IP (#86). A throttled hit still gets the GIF, 
+  // real clients never see an error, but we skip the reads + insert entirely,
   // so a scripted flood can't amplify into unbounded Supabase writes.
   const { success } = await enforce(trackOpenLimiter, ipFromRequest(request));
 
@@ -60,7 +60,7 @@ export async function GET(request: Request) {
         }
       }
     } catch {
-      // Malformed token — silently ignore, still serve the pixel
+      // Malformed token, silently ignore, still serve the pixel
     }
   }
 

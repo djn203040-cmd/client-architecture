@@ -2,12 +2,12 @@
  * PII redactor for application logs, Sentry breadcrumbs, and Inngest events.
  *
  * Two layers:
- *   1. KEY-based — a property whose key matches the PII keyset is replaced
+ *   1. KEY-based, a property whose key matches the PII keyset is replaced
  *      with `[REDACTED]`.
  *   2. VALUE-based: string values are scanned for email and E.164 phone
  *      patterns and the matches are replaced inline.
  *
- * Symmetric output for symmetric input — circular references break the cycle
+ * Symmetric output for symmetric input, circular references break the cycle
  * with `[Circular]`.
  */
 

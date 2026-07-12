@@ -1,5 +1,5 @@
 /**
- * Vault audit — verifies that:
+ * Vault audit, verifies that:
  *   1. No public.* column stores a plaintext OAuth token/secret (covered in
  *      rls-pen-test.test.ts as well; duplicated here for explicit Vault focus).
  *   2. Every OAuth/integration token has a Vault-storage RPC under `private.*`.
@@ -88,7 +88,7 @@ describe("Vault audit", () => {
         const content = await readFile(full, "utf8");
         if (/decrypted_secrets/.test(content)) {
           // Allowed: server-only modules using service_role adminClient
-          // OR private.* RPC wrappers — both are unreachable from the browser.
+          // OR private.* RPC wrappers, both are unreachable from the browser.
           const isServerOnly = /^\s*import\s+["']server-only["']/m.test(content);
           if (!isServerOnly && !/\bprivate\./.test(content)) {
             offenders.push(full);

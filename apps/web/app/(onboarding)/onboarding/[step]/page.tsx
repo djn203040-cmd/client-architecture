@@ -41,10 +41,10 @@ export default async function OnboardingStepPage({ params }: Props) {
   const progress = (coach?.onboarding_progress ?? {}) as OnboardingProgress;
   const nextStep = nextIncompleteStep(progress);
 
-  // Prevent step skipping — redirect to the actual next step
+  // Prevent step skipping, redirect to the actual next step
   if (nextStep && step !== nextStep) redirect(`/onboarding/${nextStep}` as never);
 
-  // All steps done but completed_at never got set (orphaned state) — self-heal and exit.
+  // All steps done but completed_at never got set (orphaned state), self-heal and exit.
   if (!nextStep) {
     if (!coach?.onboarding_completed_at) {
       await supabase

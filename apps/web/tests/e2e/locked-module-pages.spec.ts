@@ -28,7 +28,7 @@ for (const { path, titleSegment, taglineSegment } of PAGES) {
     await withOnboardingComplete(coach.id);
     await page.context().addCookies(coach.cookies);
 
-    // Intercept cal.com to avoid network dependency — iframe still mounts
+    // Intercept cal.com to avoid network dependency, iframe still mounts
     await page.route("**/cal.com/**", (route) => route.abort());
 
     // Ignore noise from the intentionally-aborted cal.com iframe. WebKit reports
@@ -52,10 +52,10 @@ for (const { path, titleSegment, taglineSegment } of PAGES) {
     });
 
     await page.goto(path);
-    // The title appears in the hero h1, the sidebar link, and prose — target
+    // The title appears in the hero h1, the sidebar link, and prose, target
     // the hero heading specifically to avoid a strict-mode match on all four.
     await expect(page.getByRole("heading", { level: 1, name: titleSegment })).toBeVisible();
-    // Scope to <main> — the tagline also appears in the sidebar locked tile.
+    // Scope to <main>, the tagline also appears in the sidebar locked tile.
     await expect(page.getByRole("main").getByText(taglineSegment)).toBeVisible();
 
     expect(criticalErrors).toHaveLength(0);
@@ -68,7 +68,7 @@ test("sidebar locked tile deep-links to /modules/threshold", async ({ coach, pag
 
   await page.goto("/dashboard");
   const link = page.getByRole("link", { name: /The Threshold Experience/ });
-  // The deep-link contract — that the tile points at the route — is asserted in
+  // The deep-link contract, that the tile points at the route, is asserted in
   // every engine. WebKit's App-Router soft navigation doesn't settle reliably
   // under Playwright (30s hang), so the click-through itself is covered in
   // chromium + firefox only.
@@ -84,7 +84,7 @@ test("sidebar locked tile deep-links to /modules/continuation", async ({ coach, 
 
   await page.goto("/dashboard");
   const link = page.getByRole("link", { name: /The Continuation/ });
-  // See the threshold test above — href contract everywhere, click-through
+  // See the threshold test above, href contract everywhere, click-through
   // skipped in WebKit where App-Router soft nav hangs under Playwright.
   await expect(link).toHaveAttribute("href", "/modules/continuation");
   if (browserName === "webkit") return;

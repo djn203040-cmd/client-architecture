@@ -124,7 +124,7 @@ export function AddLeadSheet() {
             <Textarea
               id="lead-notes"
               name="coach_notes"
-              placeholder="Private notes — injected into every AI draft for this lead."
+              placeholder="Private notes, injected into every AI draft for this lead."
               rows={4}
             />
           </div>
