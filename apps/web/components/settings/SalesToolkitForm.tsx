@@ -5,18 +5,33 @@ import { useAutosave } from "@/lib/settings/autosave";
 import {
   SalesToolkitSchema,
   EMPTY_SALES_TOOLKIT,
+  SALES_STYLES,
   type TSalesToolkit,
+  type TSalesStyle,
   type TToolkitOption,
+  type TSalesPackage,
 } from "@client/shared/validators";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash } from "@phosphor-icons/react";
+import { Plus, Trash, Check } from "@phosphor-icons/react";
 
 interface Props {
   initial: TSalesToolkit;
+  // Whether to surface the "fine-tune your sales approach" override editor. Off
+  // during onboarding (not something a coach should do at setup), on in Settings
+  // (the "down the line" place to tweak it). Defaults to off.
+  showApproachOverride?: boolean;
 }
+
+const EMPTY_PACKAGE: TSalesPackage = {
+  name: "",
+  price: "",
+  format: "",
+  includes: "",
+  ideal_for: "",
+};
 
 async function patchToolkit(toolkit: TSalesToolkit) {
   const res = await fetch("/api/settings/sales-toolkit", {
@@ -25,6 +40,63 @@ async function patchToolkit(toolkit: TSalesToolkit) {
     body: JSON.stringify(toolkit),
   });
   if (!res.ok) throw new Error("Failed to save");
+}
+
+// The three-way style picker. Selecting a card sets the coach's whole selling
+// posture. Clicking the selected card again clears it (back to the balanced base).
+function StylePicker({
+  value,
+  onChange,
+}: {
+  value: TSalesStyle | null;
+  onChange: (next: TSalesStyle | null) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <Label>How do you sell?</Label>
+        <p className="text-xs text-muted-foreground max-w-[65ch]">
+          Pick the approach that sounds most like you. It shapes how the AI handles a lead
+          who hesitates. You can change it any time.
+        </p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        {SALES_STYLES.map((style) => {
+          const selected = value === style.id;
+          return (
+            <button
+              key={style.id}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onChange(selected ? null : style.id)}
+              className={[
+                "relative text-left rounded-xl border p-4 transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                selected
+                  ? "border-primary/60 bg-primary/10"
+                  : "border-white/10 bg-white/5 hover:bg-white/10",
+              ].join(" ")}
+            >
+              {selected && (
+                <span className="absolute right-3 top-3 grid size-5 place-items-center rounded-full bg-primary text-primary-foreground">
+                  <Check className="size-3" weight="bold" />
+                </span>
+              )}
+              <p className="font-semibold">{style.label}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{style.tagline}</p>
+              <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                {style.description}
+              </p>
+              <p className="text-[11px] text-muted-foreground/80 mt-2 leading-relaxed">
+                <span className="font-medium">Best for:</span> {style.bestFor}
+              </p>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 // Editor for a list of {name, when_to_offer} options (bridges or downsells).
@@ -113,8 +185,113 @@ function OptionListEditor({
   );
 }
 
-export function SalesToolkitForm({ initial }: Props) {
+// Rich editor for the coach's real programs / pricing ladder.
+function PackageListEditor({
+  packages,
+  onChange,
+}: {
+  packages: TSalesPackage[];
+  onChange: (next: TSalesPackage[]) => void;
+}) {
+  function update(index: number, patch: Partial<TSalesPackage>) {
+    onChange(packages.map((p, i) => (i === index ? { ...p, ...patch } : p)));
+  }
+  function remove(index: number) {
+    onChange(packages.filter((_, i) => i !== index));
+  }
+  function add() {
+    onChange([...packages, { ...EMPTY_PACKAGE }]);
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <Label>Your programs &amp; pricing</Label>
+        <p className="text-xs text-muted-foreground max-w-[65ch]">
+          Add the packages you actually sell. The more the AI understands your offer ladder,
+          the better it can position the right next step, or a lighter one, when a lead
+          hesitates. Only a name is required.
+        </p>
+      </div>
+
+      {packages.length === 0 ? (
+        <p className="text-sm text-muted-foreground italic">No packages added yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {packages.map((pkg, i) => (
+            <div
+              key={i}
+              className="rounded-xl border border-white/10 bg-white/5 p-3 space-y-2"
+            >
+              <div className="flex items-start gap-2">
+                <div className="flex-1 space-y-2">
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Input
+                      id={`st-pkg-name-${i}`}
+                      placeholder="Program name, e.g. 12-Week 1:1 Container"
+                      value={pkg.name}
+                      maxLength={120}
+                      onChange={(e) => update(i, { name: e.target.value })}
+                    />
+                    <Input
+                      id={`st-pkg-price-${i}`}
+                      placeholder="Price, e.g. $4,000 or 3× $1,500/mo"
+                      value={pkg.price}
+                      maxLength={120}
+                      onChange={(e) => update(i, { price: e.target.value })}
+                    />
+                  </div>
+                  <Input
+                    id={`st-pkg-format-${i}`}
+                    placeholder="Format & duration, e.g. 12 weeks, weekly 60-min calls + Voxer"
+                    value={pkg.format}
+                    maxLength={200}
+                    onChange={(e) => update(i, { format: e.target.value })}
+                  />
+                  <Textarea
+                    id={`st-pkg-includes-${i}`}
+                    placeholder="What's included, e.g. workbook, 2 live intensives, private community"
+                    value={pkg.includes}
+                    maxLength={600}
+                    rows={2}
+                    onChange={(e) => update(i, { includes: e.target.value })}
+                  />
+                  <Input
+                    id={`st-pkg-ideal-${i}`}
+                    placeholder="Ideal for, e.g. founders stuck under $10k/mo"
+                    value={pkg.ideal_for}
+                    maxLength={300}
+                    onChange={(e) => update(i, { ideal_for: e.target.value })}
+                  />
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Remove package"
+                  onClick={() => remove(i)}
+                  className="shrink-0 text-muted-foreground hover:text-destructive"
+                >
+                  <Trash className="size-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Button variant="outline" size="sm" onClick={add} disabled={packages.length >= 12}>
+        <Plus className="size-4 mr-1.5" />
+        Add a package
+      </Button>
+    </div>
+  );
+}
+
+export function SalesToolkitForm({ initial, showApproachOverride = false }: Props) {
+  const [salesStyle, setSalesStyle] = useState<TSalesStyle | null>(initial.sales_style);
   const [philosophy, setPhilosophy] = useState(initial.philosophy);
+  const [approachOverride, setApproachOverride] = useState(initial.approach_override);
+  const [packages, setPackages] = useState<TSalesPackage[]>(initial.packages);
   const [leveragePoints, setLeveragePoints] = useState(initial.leverage_points);
   const [bridges, setBridges] = useState<TToolkitOption[]>(initial.bridges);
   const [downsells, setDownsells] = useState<TToolkitOption[]>(initial.downsells);
@@ -123,28 +300,43 @@ export function SalesToolkitForm({ initial }: Props) {
   // drop rows with a blank name before saving so half-typed rows don't persist,
   // and re-run through the schema so what we send is always valid.
   const toolkit = useMemo<TSalesToolkit>(() => {
-    const clean = (opts: TToolkitOption[]) =>
+    const cleanOptions = (opts: TToolkitOption[]) =>
       opts
         .filter((o) => o.name.trim().length > 0)
         .map((o) => ({ name: o.name.trim(), when_to_offer: o.when_to_offer.trim() }));
+    const cleanPackages = (pkgs: TSalesPackage[]) =>
+      pkgs
+        .filter((p) => p.name.trim().length > 0)
+        .map((p) => ({
+          name: p.name.trim(),
+          price: p.price.trim(),
+          format: p.format.trim(),
+          includes: p.includes.trim(),
+          ideal_for: p.ideal_for.trim(),
+        }));
     const parsed = SalesToolkitSchema.safeParse({
+      sales_style: salesStyle,
+      approach_override: approachOverride,
       philosophy,
+      packages: cleanPackages(packages),
       leverage_points: leveragePoints,
-      bridges: clean(bridges),
-      downsells: clean(downsells),
+      bridges: cleanOptions(bridges),
+      downsells: cleanOptions(downsells),
     });
     return parsed.success ? parsed.data : EMPTY_SALES_TOOLKIT;
-  }, [philosophy, leveragePoints, bridges, downsells]);
+  }, [salesStyle, approachOverride, philosophy, packages, leveragePoints, bridges, downsells]);
 
   useAutosave(toolkit, patchToolkit);
 
   return (
     <div className="space-y-6">
+      <StylePicker value={salesStyle} onChange={setSalesStyle} />
+
       <div className="space-y-1.5">
         <Label htmlFor="st-philosophy">Your sales philosophy</Label>
         <p className="text-xs text-muted-foreground max-w-[65ch]">
-          One to three sentences on how you sell. The AI uses this to set its posture when
-          a lead hesitates.
+          One to three sentences on how you sell, in your own words. The AI uses this to fine
+          tune its posture on top of the approach you picked above.
         </p>
         <Textarea
           id="st-philosophy"
@@ -156,6 +348,8 @@ export function SalesToolkitForm({ initial }: Props) {
         />
         <p className="text-xs text-muted-foreground text-right">{philosophy.length}/800</p>
       </div>
+
+      <PackageListEditor packages={packages} onChange={setPackages} />
 
       <OptionListEditor
         idPrefix="st-bridge"
@@ -196,6 +390,28 @@ export function SalesToolkitForm({ initial }: Props) {
         />
         <p className="text-xs text-muted-foreground text-right">{leveragePoints.length}/1500</p>
       </div>
+
+      {showApproachOverride && (
+        <div className="space-y-1.5 rounded-xl border border-white/10 bg-white/5 p-4">
+          <Label htmlFor="st-approach-override">Fine-tune your sales approach</Label>
+          <p className="text-xs text-muted-foreground max-w-[65ch]">
+            Optional, and most coaches never need it. If the approach you picked doesn&apos;t
+            quite match how you sell, describe the difference here in your own words. This
+            overrides the default guidance where they conflict.
+          </p>
+          <Textarea
+            id="st-approach-override"
+            placeholder="e.g. I never mention price until they ask. I always open with a question about where they are right now, not where they want to be."
+            value={approachOverride}
+            maxLength={1500}
+            rows={3}
+            onChange={(e) => setApproachOverride(e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground text-right">
+            {approachOverride.length}/1500
+          </p>
+        </div>
+      )}
     </div>
   );
 }

@@ -15,13 +15,13 @@ export function SalesToolkitSection({ salesToolkit }: Props) {
       <div className="space-y-1">
         <h2 className="text-xl font-semibold">How you sell</h2>
         <p className="text-sm text-muted-foreground max-w-[65ch]">
-          Capture your objection-handling toolkit once. When a lead hesitates on price or
-          timing, the AI draws on this to make one gentle, on-brand attempt to bridge the
-          gap, instead of accepting the deferral. Everything here is optional, and saved
-          automatically as you type.
+          Pick your sales approach, capture your programs, and tell the AI how you handle
+          objections. When a lead hesitates on price or timing, it draws on all of this to
+          make one on-brand attempt to bridge the gap instead of accepting the deferral.
+          Everything here is optional, and saved automatically as you type.
         </p>
       </div>
-      <SalesToolkitForm initial={initial} />
+      <SalesToolkitForm initial={initial} showApproachOverride />
     </div>
   );
 }

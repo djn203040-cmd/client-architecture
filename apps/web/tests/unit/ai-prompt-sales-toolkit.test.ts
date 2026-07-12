@@ -4,7 +4,9 @@ import { describe, it, expect, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 import { buildDraftUserPrompt } from "@client/ai-engine/prompts/draft";
+import { buildSystemPrompt } from "@client/ai-engine/prompts/system";
 import type { DraftGenerationParams } from "@client/ai-engine/types";
+import { EMPTY_SALES_TOOLKIT } from "@client/shared/validators";
 import type { TVoiceProfile, TSalesToolkit } from "@client/shared/validators";
 
 // Issue #39: the coach's sales toolkit is injected into every draft so the AI
@@ -43,7 +45,17 @@ const baseParams: DraftGenerationParams = {
 };
 
 const populatedToolkit: TSalesToolkit = {
+  ...EMPTY_SALES_TOOLKIT,
   philosophy: "Gentle, never pushy, but I still help people past the resistance.",
+  packages: [
+    {
+      name: "12-Week 1:1 Container",
+      price: "$4,000",
+      format: "12 weeks, weekly 60-min calls",
+      includes: "Workbook and two intensives",
+      ideal_for: "Founders stuck under $10k/mo",
+    },
+  ],
   bridges: [
     { name: "Payment plan (3-month split)", when_to_offer: "if price is the stated objection but interest is real" },
   ],
@@ -53,12 +65,7 @@ const populatedToolkit: TSalesToolkit = {
   leverage_points: "I always ask what their current situation costs them each month.",
 };
 
-const emptyToolkit: TSalesToolkit = {
-  philosophy: "",
-  bridges: [],
-  downsells: [],
-  leverage_points: "",
-};
+const emptyToolkit: TSalesToolkit = { ...EMPTY_SALES_TOOLKIT };
 
 describe("AI-Prompt sales toolkit injection (issue #39)", () => {
   it("omits the <sales_toolkit> block entirely when the toolkit is absent", () => {
@@ -86,6 +93,10 @@ describe("AI-Prompt sales toolkit injection (issue #39)", () => {
     expect(prompt).toContain("4-week intensive");
     expect(prompt).toContain("Gentle, never pushy");
     expect(prompt).toContain("costs them each month");
+    // Rich packages surface in the data block so the model knows the offer ladder.
+    expect(prompt).toContain("12-Week 1:1 Container");
+    expect(prompt).toContain("$4,000");
+    expect(prompt).toContain("Founders stuck under $10k/mo");
   });
 
   it("skips option rows with a blank name but keeps valid ones", () => {
@@ -106,6 +117,65 @@ describe("AI-Prompt sales toolkit injection (issue #39)", () => {
     const first = buildDraftUserPrompt({ ...baseParams, salesToolkit: populatedToolkit });
     for (let i = 0; i < 25; i++) {
       expect(buildDraftUserPrompt({ ...baseParams, salesToolkit: populatedToolkit })).toBe(first);
+    }
+  });
+});
+
+describe("AI sales methodology + styles (system prompt)", () => {
+  it("always carries the merged base methodology, even with no toolkit", () => {
+    const prompt = buildSystemPrompt(voiceModel, "Daniel");
+    expect(prompt).toContain("Selling posture");
+    // Guardrails from the base methodology are always present.
+    expect(prompt).toContain("exactly one genuine nudge per message");
+  });
+
+  it("no style selected produces the same system prompt as an undefined toolkit", () => {
+    const noToolkit = buildSystemPrompt(voiceModel, "Daniel");
+    const nullStyle = buildSystemPrompt(voiceModel, "Daniel", EMPTY_SALES_TOOLKIT);
+    expect(nullStyle).toBe(noToolkit);
+  });
+
+  it("injects the chosen style's steer and differs per style", () => {
+    const guide = buildSystemPrompt(voiceModel, "Daniel", {
+      ...EMPTY_SALES_TOOLKIT,
+      sales_style: "guide",
+    });
+    const closer = buildSystemPrompt(voiceModel, "Daniel", {
+      ...EMPTY_SALES_TOOLKIT,
+      sales_style: "closer",
+    });
+    const strategist = buildSystemPrompt(voiceModel, "Daniel", {
+      ...EMPTY_SALES_TOOLKIT,
+      sales_style: "strategist",
+    });
+    expect(guide).toContain('"The Guide"');
+    expect(closer).toContain('"The Closer"');
+    expect(strategist).toContain('"The Strategist"');
+    // The three are genuinely different postures.
+    expect(guide).not.toBe(closer);
+    expect(closer).not.toBe(strategist);
+    expect(guide).not.toBe(strategist);
+  });
+
+  it("appends the coach's approach override as overriding guidance", () => {
+    const prompt = buildSystemPrompt(voiceModel, "Daniel", {
+      ...EMPTY_SALES_TOOLKIT,
+      sales_style: "closer",
+      approach_override: "I never mention price until they ask.",
+    });
+    expect(prompt).toContain("overriding guidance");
+    expect(prompt).toContain("I never mention price until they ask.");
+  });
+
+  it("is deterministic across repeated builds", () => {
+    const toolkit: TSalesToolkit = {
+      ...EMPTY_SALES_TOOLKIT,
+      sales_style: "strategist",
+      approach_override: "Lead with ROI.",
+    };
+    const first = buildSystemPrompt(voiceModel, "Daniel", toolkit);
+    for (let i = 0; i < 25; i++) {
+      expect(buildSystemPrompt(voiceModel, "Daniel", toolkit)).toBe(first);
     }
   });
 });
