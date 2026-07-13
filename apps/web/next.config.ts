@@ -6,8 +6,16 @@ import path from "node:path";
  * (e.g. /_next/static, /favicon.ico). The full per-request CSP + nonce is
  * applied by middleware.ts.
  */
+const isProd = process.env.NODE_ENV === "production";
+
 const STATIC_FALLBACK_HEADERS = [
-  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+  // HSTS is https-only (RFC 6797 §7.2) — never send it from the plain-HTTP
+  // dev/test server. WebKit honors HSTS on localhost (Chromium/Firefox don't)
+  // and force-upgrades /_next assets to https://localhost, so React never loads
+  // and the page renders unhydrated: visible, but dead to every click.
+  ...(isProd
+    ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]
+    : []),
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "DENY" },

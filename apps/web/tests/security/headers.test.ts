@@ -6,7 +6,7 @@
  * is left to the playwright e2e suite, this test asserts the contract.
  */
 import { describe, expect, it } from "vitest";
-import { buildCsp, generateCspNonce, STATIC_SECURITY_HEADERS } from "../../lib/security/csp";
+import { buildCsp, generateCspNonce, HSTS_HEADER, STATIC_SECURITY_HEADERS } from "../../lib/security/csp";
 import { safeRedirectPath } from "../../lib/security/safe-redirect";
 
 describe("security headers contract", () => {
@@ -43,6 +43,23 @@ describe("security headers contract", () => {
     const csp = buildCsp({ nonce: "abc", isDev: true });
     expect(csp).toContain("'unsafe-eval'");
     expect(csp).toContain("ws://localhost:*");
+  });
+
+  // Regression: both of these force http→https on subresources. Over the
+  // plain-HTTP dev/test server that rewrites /_next chunks to https://localhost,
+  // where nothing listens. WebKit obeys on localhost (Chromium/Firefox exempt
+  // it), so react-dom 404s and the app renders but never hydrates — visible,
+  // yet dead to every click. Production must keep them; dev must not have them.
+  it("upgrade-insecure-requests is production-only", () => {
+    expect(buildCsp({ nonce: "abc", isDev: false })).toContain("upgrade-insecure-requests");
+    expect(buildCsp({ nonce: "abc", isDev: true })).not.toContain("upgrade-insecure-requests");
+  });
+
+  it("HSTS is flagged https-only so callers can drop it over plain HTTP", () => {
+    // RFC 6797 §7.2: a host MUST NOT send HSTS over non-secure transport.
+    // middleware.ts skips this exact key when isDev.
+    expect(HSTS_HEADER).toBe("Strict-Transport-Security");
+    expect(STATIC_SECURITY_HEADERS).toHaveProperty(HSTS_HEADER);
   });
 
   it("static security headers cover all six required directives", () => {
