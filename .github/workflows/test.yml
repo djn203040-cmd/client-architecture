@@ -60,7 +60,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v6
         with: { node-version: 22, cache: pnpm }
-      - uses: supabase/setup-cli@v2
+      - uses: supabase/setup-cli@v3
         with: { version: 2.108.0 }
       - run: supabase start
       - name: Export Supabase keys
@@ -93,7 +93,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v6
         with: { node-version: 22, cache: pnpm }
-      - uses: supabase/setup-cli@v2
+      - uses: supabase/setup-cli@v3
         with: { version: 2.108.0 }
       - run: supabase start
       - name: Export Supabase keys to .env.test
@@ -156,7 +156,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: supabase/setup-cli@v2
+      - uses: supabase/setup-cli@v3
         with: { version: 2.108.0 }
       - run: supabase start
       - run: supabase db reset --no-seed
