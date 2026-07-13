@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/supabase/admin";
+import { writeAuditLog } from "@/lib/audit/log";
 import { UpdateLeadSchema } from "@client/shared/validators";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -68,13 +70,37 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   return NextResponse.json(updated);
 }
 
-export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { error } = await supabase.from("leads").delete().eq("id", id);
+  // RLS already scopes the delete to the coach's own rows; the explicit
+  // coach_id filter is defense-in-depth so a future RLS regression can't widen
+  // this into a cross-tenant delete.
+  const { data: deleted, error } = await supabase
+    .from("leads")
+    .delete()
+    .eq("id", id)
+    .eq("coach_id", user.id)
+    .select("id")
+    .maybeSingle();
   if (error) return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
+  if (!deleted) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // Article 30 accountability: a lead delete cascades to that lead's
+  // transcripts, drafts and event history, so record who erased what.
+  await writeAuditLog(
+    {
+      coachId: user.id,
+      action: "lead_deleted",
+      metadata: { lead_id: id },
+      ipAddress: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
+      userAgent: req.headers.get("user-agent"),
+    },
+    adminClient,
+  ).catch(() => {});
+
   return new NextResponse(null, { status: 204 });
 }

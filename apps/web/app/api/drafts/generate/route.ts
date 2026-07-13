@@ -1,6 +1,7 @@
 import { NextResponse, after } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
+import { decryptTranscript } from '@/lib/crypto/transcript-cipher';
 import { isHardBlocked } from '@client/ai-engine';
 import { VoiceProfileSchema, coerceSalesToolkit, coerceLanguage } from '@client/shared/validators';
 import { inngest } from '@/inngest/client';
@@ -142,7 +143,7 @@ export async function POST(request: Request) {
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-      transcript = latestTranscript?.content ?? null;
+      transcript = decryptTranscript(latestTranscript?.content) ?? null;
 
       const { data: sentDrafts } = await supabase
         .from('drafts')

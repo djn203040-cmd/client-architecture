@@ -1,5 +1,6 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
+import { decryptTranscript } from "@/lib/crypto/transcript-cipher";
 import { VoiceProfileSchema, coerceSalesToolkit, coerceLanguage } from "@client/shared/validators";
 import { fetchLeadThread } from "@/lib/gmail/thread";
 import { formatThreadAsConversation } from "@/lib/drafts/thread-context";
@@ -81,7 +82,7 @@ export async function generateReengagementDraft(
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  const transcript = latestTranscript?.content ?? null;
+  const transcript = decryptTranscript(latestTranscript?.content) ?? null;
 
   // Build the fullest conversation we can: prefer the real Gmail thread (both
   // sides), fall back to our sent drafts (our side only) if Gmail is unavailable.

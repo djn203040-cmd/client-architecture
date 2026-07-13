@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { decryptTranscript } from "@/lib/crypto/transcript-cipher";
 import { notFound } from "next/navigation";
 import { LeadProfileHeader } from "./lead-profile-header";
 import { ActivityTimeline } from "./activity-timeline";
@@ -94,7 +95,12 @@ export default async function LeadProfilePage({
         .order("ends_at", { ascending: true }),
     ]);
 
-  const allTranscripts = transcriptsResult.data ?? [];
+  // Transcript content is stored encrypted at rest; decrypt server-side before
+  // handing it to the (client) transcript panel.
+  const allTranscripts = (transcriptsResult.data ?? []).map((tr) => ({
+    ...tr,
+    content: decryptTranscript(tr.content) ?? "",
+  }));
   const latestTranscript = allTranscripts[0] ?? null;
   const priorTranscripts = allTranscripts.slice(1);
 

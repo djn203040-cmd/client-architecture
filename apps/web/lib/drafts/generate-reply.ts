@@ -1,5 +1,6 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
+import { decryptTranscript } from "@/lib/crypto/transcript-cipher";
 import { VoiceProfileSchema, coerceSalesToolkit, coerceLanguage } from "@client/shared/validators";
 import { fetchLeadThread, fetchMessageById } from "@/lib/gmail/thread";
 import {
@@ -76,7 +77,7 @@ export async function generateReplyDraft(
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  const transcript = latestTranscript?.content ?? null;
+  const transcript = decryptTranscript(latestTranscript?.content) ?? null;
 
   // A reply IS mid-conversation: feed every message already sent to this lead
   // (across any sequence) so the model writes a coherent next reply rather than
