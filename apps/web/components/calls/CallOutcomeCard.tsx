@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { ApproveButton } from "@/components/ui/approve-button";
 import { CalendarX, PhoneCall, Sparkle } from "@phosphor-icons/react";
 import { toast } from "sonner";
-import { formatDateTimeInTZ } from "@/lib/format/datetime";
-import { useDictionary } from "@/lib/i18n/provider";
+import { formatDateTimeInTZ, toDateLocale } from "@/lib/format/datetime";
+import { useDictionary, useLocale } from "@/lib/i18n/provider";
 import type { CallOutcomeRow } from "./call-outcome-realtime";
 
 type Outcome = "no_show" | "completed" | "converted";
@@ -28,6 +28,7 @@ export function CallOutcomeCard({
   timeZone,
 }: Props) {
   const t = useDictionary();
+  const dateLocale = toDateLocale(useLocale());
   const [pending, setPending] = useState<Outcome | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
@@ -70,7 +71,7 @@ export function CallOutcomeCard({
   }
 
   const when = outcome.ends_at ?? outcome.scheduled_at ?? outcome.created_at;
-  const whenLabel = formatDateTimeInTZ(new Date(when), timeZone);
+  const whenLabel = formatDateTimeInTZ(new Date(when), timeZone, dateLocale);
 
   if (variant === "readonly") {
     const resolved = outcome.outcome

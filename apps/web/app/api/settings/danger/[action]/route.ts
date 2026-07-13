@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/supabase/admin";
 import { writeAuditLog } from "@/lib/audit/log";
 import { getResendClient } from "@/lib/resend/client";
+import { DANGER_PHRASES, matchesConfirmPhrase } from "@/lib/i18n/confirm-phrases";
 import type { TAuditAction } from "@client/shared/validators";
 
 export const dynamic = "force-dynamic";
@@ -13,25 +14,30 @@ const ConfirmSchema = z.object({ confirmPhrase: z.string() });
 
 type ActionConfig = {
   auditAction: TAuditAction;
-  expectedPhrase: (email: string) => string;
+  /**
+   * Validates the typed confirmation against `email` (needed only by
+   * delete-account, which confirms against the coach's own email). The
+   * disconnect actions accept their phrase in either supported language.
+   */
+  matches: (input: string, email: string) => boolean;
 };
 
 const ACTION_MAP: Record<string, ActionConfig> = {
   "disconnect-gmail": {
     auditAction: "gmail_disconnected",
-    expectedPhrase: () => "disconnect gmail",
+    matches: (input) => matchesConfirmPhrase(input, DANGER_PHRASES["disconnect-gmail"]),
   },
   "disconnect-slack": {
     auditAction: "slack_disconnected",
-    expectedPhrase: () => "disconnect slack",
+    matches: (input) => matchesConfirmPhrase(input, DANGER_PHRASES["disconnect-slack"]),
   },
   "disconnect-twilio": {
     auditAction: "twilio_disconnected",
-    expectedPhrase: () => "disconnect twilio",
+    matches: (input) => matchesConfirmPhrase(input, DANGER_PHRASES["disconnect-twilio"]),
   },
   "delete-account": {
     auditAction: "account_deleted",
-    expectedPhrase: (email) => email,
+    matches: (input, email) => input === email,
   },
 };
 
@@ -60,8 +66,7 @@ export async function POST(
     .single();
   if (!coach) return NextResponse.json({ error: "Coach not found" }, { status: 404 });
 
-  const expected = config.expectedPhrase(coach.email ?? "");
-  if (parsed.data.confirmPhrase !== expected) {
+  if (!config.matches(parsed.data.confirmPhrase, coach.email ?? "")) {
     return NextResponse.json({ error: "Confirmation phrase does not match" }, { status: 400 });
   }
 

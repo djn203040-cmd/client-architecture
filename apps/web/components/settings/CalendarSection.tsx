@@ -22,7 +22,8 @@ import {
 } from "@/lib/calendar/providers";
 import { toast } from "sonner";
 import { ArrowsClockwise } from "@phosphor-icons/react";
-import { useDictionary } from "@/lib/i18n/provider";
+import { useDictionary, useLocale } from "@/lib/i18n/provider";
+import { toDateLocale } from "@/lib/format/datetime";
 
 interface Integration {
   id: string;
@@ -41,6 +42,7 @@ interface Props {
 export function CalendarSection({ activeProvider, integrations, oauthConfigured }: Props) {
   const t = useDictionary();
   const cal = t.settings.calendar;
+  const dateLocale = toDateLocale(useLocale());
   const router = useRouter();
   const [picker, setPicker] = useState<CalendarProviderId | null>(null);
   const [switching, setSwitching] = useState(false);
@@ -133,7 +135,7 @@ export function CalendarSection({ activeProvider, integrations, oauthConfigured 
                 </div>
                 {activeIntegration?.last_checked_at && (
                   <p className="text-xs text-muted-foreground" suppressHydrationWarning>
-                    {cal.lastChecked(new Date(activeIntegration.last_checked_at).toLocaleString())}
+                    {cal.lastChecked(new Date(activeIntegration.last_checked_at).toLocaleString(dateLocale))}
                   </p>
                 )}
                 {activeIntegration?.error_message && (

@@ -10,9 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useDictionary } from "@/lib/i18n/provider";
-
-const CONFIRMATION_PHRASE = "send without review";
+import { useDictionary, useLocale } from "@/lib/i18n/provider";
+import { AUTONOMOUS_MODE_A_PHRASE } from "@/lib/i18n/confirm-phrases";
 
 interface Props {
   open: boolean;
@@ -22,10 +21,12 @@ interface Props {
 
 export function AutonomousModeAConfirmModal({ open, onConfirm, onCancel }: Props) {
   const t = useDictionary();
+  const locale = useLocale();
   const copy = t.settingsAdvanced.autonomous.confirmModal;
+  const confirmPhrase = AUTONOMOUS_MODE_A_PHRASE[locale];
   const [phrase, setPhrase] = useState("");
   const inputId = useId();
-  const matches = phrase.trim() === CONFIRMATION_PHRASE;
+  const matches = phrase.trim().toLowerCase() === confirmPhrase.toLowerCase();
 
   useEffect(() => {
     if (open) setPhrase("");
@@ -48,7 +49,7 @@ export function AutonomousModeAConfirmModal({ open, onConfirm, onCancel }: Props
             id={inputId}
             value={phrase}
             onChange={(e) => setPhrase(e.target.value)}
-            placeholder={CONFIRMATION_PHRASE}
+            placeholder={confirmPhrase}
             autoComplete="off"
             autoCapitalize="off"
             spellCheck={false}

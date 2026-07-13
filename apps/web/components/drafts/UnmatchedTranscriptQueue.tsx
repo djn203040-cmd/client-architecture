@@ -6,7 +6,8 @@ import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from "@
 import { CheckCircle, LinkSimple } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/browser";
-import { useDictionary } from "@/lib/i18n/provider";
+import { useDictionary, useLocale } from "@/lib/i18n/provider";
+import { toDateLocale } from "@/lib/format/datetime";
 import type { Database } from "@client/database";
 
 type TTranscript = Database["public"]["Tables"]["transcripts"]["Row"];
@@ -79,6 +80,7 @@ function TranscriptRow({
   onAssigned: (id: string) => void;
 }) {
   const t = useDictionary();
+  const dateLocale = toDateLocale(useLocale());
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [assigning, setAssigning] = useState(false);
@@ -91,7 +93,7 @@ function TranscriptRow({
     : null;
 
   const callDate = transcript.call_at
-    ? new Date(transcript.call_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    ? new Date(transcript.call_at).toLocaleDateString(dateLocale, { day: "numeric", month: "short", year: "numeric" })
     : t.drafts.unmatchedTranscripts.unknownDate;
 
   const preview = transcript.content.slice(0, 200);

@@ -2,6 +2,8 @@
 import { useState, useCallback } from "react";
 import { CaretDown } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
+import { useLocale } from "@/lib/i18n/provider";
+import { toDateLocale } from "@/lib/format/datetime";
 import type { TThreadEmail } from "@/lib/gmail/thread";
 
 export function EmailRow({
@@ -12,6 +14,7 @@ export function EmailRow({
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const dateLocale = toDateLocale(useLocale());
   const toggle = useCallback(() => setOpen((o) => !o), []);
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -23,7 +26,7 @@ export function EmailRow({
 
   const fromName = email.from.replace(/<[^>]+>/, "").trim() || email.from;
   const displayDate = email.date
-    ? new Date(email.date).toLocaleDateString(undefined, {
+    ? new Date(email.date).toLocaleDateString(dateLocale, {
         month: "short",
         day: "numeric",
         year: "numeric",

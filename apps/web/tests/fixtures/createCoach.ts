@@ -28,7 +28,9 @@ export type SeededCoach = {
  * SeededCoach with session cookies in the @supabase/ssr base64url format
  * that the Next.js app reads from request.cookies.
  */
-export async function createCoach(overrides: Partial<{ email: string }> = {}): Promise<SeededCoach> {
+export async function createCoach(
+  overrides: Partial<{ email: string; language: "en" | "da" }> = {},
+): Promise<SeededCoach> {
   const email = overrides.email ?? `coach-${crypto.randomUUID()}@sonorous.test`;
   const password = `Test1234!${crypto.randomUUID()}`;
 
@@ -43,6 +45,8 @@ export async function createCoach(overrides: Partial<{ email: string }> = {}): P
     id: user.id,
     email,
     name: "Test Coach",
+    // Defaults to 'en' in the DB; pass 'da' to seed a Danish coach for i18n specs.
+    ...(overrides.language ? { language: overrides.language } : {}),
   });
   if (coachErr) throw coachErr;
 

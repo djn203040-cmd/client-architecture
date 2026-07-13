@@ -5,7 +5,8 @@ import { ApproveButton } from "@/components/ui/approve-button";
 import { PaperPlaneTilt, PencilSimple } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { InlineDraftEditor } from "./InlineDraftEditor";
-import { useDictionary } from "@/lib/i18n/provider";
+import { useDictionary, useLocale } from "@/lib/i18n/provider";
+import { toDateLocale } from "@/lib/format/datetime";
 import type { Database } from "@client/database";
 
 type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
@@ -19,6 +20,7 @@ interface Props {
 
 export function HeldDraftActions({ draft, onAdvance }: Props) {
   const t = useDictionary();
+  const dateLocale = toDateLocale(useLocale());
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -36,7 +38,7 @@ export function HeldDraftActions({ draft, onAdvance }: Props) {
         toast.error(t.drafts.heldActions.approveFailed(reason));
         return;
       }
-      const sentAt = new Date().toLocaleTimeString("en-US", {
+      const sentAt = new Date().toLocaleTimeString(dateLocale, {
         hour: "numeric",
         minute: "2-digit",
       });
@@ -45,7 +47,7 @@ export function HeldDraftActions({ draft, onAdvance }: Props) {
     } finally {
       setBusy(false);
     }
-  }, [draft.id, onAdvance, t]);
+  }, [draft.id, onAdvance, t, dateLocale]);
 
   const cancel = useCallback(async () => {
     setBusy(true);

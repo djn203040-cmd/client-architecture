@@ -24,6 +24,15 @@ function tzOrDefault(tz?: string | null): string {
  */
 export type DateLocale = "en-US" | "da-DK";
 
+/**
+ * Maps a coach's UI language (`en`/`da`, the app `Locale`) to the BCP-47 locale
+ * these formatters take. Keeps the `da → da-DK` mapping in one place instead of
+ * an inline ternary at every call site.
+ */
+export function toDateLocale(language: "en" | "da"): DateLocale {
+  return language === "da" ? "da-DK" : "en-US";
+}
+
 /** "May 31" (en) / "31. maj" (da) in the coach's timezone. */
 export function formatDateInTZ(
   d: Date,
@@ -94,8 +103,12 @@ export function formatSendWhenInTZ(
 }
 
 /** Full date + time for a draft card header, in the coach's timezone. */
-export function formatDateTimeInTZ(d: Date, tz?: string | null): string {
-  return d.toLocaleString("en-US", {
+export function formatDateTimeInTZ(
+  d: Date,
+  tz?: string | null,
+  locale: DateLocale = "en-US",
+): string {
+  return d.toLocaleString(locale, {
     timeZone: tzOrDefault(tz),
     month: "short",
     day: "numeric",

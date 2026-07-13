@@ -4,10 +4,12 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/supabase/admin";
 import { apiModeToDbMode } from "@/lib/autonomous-mode";
+import {
+  AUTONOMOUS_MODE_A_PHRASE,
+  matchesConfirmPhrase,
+} from "@/lib/i18n/confirm-phrases";
 
 export const dynamic = "force-dynamic";
-
-const CONFIRMATION_PHRASE = "send without review";
 
 const BodySchema = z.object({
   mode: z.enum(["manual", "mode_a", "mode_b"]),
@@ -27,9 +29,11 @@ export async function PATCH(req: NextRequest) {
   }
   const { mode, confirmation_phrase } = parsed.data;
 
-  // Server-side authority for Mode A high-friction gate (T-04-06-01)
+  // Server-side authority for Mode A high-friction gate (T-04-06-01). Accepts
+  // the confirmation phrase in either supported language — the gate is friction,
+  // not a secret, so we don't need to look up the coach's locale here.
   if (mode === "mode_a") {
-    if ((confirmation_phrase ?? "").trim() !== CONFIRMATION_PHRASE) {
+    if (!matchesConfirmPhrase(confirmation_phrase ?? "", AUTONOMOUS_MODE_A_PHRASE)) {
       return NextResponse.json({ ok: false, reason: "phrase_mismatch" }, { status: 400 });
     }
   }

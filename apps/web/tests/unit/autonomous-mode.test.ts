@@ -24,14 +24,18 @@ describe("autonomous-mode (Phase 4 / DRAFT-009)", () => {
     // Without phrase → rejected
     expect(setAutonomousMode("mode_a")).toEqual({ ok: false, reason: "phrase_mismatch" });
 
-    // Wrong case → rejected (case-sensitive)
-    expect(setAutonomousMode("mode_a", "Send Without Review")).toEqual({
+    // Unrelated text → rejected
+    expect(setAutonomousMode("mode_a", "enable it")).toEqual({
       ok: false,
       reason: "phrase_mismatch",
     });
 
-    // Exact match → accepted
+    // English phrase → accepted (trim-/case-insensitive)
     expect(setAutonomousMode("mode_a", "send without review")).toEqual({ ok: true });
+    expect(setAutonomousMode("mode_a", "  Send Without Review  ")).toEqual({ ok: true });
+
+    // Danish phrase → also accepted (a coach on da confirms in Danish)
+    expect(setAutonomousMode("mode_a", "send uden gennemgang")).toEqual({ ok: true });
 
     // Mode B, no phrase needed
     expect(setAutonomousMode("mode_b")).toEqual({ ok: true });

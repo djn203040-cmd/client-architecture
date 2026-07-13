@@ -10,8 +10,8 @@ import { HeldDraftActions } from "./HeldDraftActions";
 import { DraftDeleteButton } from "./DraftDeleteButton";
 import { toast } from "sonner";
 import type { Database } from "@client/database";
-import { formatDateTimeInTZ } from "@/lib/format/datetime";
-import { useDictionary } from "@/lib/i18n/provider";
+import { formatDateTimeInTZ, toDateLocale } from "@/lib/format/datetime";
+import { useDictionary, useLocale } from "@/lib/i18n/provider";
 
 type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
   leads: { name: string } | null;
@@ -49,6 +49,7 @@ export function DraftCard({
   timeZone,
 }: DraftCardProps) {
   const t = useDictionary();
+  const dateLocale = toDateLocale(useLocale());
   const [editing, setEditing] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -152,7 +153,7 @@ export function DraftCard({
               browser's) so server and client agree, no hydration mismatch. */}
           <p className="text-xs font-mono text-muted-foreground mt-1">
             {t.drafts.card.messageOf(draft.touchpoint_index, draft.total_touchpoints ?? "?")} &middot;{" "}
-            {formatDateTimeInTZ(sched, timeZone)}
+            {formatDateTimeInTZ(sched, timeZone, dateLocale)}
           </p>
           {draft.confidence_level === "low" && (
             <span className="inline-flex items-center gap-1 mt-2 text-xs px-2 py-1 rounded-md bg-[oklch(72%_0.12_70)] text-[oklch(40%_0.10_65)] dark:bg-[oklch(25%_0.08_65)] dark:text-[oklch(85%_0.08_65)]">
