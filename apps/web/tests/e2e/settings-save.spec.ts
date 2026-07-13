@@ -62,11 +62,24 @@ test("danger zone disconnect-gmail rejects wrong confirm phrase", async ({ coach
   await withOnboardingComplete(coach.id);
   await page.context().addCookies(coach.cookies);
 
-  // Wrong case, should be rejected
+  // A genuinely wrong phrase must be rejected.
+  //
+  // This used to assert that wrong *casing* ("Disconnect Gmail") was rejected.
+  // That is no longer the contract: `matchesConfirmPhrase` normalizes case and
+  // whitespace on purpose, because the gate is deliberate friction against an
+  // accidental click, not a secret — the caller is already authenticated as this
+  // coach. Asserting on casing tested the normalizer, not the guard.
   const badRes = await page.request.post(`/api/settings/danger/disconnect-gmail`, {
-    data: { confirmPhrase: "Disconnect Gmail" },
+    data: { confirmPhrase: "yes do it" },
   });
   expect(badRes.status()).toBe(400);
+
+  // The localized phrase is accepted in either supported language (da here),
+  // which is the behaviour the normalizer exists to provide.
+  const daRes = await page.request.post(`/api/settings/danger/disconnect-gmail`, {
+    data: { confirmPhrase: "afbryd gmail" },
+  });
+  expect(daRes.status()).toBe(200);
 });
 
 test("danger zone disconnect-gmail succeeds with correct phrase and creates audit log", async ({ coach, page }) => {
