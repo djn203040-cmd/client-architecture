@@ -126,7 +126,7 @@ jobs:
           UNSUBSCRIBE_SECRET: test-unsub-secret
           JWT_REVIEW_SECRET: test-review-secret
         run: pnpm --filter web exec playwright test --project=${{ matrix.project }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report-${{ matrix.project }}
