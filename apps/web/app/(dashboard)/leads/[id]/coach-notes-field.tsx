@@ -4,7 +4,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { FloppyDisk } from "@phosphor-icons/react";
 import { toast } from "sonner";
-import { useDictionary } from "@/lib/i18n/provider";
+import { useDictionary, useLocale } from "@/lib/i18n/provider";
+import { toDateLocale } from "@/lib/format/datetime";
 
 export function CoachNotesField({
   leadId,
@@ -14,6 +15,7 @@ export function CoachNotesField({
   initialNotes: string;
 }) {
   const t = useDictionary();
+  const dateLocale = toDateLocale(useLocale());
   const [value, setValue] = useState(initialNotes);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const tRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -52,7 +54,7 @@ export function CoachNotesField({
         {savedAt && (
           <>
             <FloppyDisk weight="regular" className="size-3" />
-            {t.leads.notes.savedAt(savedAt.toLocaleTimeString())}
+            {t.leads.notes.savedAt(savedAt.toLocaleTimeString(dateLocale))}
           </>
         )}
       </div>

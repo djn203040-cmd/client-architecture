@@ -1,7 +1,10 @@
+import {
+  AUTONOMOUS_MODE_A_PHRASE,
+  matchesConfirmPhrase,
+} from "@/lib/i18n/confirm-phrases";
+
 export type AutonomousMode = "off" | "mode_a" | "mode_b";
 export type ApiMode = "manual" | "mode_a" | "mode_b";
-
-const CONFIRMATION_PHRASE = "send without review";
 
 /**
  * Pure helper: given a coach's DB autonomous_mode, return what status a new draft should have.
@@ -16,14 +19,14 @@ export function createDraftForCoach(
 
 /**
  * Pure helper: validate an autonomous-mode change request.
- * Mode A requires the exact confirmation phrase (case-sensitive, trimmed).
- * Returns { ok, reason }, caller is responsible for DB write.
+ * Mode A requires the confirmation phrase in either supported language
+ * (trim-/case-insensitive). Returns { ok, reason }, caller writes the DB.
  */
 export function setAutonomousMode(
   mode: ApiMode | string,
   phrase?: string,
 ): { ok: boolean; reason?: string } {
-  if (mode === "mode_a" && (phrase ?? "").trim() !== CONFIRMATION_PHRASE) {
+  if (mode === "mode_a" && !matchesConfirmPhrase(phrase ?? "", AUTONOMOUS_MODE_A_PHRASE)) {
     return { ok: false, reason: "phrase_mismatch" };
   }
   return { ok: true };

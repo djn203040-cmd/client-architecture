@@ -22,7 +22,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useDictionary } from "@/lib/i18n/provider";
+import { useDictionary, useLocale } from "@/lib/i18n/provider";
+import { toDateLocale } from "@/lib/format/datetime";
 
 const COLLAPSED_HEIGHT = "h-[200px]";
 
@@ -42,6 +43,7 @@ export function ManualTranscriptUpload({
   priorTranscripts?: StoredTranscript[];
 }) {
   const t = useDictionary();
+  const dateLocale = toDateLocale(useLocale());
   const router = useRouter();
   const existingContent = latestTranscript?.content ?? null;
   const [content, setContent] = useState(existingContent ?? "");
@@ -86,7 +88,7 @@ export function ManualTranscriptUpload({
   }
 
   function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString(dateLocale, {
       year: "numeric",
       month: "short",
       day: "numeric",

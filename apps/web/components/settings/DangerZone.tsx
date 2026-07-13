@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { useDictionary } from "@/lib/i18n/provider";
-import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { useDictionary, useLocale } from "@/lib/i18n/provider";
+import type { Dictionary, Locale } from "@/lib/i18n/dictionaries";
+import { DANGER_PHRASES } from "@/lib/i18n/confirm-phrases";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,27 +34,29 @@ interface ActionConfig {
   destructive?: boolean;
 }
 
-function buildActions(email: string, t: Dictionary): ActionConfig[] {
+function buildActions(email: string, locale: Locale, t: Dictionary): ActionConfig[] {
   const a = t.settings.danger.actions;
+  // Disconnect phrases are shown (and typed) in the coach's language; the API
+  // accepts either language. delete-account confirms against the email, which
+  // is locale-neutral.
   return [
     {
       slug: "disconnect-gmail",
       label: a.disconnectGmailLabel,
       description: a.disconnectGmailDescription,
-      // Confirmation phrase stays the English literal the API validates against.
-      phrase: "disconnect gmail",
+      phrase: DANGER_PHRASES["disconnect-gmail"][locale],
     },
     {
       slug: "disconnect-slack",
       label: a.disconnectSlackLabel,
       description: a.disconnectSlackDescription,
-      phrase: "disconnect slack",
+      phrase: DANGER_PHRASES["disconnect-slack"][locale],
     },
     {
       slug: "disconnect-twilio",
       label: a.disconnectTwilioLabel,
       description: a.disconnectTwilioDescription,
-      phrase: "disconnect twilio",
+      phrase: DANGER_PHRASES["disconnect-twilio"][locale],
     },
     {
       slug: "delete-account",
@@ -71,7 +74,11 @@ function ActionCard({ action, email }: { action: ActionConfig; email: string }) 
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const matches = input === action.phrase;
+  // Email confirm (destructive) is exact; the disconnect phrases match
+  // case-/trim-insensitively, mirroring the server's `matchesConfirmPhrase`.
+  const matches = action.destructive
+    ? input === action.phrase
+    : input.trim().toLowerCase() === action.phrase.toLowerCase();
 
   async function confirm() {
     setLoading(true);
@@ -158,9 +165,10 @@ function ActionCard({ action, email }: { action: ActionConfig; email: string }) 
 
 export function DangerZone({ coach }: Props) {
   const t = useDictionary();
+  const locale = useLocale();
   const email = coach.email ?? "";
-  // buildActions depends on email + the active dictionary
-  const actions = useMemo(() => buildActions(email, t), [email, t]);
+  // buildActions depends on email + locale + the active dictionary
+  const actions = useMemo(() => buildActions(email, locale, t), [email, locale, t]);
 
   return (
     <div className="space-y-4">

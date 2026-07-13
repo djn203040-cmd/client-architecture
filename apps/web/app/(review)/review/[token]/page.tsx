@@ -6,6 +6,7 @@ import { verifyReviewToken } from "@/lib/review-token";
 import { adminClient } from "@/lib/supabase/admin";
 import { DraftCard } from "@/components/drafts/DraftCard";
 import { Button } from "@/components/ui/button";
+import { I18nProvider } from "@/lib/i18n/provider";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { coerceLanguage } from "@client/shared/validators";
 import type { TLanguage } from "@client/shared/validators";
@@ -219,23 +220,28 @@ export default async function ReviewPage({
   const t = getDictionary(state.coachLanguage);
 
   return (
-    <div className="space-y-6">
-      <p className="text-sm font-medium text-muted-foreground">{t.review.brand}</p>
-      <div className="space-y-1">
-        <h1 className="text-xl font-semibold">{t.review.header.title}</h1>
-        <p className="text-sm text-muted-foreground">
-          {t.review.header.fromQueue(state.coachName)}
+    // DraftCard is a client component that reads the locale via useDictionary()/
+    // useLocale(); this public surface isn't under the dashboard layout, so it
+    // seeds its own provider with the coach's language.
+    <I18nProvider locale={state.coachLanguage}>
+      <div className="space-y-6">
+        <p className="text-sm font-medium text-muted-foreground">{t.review.brand}</p>
+        <div className="space-y-1">
+          <h1 className="text-xl font-semibold">{t.review.header.title}</h1>
+          <p className="text-sm text-muted-foreground">
+            {t.review.header.fromQueue(state.coachName)}
+          </p>
+        </div>
+        <DraftCard
+          draft={state.draft}
+          surface="review"
+          reviewToken={state.token}
+          timeZone={state.coachTimezone}
+        />
+        <p className="text-xs text-muted-foreground text-center mt-8">
+          {t.review.footer.expiryNote}
         </p>
       </div>
-      <DraftCard
-        draft={state.draft}
-        surface="review"
-        reviewToken={state.token}
-        timeZone={state.coachTimezone}
-      />
-      <p className="text-xs text-muted-foreground text-center mt-8">
-        {t.review.footer.expiryNote}
-      </p>
-    </div>
+    </I18nProvider>
   );
 }

@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowsClockwise, ArrowsIn, ArrowsOut, ArrowCounterClockwise, CalendarBlank, Funnel, Upload, User } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
-import { useDictionary } from "@/lib/i18n/provider";
+import { useDictionary, useLocale } from "@/lib/i18n/provider";
+import { toDateLocale } from "@/lib/format/datetime";
 import type { TVoiceProfile } from "@client/shared/validators";
 import {
   detectSpeakers,
@@ -285,6 +286,7 @@ function ChannelCard(props: ChannelCardProps) {
   } = props;
   const t = useDictionary();
   const copy = t.settingsAdvanced.voice.corpusImporter;
+  const dateLocale = toDateLocale(useLocale());
 
   const speakers = useMemo(() => detectSpeakers(channel, value), [channel, value]);
   const datesPresent = useMemo(() => hasTimestamps(channel, value), [channel, value]);
@@ -395,9 +397,9 @@ function ChannelCard(props: ChannelCardProps) {
             {preview && (
               <p className="text-xs text-muted-foreground tabular-nums">
                 {copy.keepsSummary(
-                  preview.keptCount.toLocaleString(),
-                  preview.totalCount.toLocaleString(),
-                  preview.keptChars.toLocaleString(),
+                  preview.keptCount.toLocaleString(dateLocale),
+                  preview.totalCount.toLocaleString(dateLocale),
+                  preview.keptChars.toLocaleString(dateLocale),
                 )}
               </p>
             )}
@@ -447,7 +449,7 @@ function ChannelCard(props: ChannelCardProps) {
       />
       {value.trim().length > 0 && (
         <p className="text-xs text-muted-foreground text-right">
-          {copy.chars(value.length.toLocaleString())}
+          {copy.chars(value.length.toLocaleString(dateLocale))}
         </p>
       )}
       <div className="flex items-center gap-2">

@@ -2,7 +2,8 @@
 import Link from "next/link";
 import type { TLead } from "@client/shared/types";
 import { LeadStateBadge } from "@/components/leads/LeadStateBadge";
-import { useDictionary } from "@/lib/i18n/provider";
+import { useDictionary, useLocale } from "@/lib/i18n/provider";
+import { toDateLocale } from "@/lib/format/datetime";
 import { motion } from "framer-motion";
 
 export function LeadsTable({
@@ -13,6 +14,7 @@ export function LeadsTable({
   emptyVariant: "no-leads" | "filtered";
 }) {
   const t = useDictionary();
+  const dateLocale = toDateLocale(useLocale());
   if (leads.length === 0) {
     return emptyVariant === "no-leads" ? <NoLeadsEmpty t={t} /> : <FilteredEmpty t={t} />;
   }
@@ -51,7 +53,7 @@ export function LeadsTable({
               <td className="px-4 py-3 text-sm text-muted-foreground">{lead.source}</td>
               <td className="px-4 py-3 text-sm text-muted-foreground font-mono" suppressHydrationWarning>
                 {lead.last_activity_at
-                  ? new Date(lead.last_activity_at).toLocaleDateString()
+                  ? new Date(lead.last_activity_at).toLocaleDateString(dateLocale)
                   : "-"}
               </td>
             </motion.tr>

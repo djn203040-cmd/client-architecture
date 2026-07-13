@@ -17,6 +17,7 @@ import type { TLeadStatus } from "@client/shared/types";
 import type { CallOutcomeRow } from "@/components/calls/call-outcome-realtime";
 import { buildSequenceView, type TSequenceConfig } from "@/lib/sequences/progress";
 import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
+import { toDateLocale } from "@/lib/format/datetime";
 
 export default async function LeadProfilePage({
   params,
@@ -26,7 +27,7 @@ export default async function LeadProfilePage({
   const { id } = await params;
   const supabase = await createClient();
   const t = await getServerDictionary();
-  const dateLocale = (await getServerLocale()) === "da" ? "da-DK" : "en-US";
+  const dateLocale = toDateLocale(await getServerLocale());
 
   const {
     data: { user },

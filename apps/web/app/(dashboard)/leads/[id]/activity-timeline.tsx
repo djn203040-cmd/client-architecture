@@ -1,5 +1,6 @@
 import { LeadEventIcon } from "@/components/leads/LeadEventIcon";
-import { getServerDictionary } from "@/lib/i18n/server";
+import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
+import { toDateLocale } from "@/lib/format/datetime";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import type { Database } from "@client/database";
 
@@ -7,6 +8,7 @@ type Event = Database["public"]["Tables"]["lead_events"]["Row"];
 
 export async function ActivityTimeline({ events }: { events: Event[] }) {
   const t = await getServerDictionary();
+  const dateLocale = toDateLocale(await getServerLocale());
 
   if (events.length === 0) {
     return (
@@ -27,7 +29,7 @@ export async function ActivityTimeline({ events }: { events: Event[] }) {
           <div className="flex-1">
             <p className="text-sm">{describe(e, t)}</p>
             <p className="text-xs text-muted-foreground font-mono">
-              {new Date(e.created_at).toLocaleString()}
+              {new Date(e.created_at).toLocaleString(dateLocale)}
             </p>
           </div>
         </li>
