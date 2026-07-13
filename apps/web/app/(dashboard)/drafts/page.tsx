@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { decryptTranscript } from "@/lib/crypto/transcript-cipher";
 import { DraftQueueScaffold } from "@/components/drafts/DraftQueueScaffold";
 import { getServerDictionary } from "@/lib/i18n/server";
 import type { Database } from "@client/database";
@@ -46,7 +47,10 @@ export default async function DraftsPage() {
       <DraftQueueScaffold
         coachId={user!.id}
         initialDrafts={(draftsResult.data ?? []) as DraftRow[]}
-        initialUnmatched={unmatchedResult.data ?? []}
+        initialUnmatched={(unmatchedResult.data ?? []).map((tr) => ({
+          ...tr,
+          content: decryptTranscript(tr.content) ?? "",
+        }))}
         leads={leadsResult.data ?? []}
         timeZone={coachResult.data?.timezone}
       />

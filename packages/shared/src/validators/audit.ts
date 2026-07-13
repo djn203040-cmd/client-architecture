@@ -10,6 +10,8 @@ export const AuditActionEnum = z.enum([
   // GDPR (Phase 6 / 06-02)
   "gdpr_export",
   "gdpr_delete",
+  "gdpr_retention_purge",
+  "lead_deleted",
   // Admin actions (Phase 6 / 06-02)
   "admin_create_coach",
   "admin_revoke_coach",

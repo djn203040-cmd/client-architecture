@@ -21,3 +21,8 @@ export const GMAIL_WATCH_RENEW = "gmail/watch_renew";
 // timer was lost (mis-fired cancelOn, failed sync/registry freeze, redeploy edge
 // case). Runs on an Inngest-native cron; the event trigger is a manual fast-path.
 export const CRON_RECONCILE_DUE_SENDS = "cron/reconcile_due_sends";
+
+// GDPR retention: daily purge of leads that have been do_not_contact for >90
+// days (docs/privacy-policy.md §Retention). Inngest-native cron; the event
+// trigger is a manual fast-path via /api/cron/dnc-purge.
+export const CRON_DNC_PURGE = "cron/dnc_purge";

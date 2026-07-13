@@ -1,5 +1,6 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
+import { decryptTranscript } from "@/lib/crypto/transcript-cipher";
 import { VoiceProfileSchema, coerceSalesToolkit, coerceLanguage } from "@client/shared/validators";
 import type { TLeadStatus } from "@client/shared/types";
 
@@ -76,7 +77,7 @@ export async function generateTouchpointDraft(
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  const transcript = latestTranscript?.content ?? null;
+  const transcript = decryptTranscript(latestTranscript?.content) ?? null;
 
   // Conversation history must be scoped to THIS sequence's already-sent
   // touchpoints, not every draft ever sent to the lead. Otherwise touchpoint 1

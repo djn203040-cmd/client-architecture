@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { encryptTranscript } from "@/lib/crypto/transcript-cipher";
 import { z } from "zod";
 
 const ManualTranscriptSchema = z.object({
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
     coach_id: user.id,
     lead_id: leadId,
     provider: "manual",
-    content,
+    content: encryptTranscript(content),
     matched_by: "manual",
     token_count: content.split(/\s+/).length,
   }).select().single();
@@ -44,5 +45,6 @@ export async function POST(request: Request) {
     body: JSON.stringify({ leadId }),
   });
 
-  return NextResponse.json(transcript, { status: 201 });
+  // Hand the caller back readable content, not the stored ciphertext envelope.
+  return NextResponse.json({ ...transcript, content }, { status: 201 });
 }

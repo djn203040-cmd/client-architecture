@@ -1,5 +1,6 @@
 import { createHmac } from "crypto";
 import { adminClient } from "@/lib/supabase/admin";
+import { encryptTranscript } from "@/lib/crypto/transcript-cipher";
 import { verifyZoomSignature, matchTranscriptToLead } from "@/lib/transcripts/lead-matching";
 import { parseVtt } from "@/lib/transcripts/vtt-parser";
 
@@ -120,7 +121,7 @@ export async function POST(request: Request) {
     coach_id: coachId,
     lead_id: match.leadId,
     provider: "zoom",
-    content,
+    content: content ? encryptTranscript(content) : content,
     matched_by: match.matchedBy,
     call_at: callAt,
     external_id: obj.uuid,

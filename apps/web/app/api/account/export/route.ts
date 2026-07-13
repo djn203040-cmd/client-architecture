@@ -2,6 +2,7 @@ import "server-only";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/supabase/admin";
+import { decryptTranscript } from "@/lib/crypto/transcript-cipher";
 import { writeAuditLog } from "@/lib/audit/log";
 import { gdprExportLimiter, enforce } from "@/lib/security/ratelimit";
 
@@ -42,6 +43,11 @@ export async function GET(req: Request) {
     notificationPrefs,
     auditEntries,
     voiceCorpus,
+    transcripts,
+    leadEvents,
+    emailEvents,
+    callOutcomes,
+    calendarEvents,
   ] = await Promise.all([
     adminClient.from("coaches").select("*").eq("id", coachId).maybeSingle(),
     adminClient.from("leads").select("*").eq("coach_id", coachId),
@@ -57,6 +63,14 @@ export async function GET(req: Request) {
       (r) => r.data,
       () => null,
     ),
+    // Article 15/20: a data-subject request routed through the coach must be
+    // able to surface the lead's full record, including call transcripts, the
+    // engagement/open history, call outcomes, and the lead event timeline.
+    adminClient.from("transcripts").select("*").eq("coach_id", coachId),
+    adminClient.from("lead_events").select("*").eq("coach_id", coachId),
+    adminClient.from("email_events").select("*").eq("coach_id", coachId),
+    adminClient.from("call_outcomes").select("*").eq("coach_id", coachId),
+    adminClient.from("calendar_events").select("*").eq("coach_id", coachId),
   ]);
 
   const ipAddress = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
@@ -87,6 +101,15 @@ export async function GET(req: Request) {
     notification_preferences: notificationPrefs.data ?? [],
     voice_corpus: voiceCorpus ?? null,
     audit_log: auditEntries.data ?? [],
+    // Decrypt transcript content so the data-subject export is human-readable.
+    transcripts: (transcripts.data ?? []).map((t) => ({
+      ...t,
+      content: decryptTranscript(t.content),
+    })),
+    lead_events: leadEvents.data ?? [],
+    email_events: emailEvents.data ?? [],
+    call_outcomes: callOutcomes.data ?? [],
+    calendar_events: calendarEvents.data ?? [],
   };
 
   return new NextResponse(JSON.stringify(archive, null, 2), {

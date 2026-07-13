@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { encryptTranscript } from "@/lib/crypto/transcript-cipher";
 import { generateDraft } from "@client/ai-engine";
 import { coerceLanguage } from "@client/shared/validators";
 import type { Database } from "@client/database";
@@ -90,7 +91,7 @@ export async function seedDemoLeadForCoach(
     await adminClient.from("transcripts").insert({
       coach_id: coachId,
       lead_id: leadId,
-      content: DEMO_TRANSCRIPT,
+      content: encryptTranscript(DEMO_TRANSCRIPT),
       provider: "manual",
       external_id: "demo",
     });

@@ -14,6 +14,7 @@ import { callOutcomeMonitor } from "@/inngest/functions/call-outcome-monitor";
 import { callOutcomePoller } from "@/inngest/functions/call-outcome-poller";
 import { dueDraftReconciler } from "@/inngest/functions/due-draft-reconciler";
 import { calendarHealthCheck } from "@/inngest/functions/calendar-health-check";
+import { doNotContactPurge } from "@/inngest/functions/do-not-contact-purge";
 
 /**
  * The single source of truth for every Inngest function served at /api/inngest.
@@ -43,4 +44,5 @@ export const inngestFunctions = [
   callOutcomePoller,
   dueDraftReconciler,
   calendarHealthCheck,
+  doNotContactPurge,
 ];

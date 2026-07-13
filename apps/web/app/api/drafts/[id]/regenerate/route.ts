@@ -1,5 +1,6 @@
 import { NextResponse, after } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { decryptTranscript } from '@/lib/crypto/transcript-cipher';
 import { isHardBlocked } from '@client/ai-engine';
 import { VoiceProfileSchema, coerceSalesToolkit, coerceLanguage } from '@client/shared/validators';
 import type { TLeadStatus } from '@client/shared/types';
@@ -84,7 +85,7 @@ export async function POST(
 
       const transcript =
         transcripts && transcripts.length > 0
-          ? transcripts.map((t) => t.content).join('\n\n---\n\n')
+          ? transcripts.map((t) => decryptTranscript(t.content)).join('\n\n---\n\n')
           : null;
 
       const { data: sentDrafts } = await supabase

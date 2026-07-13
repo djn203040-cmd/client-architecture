@@ -1,4 +1,5 @@
 import { adminClient } from "@/lib/supabase/admin";
+import { encryptTranscript } from "@/lib/crypto/transcript-cipher";
 import { verifyFirefliesSignature, matchTranscriptToLead } from "@/lib/transcripts/lead-matching";
 
 interface FirefliesPayload {
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
     coach_id: coachId,
     lead_id: match.leadId,
     provider: "fireflies",
-    content,
+    content: encryptTranscript(content),
     matched_by: match.matchedBy,
     call_at: callAt,
     external_id: meetingId,

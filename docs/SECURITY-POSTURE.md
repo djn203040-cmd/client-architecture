@@ -77,6 +77,10 @@ These decisions are **locked**. Re-opening any of them requires a documented rev
 | **P-13** | Every FK referencing `coaches(id)` must use `ON DELETE CASCADE` (asserted in migration) | Phase 6 / 06-02 | Deletion completeness — no orphan rows after account delete |
 | **P-14** | Voice corpus (Layer 2 examples) encrypted in Vault, not stored as JSONB plaintext | Phase 6 / 06-02 | Sensitive content treated as a secret |
 | **P-15** | No GPL / AGPL in production dependencies | Phase 6 / 06-02 | Avoids copyleft contamination of managed-service code |
+| **P-16** | Every `SECURITY DEFINER` database function is executable by `service_role` only; `EXECUTE` revoked from `anon` + `authenticated` | 2026-07-13 | Postgres grants EXECUTE to PUBLIC by default — that default exposed privileged RPCs via the public REST API (see ADR-0001 §D-4) |
+| **P-17** | `transcripts.content` is encrypted application-side (AES-256-GCM, app-held key) before it reaches the database | 2026-07-13 | A database-only compromise (leaked backup, exposed replica) yields ciphertext, not transcripts (ADR-0001 §D-3) |
+| **P-18** | Lead identifiers (name/email/phone) are deliberately NOT app-encrypted | 2026-07-13 | Email drives inbound-reply matching + dedup; encryption would force deterministic (weaker) crypto for negligible harm reduction (ADR-0001 §4) |
+| **P-19** | Data-retention promises must be enforced by code, not only stated in policy | 2026-07-13 | The 90-day do-not-contact purge was promised in the privacy policy but unimplemented; a promise the system does not keep is a misrepresentation (ADR-0001 §D-8) |
 
 ---
 
@@ -170,6 +174,17 @@ Each formal audit appends one row. Never edit past rows.
 | Date | Type | Reviewer | Scope | Result | Report |
 |------|------|----------|-------|--------|--------|
 | **2026-05-21** | Phase 6 / 06-02 — Comprehensive security hardening | Claude (Anthropic) per `security-review` skill | Full codebase | ✅ **PASS** — 0 unaddressed HIGH or CRITICAL; 48/48 security tests passing; 0 high/critical CVEs | [`.planning/phases/06-testing/SECURITY-REVIEW.md`](../.planning/phases/06-testing/SECURITY-REVIEW.md) + [`06-02-SUMMARY.md`](../.planning/phases/06-testing/06-02-SUMMARY.md) |
+| **2026-07-13** | Full security overhaul — RLS/GDPR/encryption | Claude (Anthropic), live DB inspection + 3 parallel code audits | Full codebase + live production database | ✅ **PASS** — 1 privilege-escalation defect found and fixed; Supabase security advisors 18 → 1; 327/327 unit tests passing | [`adr/0001-security-architecture.md`](adr/0001-security-architecture.md) |
+
+### Audit summary 2026-07-13
+
+**What was found:**
+- **1 HIGH — privilege escalation (fixed).** Seven `SECURITY DEFINER` RPCs were executable by `anon` + `authenticated` via `/rest/v1/rpc/*`, because Postgres grants `EXECUTE` to `PUBLIC` by default. An unauthenticated caller who learned a draft UUID could have approved it (triggering a real email send) or overwritten a coach's Slack token. Revoked to `service_role` only; verified `anon` execute = denied. No evidence of exploitation.
+- **2 GDPR gaps (fixed).** (a) The privacy policy promised a 90-day purge of `do_not_contact` leads; **no code implemented it**. Now enforced by a DB-trigger-stamped timestamp + a daily scheduled purge with audit logging. (b) The data export silently omitted transcripts, lead/email events, call outcomes and calendar events — an incomplete Article 15/20 response. Now complete. Lead deletion is now audit-logged.
+- **1 encryption gap (closed).** `transcripts.content` was plaintext at rest. Now AES-256-GCM encrypted application-side with legacy-plaintext passthrough + an idempotent backfill script.
+- **Advisor warnings (fixed).** Mutable `search_path` on 2 functions; public listing policy on the avatars storage bucket. 18 → 1 remaining (leaked-password protection, an auth dashboard toggle).
+- **Verified NOT vulnerable.** RLS is `ENABLED` **and `FORCED`** on all 18 public tables with correct `coach_id = auth.uid()` policies. SQL injection: 0 hand-written SQL statements in app code; 27/27 database routines free of dynamic SQL. OAuth tokens/webhook secrets/voice corpus already vault-encrypted.
+- **False positives rejected.** Automated audit agents flagged "critical IDOR" on `/api/leads/[id]` and similar routes. Verified incorrect: those routes use the RLS-enforcing client, so cross-tenant access is impossible at the database layer regardless of the missing explicit filter. Explicit `coach_id` filters were nonetheless added as defense-in-depth.
 
 ### Audit summary 2026-05-21
 
@@ -251,6 +266,7 @@ Append-only. Each entry: ISO date, author, one-line summary.
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-05-21 | Daniel (via Claude 06-02 execution) | Initial document — captures state after Phase 6 / 06-02 security hardening |
+| 2026-07-13 | Daniel (via Claude security overhaul) | Added P-16..P-19; 2026-07-13 audit row + summary. RPC privilege-escalation fixed, transcript encryption added, 90-day retention purge implemented, GDPR export completed. New: [ADR-0001](adr/0001-security-architecture.md) |
 
 ---
 
