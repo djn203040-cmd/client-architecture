@@ -12,6 +12,7 @@ import { onboarding } from "./messages/onboarding";
 import { modules } from "./messages/modules";
 import { review } from "./messages/review";
 import { tour } from "./messages/tour";
+import { feedback } from "./messages/feedback";
 
 export type Locale = TLanguage;
 
@@ -42,6 +43,7 @@ const en = {
   modules: modules.en,
   review: review.en,
   tour: tour.en,
+  feedback: feedback.en,
 };
 
 const da: Dictionary = {
@@ -58,6 +60,7 @@ const da: Dictionary = {
   modules: modules.da,
   review: review.da,
   tour: tour.da,
+  feedback: feedback.da,
 };
 
 export type Dictionary = typeof en;
