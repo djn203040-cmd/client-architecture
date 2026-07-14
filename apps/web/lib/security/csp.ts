@@ -78,7 +78,12 @@ export function buildCsp({ nonce, isDev = false }: CspOptions): string {
     "object-src": ["'none'"],
     "worker-src": ["'self'", "blob:"],
     "manifest-src": ["'self'"],
-    "upgrade-insecure-requests": [],
+    // Production only. The dev/test server is plain HTTP on localhost, and this
+    // directive rewrites every subresource to https://localhost:3000 — where
+    // nothing is listening. WebKit honors it there (Chromium/Firefox exempt
+    // localhost), so react-dom fails to load and the page never hydrates: it
+    // renders but is dead to clicks. See HSTS_HEADER below, same class of bug.
+    ...(isDev ? {} : { "upgrade-insecure-requests": [] }),
   };
 
   return Object.entries(directives)
@@ -87,7 +92,20 @@ export function buildCsp({ nonce, isDev = false }: CspOptions): string {
 }
 
 /**
+ * HSTS is a PRODUCTION-ONLY header — callers must skip it when serving over
+ * plain HTTP. RFC 6797 §7.2: a host MUST NOT send Strict-Transport-Security in
+ * responses conveyed over non-secure transport. Beyond the spec, emitting it on
+ * http://localhost breaks WebKit, which (unlike Chromium/Firefox) honors HSTS
+ * on localhost and force-upgrades every /_next chunk to https://localhost:3000
+ * — where there's no TLS listener. React never loads, the page never hydrates,
+ * and it renders correctly but ignores every click.
+ */
+export const HSTS_HEADER = "Strict-Transport-Security";
+
+/**
  * Static header bundle (everything except CSP, which needs a per-request nonce).
+ * This is the PRODUCTION set; see HSTS_HEADER for the one entry that must be
+ * dropped over plain HTTP.
  */
 export const STATIC_SECURITY_HEADERS = {
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",

@@ -1,9 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { buildCsp, generateCspNonce, STATIC_SECURITY_HEADERS } from "./lib/security/csp";
+import { buildCsp, generateCspNonce, HSTS_HEADER, STATIC_SECURITY_HEADERS } from "./lib/security/csp";
 
 function applySecurityHeaders(res: NextResponse, nonce: string, isDev: boolean): void {
   for (const [k, v] of Object.entries(STATIC_SECURITY_HEADERS)) {
+    // HSTS is https-only (RFC 6797 §7.2). Over the plain-HTTP dev/test server it
+    // makes WebKit upgrade every asset to https://localhost and the app dies
+    // unhydrated. Production (Vercel, TLS) still gets the full header set.
+    if (isDev && k === HSTS_HEADER) continue;
     res.headers.set(k, v);
   }
   res.headers.set("Content-Security-Policy", buildCsp({ nonce, isDev }));
