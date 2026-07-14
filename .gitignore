@@ -58,13 +58,7 @@ test-results/
 # Supabase CLI temp files
 supabase/.temp/
 
-# Landing page work (kept local, not committed)
-/landing page 1 animation/
-/Landing page 2 animation/
-/Landing page 3 animation/
-/apps/web/app/landing/
-/apps/web/app/landing-2/
-/apps/web/app/landing-3/
+# Landing page work
 # Public assets stay local except the shipped landing page frames
 /apps/web/public/*
 !/apps/web/public/landing-4/
