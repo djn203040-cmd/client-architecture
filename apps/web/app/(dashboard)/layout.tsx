@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers";
 import { AppShell } from "@/components/shell/AppShell";
 import { TourProvider } from "@/components/tour/TourProvider";
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
+import { FeedbackWidget } from "@/components/feedback/FeedbackWidget";
 import { type OnboardingProgress, coerceLanguage } from "@client/shared/validators";
 import { nextIncompleteStep } from "@/lib/onboarding/progress";
 import { I18nProvider } from "@/lib/i18n/provider";
@@ -59,6 +60,7 @@ export default async function DashboardLayout({
             <OnboardingBanner progress={progress} coachCreatedAt={coach.created_at} />
           )}
           {children}
+          <FeedbackWidget />
         </AppShell>
       </TourProvider>
     </I18nProvider>

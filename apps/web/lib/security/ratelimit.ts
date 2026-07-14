@@ -49,6 +49,10 @@ export const healthLimiter = make("health", 30, "60 s");
 // GDPR, 1 export per hour per coach (large response, prevents abuse)
 export const gdprExportLimiter = make("gdpr-export", 1, "1 h");
 
+// Taste-phase feedback widget. Per-coach: enough for a burst of notes during a
+// testing session, blunt enough to stop a stuck retry loop spamming Daniel's inbox.
+export const feedbackLimiter = make("feedback", 20, "1 h");
+
 // Open-tracking pixel (#86), public unauthenticated GET that does up to two DB
 // reads + an insert per hit. Generous per-IP cap: legit email clients may
 // re-fetch the pixel, and the write is idempotent, so this only exists to blunt
@@ -65,6 +69,7 @@ export const RATE_LIMIT_REGISTRY = {
   adminInvite: { target: "/api/admin/coaches (invite)", policy: "5 / 60s / admin" },
   leadCreate: { target: "/api/leads", policy: "30 / 60s / coach" },
   gdprExport: { target: "/api/account/export", policy: "1 / 1h / coach" },
+  feedback: { target: "/api/feedback", policy: "20 / 1h / coach" },
   trackOpen: { target: "/api/track/open", policy: "60 / 60s / IP" },
 } as const;
 

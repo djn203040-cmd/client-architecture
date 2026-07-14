@@ -105,6 +105,45 @@ export async function fetchCoachDetail(
   };
 }
 
+// Taste-phase feedback rows with the submitting coach resolved. The feedback
+// table postdates the generated Database types, so the row is typed here.
+export type FeedbackRow = {
+  id: string;
+  coach_id: string;
+  title: string;
+  sentiment: "good" | "bad";
+  note: string;
+  page_path: string | null;
+  created_at: string;
+  coach_name: string | null;
+  coach_email: string | null;
+};
+
+export async function fetchFeedback(limit = 100): Promise<FeedbackRow[]> {
+  const { data: rows } = await adminClient
+    .from("feedback")
+    .select("id, coach_id, title, sentiment, note, page_path, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (!rows || rows.length === 0) return [];
+
+  const ids = [...new Set(rows.map((r) => r.coach_id as string))];
+  const { data: coaches } = await adminClient
+    .from("coaches")
+    .select("id, name, email")
+    .in("id", ids);
+
+  return rows.map((r) => {
+    const coach = coaches?.find((c) => c.id === r.coach_id);
+    return {
+      ...(r as Omit<FeedbackRow, "coach_name" | "coach_email">),
+      coach_name: coach?.name ?? null,
+      coach_email: coach?.email ?? null,
+    };
+  });
+}
+
 export type SystemHealth = {
   coaches: {
     id: string;
