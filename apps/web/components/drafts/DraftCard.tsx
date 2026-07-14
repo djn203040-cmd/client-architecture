@@ -136,7 +136,11 @@ export function DraftCard({
       ref={cardRef}
       tabIndex={0}
       role="article"
-      aria-label={t.drafts.card.ariaLabel(draft.leads?.name ?? "lead", draft.touchpoint_index, draft.total_touchpoints ?? "?")}
+      aria-label={
+        draft.sequence_id
+          ? t.drafts.card.ariaLabel(draft.leads?.name ?? "lead", draft.touchpoint_index, draft.total_touchpoints ?? "?")
+          : t.drafts.card.ariaLabelAdhoc(draft.leads?.name ?? "lead")
+      }
       onKeyDown={onKeyDown}
       initial={{ x: 300, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
@@ -152,8 +156,12 @@ export function DraftCard({
           {/* Send time renders in the coach's timezone (fixed, not the
               browser's) so server and client agree, no hydration mismatch. */}
           <p className="text-xs font-mono text-muted-foreground mt-1">
-            {t.drafts.card.messageOf(draft.touchpoint_index, draft.total_touchpoints ?? "?")} &middot;{" "}
-            {formatDateTimeInTZ(sched, timeZone, dateLocale)}
+            {/* Ad-hoc drafts (sequence_id=null) have no touchpoint plan or
+                scheduled send; `sched` falls back to created_at for them. */}
+            {draft.sequence_id
+              ? t.drafts.card.messageOf(draft.touchpoint_index, draft.total_touchpoints ?? "?")
+              : t.drafts.card.adhoc}{" "}
+            &middot; {formatDateTimeInTZ(sched, timeZone, dateLocale)}
           </p>
           {draft.confidence_level === "low" && (
             <span className="inline-flex items-center gap-1 mt-2 text-xs px-2 py-1 rounded-md bg-[oklch(72%_0.12_70)] text-[oklch(40%_0.10_65)] dark:bg-[oklch(25%_0.08_65)] dark:text-[oklch(85%_0.08_65)]">

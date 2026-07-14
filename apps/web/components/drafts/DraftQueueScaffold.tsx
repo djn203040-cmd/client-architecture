@@ -36,17 +36,16 @@ export function DraftQueueScaffold({
   const [justEmptied, setJustEmptied] = useState(false);
   const prevLengthRef = useRef(initialDrafts.length);
 
-  // Queue-scope decision (#41): this queue is for scheduled sequence work
-  // only, standalone drafts (sequence_id=null) are reviewed on their lead's
-  // profile page. sequenceOnly keeps realtime consistent with the server query.
+  // Queue scope (revised, supersedes #41): the queue carries every pending
+  // draft — sequence-scheduled AND ad-hoc (sequence_id=null). Ad-hoc drafts
+  // also stay visible on their lead's profile page; realtime removes a card
+  // from both surfaces the moment either one acts on it.
   const { drafts, loading: draftsLoading, rotateCurrent, removeDraft } = useDraftRealtime(coachId, {
     status: "pending",
     initialDrafts,
-    sequenceOnly: true,
   });
   const { drafts: heldDrafts } = useDraftRealtime(coachId, {
     status: "held",
-    sequenceOnly: true,
   });
 
   // Detect when queue drains via a coach action (not initial empty load)
