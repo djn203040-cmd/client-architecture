@@ -66,3 +66,6 @@ supabase/.temp/
 /apps/web/app/landing-2/
 /apps/web/app/landing-3/
 /apps/web/public/
+
+# Local Supabase CLI branch state (per-machine, never shared)
+supabase/.branches/
