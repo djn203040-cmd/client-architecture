@@ -15,7 +15,7 @@ export const drafts = defineMessages({
       tabUnmatched: "Unmatched",
       emptyTitle: "No drafts waiting",
       emptyBody:
-        "Drafts appear here 24 hours before they're scheduled to send. You'll be notified when the first one is ready.",
+        "Scheduled drafts appear here 24 hours before they send, and any draft you generate from a lead's profile lands here too. You'll be notified when the first one is ready.",
       waiting: (count: number) =>
         `${count} draft${count === 1 ? "" : "s"} waiting`,
     },
@@ -34,10 +34,12 @@ export const drafts = defineMessages({
       unknownLead: "Unknown lead",
       messageOf: (index: number, total: number | string) =>
         `Message ${index} of ${total}`,
+      adhoc: "Ad-hoc draft",
       lowConfidence: "Voice model needs more examples",
       subject: (subject: string) => `Subject: ${subject}`,
       ariaLabel: (name: string, index: number, total: number | string) =>
         `Draft for ${name}, message ${index} of ${total}`,
+      ariaLabelAdhoc: (name: string) => `Ad-hoc draft for ${name}`,
       regenerate: "Regenerate draft",
       regenerating: "Generating new draft...",
       regenerateAria: "Regenerate draft",
@@ -116,7 +118,7 @@ export const drafts = defineMessages({
       tabUnmatched: "Uden match",
       emptyTitle: "Ingen udkast venter",
       emptyBody:
-        "Udkast dukker op her 24 timer før, de er sat til at blive sendt. Du får besked, når det første er klar.",
+        "Planlagte udkast dukker op her 24 timer før, de bliver sendt — og udkast, du selv laver fra en leads profil, lander her også. Du får besked, når det første er klar.",
       waiting: (count: number) =>
         `${count} udkast venter`,
     },
@@ -132,10 +134,12 @@ export const drafts = defineMessages({
       unknownLead: "Ukendt lead",
       messageOf: (index: number, total: number | string) =>
         `Besked ${index} af ${total}`,
+      adhoc: "Manuelt udkast",
       lowConfidence: "Stemmemodellen mangler flere eksempler",
       subject: (subject: string) => `Emne: ${subject}`,
       ariaLabel: (name: string, index: number, total: number | string) =>
         `Udkast til ${name}, besked ${index} af ${total}`,
+      ariaLabelAdhoc: (name: string) => `Manuelt udkast til ${name}`,
       regenerate: "Lav nyt udkast",
       regenerating: "Laver nyt udkast…",
       regenerateAria: "Lav nyt udkast",

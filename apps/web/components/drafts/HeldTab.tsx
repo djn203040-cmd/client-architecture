@@ -14,9 +14,9 @@ export function HeldTab({
   timeZone?: string | null;
 }) {
   const t = useDictionary();
-  // Queue-scope decision (#41): held standalone drafts live on their lead's
-  // profile page, not in the dashboard queue, mirror the pending tab's filter.
-  const { drafts, loading, removeDraft } = useDraftRealtime(coachId, { status: "held", sequenceOnly: true });
+  // Queue scope (revised, supersedes #41): held drafts of both kinds —
+  // sequence-scheduled and ad-hoc — surface here, mirroring the pending tab.
+  const { drafts, loading, removeDraft } = useDraftRealtime(coachId, { status: "held" });
 
   const sorted = useMemo(
     () => [...drafts].sort((a, b) => (b.held_at ?? "").localeCompare(a.held_at ?? "")),

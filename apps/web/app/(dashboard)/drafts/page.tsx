@@ -21,12 +21,13 @@ export default async function DraftsPage() {
       .select("*, leads(name)")
       .eq("coach_id", user!.id)
       .eq("status", "pending")
-      // Queue-scope decision (#41): the queue is for scheduled sequence work
-      // only. Standalone drafts (sequence_id=null, generated ad-hoc from a
-      // lead profile) are reviewed on that lead's page (LeadDraftsPanel), not
-      // here, keep the two surfaces from double-presenting the same card.
-      .not("sequence_id", "is", null)
-      .order("scheduled_send_at", { ascending: true }),
+      // Queue scope (revised, supersedes #41): the queue shows ALL pending
+      // drafts — scheduled sequence work first (by send time), then ad-hoc
+      // drafts (sequence_id=null, no scheduled_send_at → NULLS LAST). Ad-hoc
+      // drafts also remain on their lead's page (LeadDraftsPanel); realtime
+      // keeps both surfaces in sync when one of them acts on a draft.
+      .order("scheduled_send_at", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: true }),
     supabase
       .from("transcripts")
       .select("*")
