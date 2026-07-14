@@ -1,6 +1,10 @@
 # Privacy Policy
 
-**Last updated: 2026-05-21**
+> Published publicly at `/privacy-policy` (rendered from
+> `apps/web/app/privacy-policy/content.ts` — keep the two in sync).
+> This URL is registered on the Google OAuth consent screen.
+
+**Last updated: 2026-07-14**
 
 This privacy policy explains what data The Client Architecture (operated by
 Sonorous Digital) collects, why, and how you can control it. We've written it
@@ -28,7 +32,8 @@ customers; leads belong to coaches, not to us.
 ### From your leads (people who contact you)
 - Contact details — name, email, phone — supplied by you, by the calendar
   provider, or via your inbox monitoring
-- Call transcripts — when you connect Fireflies, Zoom, or paste in manually
+- Call transcripts — when you connect Fireflies, Zoom, or paste in manually.
+  Transcript content is encrypted at rest with AES-256-GCM.
 - Sequence state — which messages we've drafted and which you sent
 - Engagement signals — opens, clicks, replies, bounces
 - An automatic 90-day purge applies to leads marked `do_not_contact`
@@ -48,6 +53,26 @@ customers; leads belong to coaches, not to us.
 
 We never train AI models on your data. Anthropic, our LLM provider, is bound
 by enterprise terms that prohibit training on inputs.
+
+## Google API Services & Limited Use
+
+The Client Architecture's use and transfer of information received from
+Google APIs adheres to the [Google API Services User Data
+Policy](https://developers.google.com/terms/api-services-user-data-policy),
+including the Limited Use requirements.
+
+- We access Gmail only to send follow-up emails you have approved (or
+  authorized to send automatically) and to detect replies, bounces, and
+  unsubscribes from your leads.
+- We do not use Gmail data for advertising, and we never sell it.
+- We do not use Gmail data to train AI or machine-learning models. Only the
+  minimum context needed to draft a specific message is passed to our AI
+  provider under the no-training terms above.
+- Humans do not read your Gmail data except with your explicit permission
+  for support, where required for security purposes, or to comply with
+  applicable law.
+- Disconnecting Gmail in Settings revokes our access; you can also revoke it
+  at any time from your Google account's security settings.
 
 ## Sub-processors
 
