@@ -5,7 +5,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from "@/components/ui/command";
 import { CheckCircle, LinkSimple } from "@phosphor-icons/react";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/browser";
+import { createClient, realtimeAuthReady } from "@/lib/supabase/browser";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useDictionary, useLocale } from "@/lib/i18n/provider";
 import { toDateLocale } from "@/lib/format/datetime";
 import type { Database } from "@client/database";
@@ -28,23 +29,33 @@ export function UnmatchedTranscriptQueue({
   // Live updates for new unmatched transcripts
   useEffect(() => {
     const supabase = createClient();
-    const channel = supabase
-      .channel("unmatched-transcripts")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "transcripts",
-          filter: `coach_id=eq.${coachId}`,
-        },
-        (payload) => {
-          const row = payload.new as TTranscript;
-          if (!row.lead_id) setTranscripts((prev) => [row, ...prev]);
-        }
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    let cancelled = false;
+    let channel: RealtimeChannel | null = null;
+    // The join must carry the user JWT (see realtimeAuthReady), otherwise the
+    // subscription registers with anon claims and RLS drops every event.
+    void realtimeAuthReady(supabase).then(() => {
+      if (cancelled) return;
+      channel = supabase
+        .channel("unmatched-transcripts")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "transcripts",
+            filter: `coach_id=eq.${coachId}`,
+          },
+          (payload) => {
+            const row = payload.new as TTranscript;
+            if (!row.lead_id) setTranscripts((prev) => [row, ...prev]);
+          }
+        )
+        .subscribe();
+    });
+    return () => {
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
+    };
   }, [coachId]);
 
   if (transcripts.length === 0) {

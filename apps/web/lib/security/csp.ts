@@ -53,7 +53,17 @@ export function buildCsp({ nonce, isDev = false }: CspOptions): string {
     "https://*.ingest.us.sentry.io",
     "https://*.ingest.de.sentry.io",
   ];
-  if (isDev) connectSrc.push("ws://localhost:*", "http://localhost:*");
+  // CSP host matching is literal: `localhost` does NOT cover `127.0.0.1`. The
+  // local Supabase stack serves REST + Realtime on http://127.0.0.1:54321, so
+  // both spellings are needed or the browser silently drops every client-side
+  // Supabase call (Realtime WS included) in dev/E2E.
+  if (isDev)
+    connectSrc.push(
+      "ws://localhost:*",
+      "http://localhost:*",
+      "ws://127.0.0.1:*",
+      "http://127.0.0.1:*",
+    );
 
   const directives: Record<string, string[]> = {
     "default-src": ["'self'"],
