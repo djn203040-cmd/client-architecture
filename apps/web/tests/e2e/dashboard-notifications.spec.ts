@@ -1,49 +1,52 @@
-import { test, expect } from "@playwright/test";
-import { createTestClient, seedCoach } from "../utils/supabase-test-client";
+import { test, expect } from "../fixtures";
+import { admin } from "../fixtures/createCoach";
+import { createLead } from "../fixtures/createLead";
+import { createSequence } from "../fixtures/createSequence";
+import { createDraft } from "../fixtures/createDraft";
 
-// E2E target: NOTIFY-001 / Realtime dashboard notification appearance.
-// Requires a live dev server + Supabase staging env vars.
+// E2E target: NOTIFY-001 — a draft inserted while the queue is open appears
+// live via Supabase Realtime (useDraftRealtime postgres_changes INSERT).
+//
+// Rewritten for #126: the old version seeded a coach row without an auth user
+// (violating coaches_id_fkey) and never logged in. It now runs on the shared
+// auth-cookie fixtures against the local Supabase stack.
 
-test("dashboard notification appears via Realtime when a draft is ready", async ({ page }) => {
+async function completeOnboarding(coachId: string) {
+  await admin
+    .from("coaches")
+    .update({ onboarding_completed_at: new Date().toISOString() })
+    .eq("id", coachId);
+}
+
+test("dashboard queue shows a new draft via Realtime when it is created", async ({ coach, page }) => {
   // Live postgres_changes delivery is unreliable on ephemeral CI Realtime;
   // skip here (runs locally against a warm stack). The hook's subscription
   // contract is covered by tests/integration/realtime-drafts.test.ts.
   test.skip(process.env.CI === "true", "Realtime live-delivery is flaky in ephemeral CI");
-  const client = createTestClient();
 
-  const uniqueEmail = `playwright-notify-${Date.now()}@test.sonorous.dev`;
-  const coach = await seedCoach(client, { email: uniqueEmail });
+  await completeOnboarding(coach.id);
+  const lead = await createLead(coach.id, { name: "Realtime Lead" });
+  const sequence = await createSequence(coach.id, lead.id);
 
-  // Seed a lead so we can create a draft
-  const { data: lead, error: leadErr } = await client
-    .from("leads")
-    .insert({ coach_id: coach.id, name: "Playwright Lead", email: `lead-${Date.now()}@test.com`, source: "test" })
-    .select("id")
-    .single();
-  if (leadErr || !lead) throw new Error(`seedLead: ${leadErr?.message ?? "no data"}`);
+  await page.context().addCookies(coach.cookies);
+  await page.addInitScript(() => {
+    window.localStorage.setItem("tca_tour_v1_seen", "1");
+  });
+  await page.goto("/drafts");
 
-  // Navigate to dashboard (assumes dev server running and test auth bypass or cookie injection)
-  await page.goto("/");
+  // Queue rendered (empty — the draft doesn't exist yet). The empty state is
+  // the celebration card; wait for the page shell to settle, then give the
+  // Realtime channel a moment to finish its subscribe handshake (there is no
+  // outside-observable "subscribed" signal to wait on).
+  await expect(page.getByRole("main")).toBeVisible();
+  await page.waitForTimeout(3_000);
 
-  // Seed a pending draft after the page loads (simulates Realtime push)
-  const { data: draft, error: draftErr } = await client
-    .from("drafts")
-    .insert({
-      coach_id: coach.id,
-      lead_id: lead.id,
-      status: "pending",
-      body: "Playwright test draft body",
-      subject: "Playwright test subject",
-    })
-    .select("id")
-    .single();
-  if (draftErr || !draft) throw new Error(`seedDraft: ${draftErr?.message ?? "no data"}`);
+  // Insert the draft AFTER the page subscribed, so visibility proves Realtime
+  // delivery rather than the initial server render. Assert on the body text:
+  // the INSERT payload carries the raw row (no leads(name) join), so the lead
+  // name may render as a fallback but the body always comes through.
+  const body = `Realtime test draft body ${Date.now()}`;
+  await createDraft(coach.id, lead.id, { sequenceId: sequence.id, body });
 
-  // The draft should appear in the dashboard queue via Realtime within 10s
-  await expect(page.getByText("Playwright Lead")).toBeVisible({ timeout: 10_000 });
-
-  // Cleanup
-  await client.from("drafts").delete().eq("id", draft.id);
-  await client.from("leads").delete().eq("id", lead.id);
-  await client.from("coaches").delete().eq("id", coach.id);
+  await expect(page.getByText(body)).toBeVisible({ timeout: 15_000 });
 });

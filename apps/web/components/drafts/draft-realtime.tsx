@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo, useId } from "react";
-import { createClient } from "@/lib/supabase/browser";
+import { createClient, realtimeAuthReady } from "@/lib/supabase/browser";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { Database } from "@client/database";
 
 type DraftRow = Database["public"]["Tables"]["drafts"]["Row"] & {
@@ -92,7 +93,14 @@ export function useDraftRealtime(
       });
     }
 
-    const channel = supabase
+    let channel: RealtimeChannel | null = null;
+
+    // The join must carry the user JWT (see realtimeAuthReady): a subscribe
+    // that races token propagation registers with anon claims and RLS drops
+    // every event for the channel's lifetime.
+    void realtimeAuthReady(supabase).then(() => {
+      if (cancelled) return;
+      channel = supabase
       .channel(`coach-drafts-${status}-${coachId}${leadId ? `-${leadId}` : ""}-${instanceId}`)
       .on(
         "postgres_changes",
@@ -148,10 +156,11 @@ export function useDraftRealtime(
       .subscribe(() => {
         if (!needsFetch) setLoading(false);
       });
+    });
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [coachId, status, leadId, sequenceOnly, needsFetch, instanceId]);
 

@@ -1,67 +1,52 @@
-import { test, expect } from "@playwright/test";
-import { createTestClient, seedCoach } from "../utils/supabase-test-client";
+import { test, expect } from "../fixtures";
+import { admin } from "../fixtures/createCoach";
+import { createLead } from "../fixtures/createLead";
+import { createSequence } from "../fixtures/createSequence";
+import { createDraft } from "../fixtures/createDraft";
 
-// E2E target: Phase-gate / Approve+Next button on a seeded draft completes
-// the Gmail send path. Requires a live dev server + Supabase staging env.
+// E2E target: dashboard queue keyboard approval — a focused DraftCard, the 'A'
+// shortcut → PATCH /api/drafts/:id → status 'approved' in the DB.
+//
+// Rewritten for #126: the old version seeded a coach row without an auth user
+// (violating coaches_id_fkey) and never logged in. It now runs on the shared
+// auth-cookie fixtures, so it passes locally AND in CI.
 
-test("Approve+Next on seeded draft completes Gmail send path", async ({ page }) => {
-  // This older spec seeds a coach without an auth user (FK) and never logs in,
-  // and relies on a live Gmail/Inngest send path. The approval transition is
-  // covered end-to-end by full-approval-flow.spec.ts (auth-cookie fixture).
-  test.skip(process.env.CI === "true", "No auth wiring in CI; covered by full-approval-flow");
-  const client = createTestClient();
+async function completeOnboarding(coachId: string) {
+  await admin
+    .from("coaches")
+    .update({ onboarding_completed_at: new Date().toISOString() })
+    .eq("id", coachId);
+}
 
-  const uniqueEmail = `playwright-approve-${Date.now()}@test.sonorous.dev`;
-  const coach = await seedCoach(client, { email: uniqueEmail });
+test("Approve via 'A' shortcut on focused draft card transitions draft to approved", async ({ coach, page }) => {
+  await completeOnboarding(coach.id);
+  const lead = await createLead(coach.id, { name: "Approve Test Lead" });
+  // The dashboard queue shows sequence drafts only (#41), standalone drafts
+  // surface on the lead profile instead.
+  const sequence = await createSequence(coach.id, lead.id);
+  const draft = await createDraft(coach.id, lead.id, { sequenceId: sequence.id });
 
-  const { data: lead, error: leadErr } = await client
-    .from("leads")
-    .insert({ coach_id: coach.id, name: "Approve Test Lead", email: `approve-${Date.now()}@test.com`, source: "test" })
-    .select("id")
-    .single();
-  if (leadErr || !lead) throw new Error(`seedLead: ${leadErr?.message ?? "no data"}`);
+  await page.context().addCookies(coach.cookies);
+  // The product tour's spotlight overlay swallows clicks; mark it seen.
+  await page.addInitScript(() => {
+    window.localStorage.setItem("tca_tour_v1_seen", "1");
+  });
+  await page.goto("/drafts");
 
-  const { data: draft, error: draftErr } = await client
-    .from("drafts")
-    .insert({
-      coach_id: coach.id,
-      lead_id: lead.id,
-      status: "pending",
-      body: "Hey, following up after our call...",
-      subject: "Following up",
-    })
-    .select("id")
-    .single();
-  if (draftErr || !draft) throw new Error(`seedDraft: ${draftErr?.message ?? "no data"}`);
+  const card = page.getByRole("article").filter({ hasText: "Approve Test Lead" });
+  await expect(card).toBeVisible({ timeout: 10_000 });
 
-  await page.goto("/");
-  await expect(page.getByText("Approve Test Lead")).toBeVisible({ timeout: 10_000 });
+  // DraftCard's keydown handler lives on the card element, focus it first.
+  await card.focus();
+  await page.keyboard.press("a");
 
-  // Trigger approve via keyboard shortcut (A key per Phase 4 DraftCard)
-  await page.keyboard.press("KeyA");
-
-  // Poll DB, status should transition to 'approved' within 10s
   await expect
     .poll(
       async () => {
-        const { data } = await client.from("drafts").select("status").eq("id", draft.id).single();
+        const { data } = await admin.from("drafts").select("status").eq("id", draft.id).single();
         return data?.status;
       },
       { timeout: 10_000, intervals: [500] },
     )
     .toBe("approved");
-
-  // Verify notification_log row written by the dispatcher
-  const { data: log } = await client
-    .from("notification_log")
-    .select("channel, event_type")
-    .eq("coach_id", coach.id)
-    .eq("channel", "dashboard")
-    .limit(1);
-  expect(log?.length).toBeGreaterThanOrEqual(0); // Graceful: may fire async
-
-  // Cleanup
-  await client.from("drafts").delete().eq("id", draft.id);
-  await client.from("leads").delete().eq("id", lead.id);
-  await client.from("coaches").delete().eq("id", coach.id);
 });

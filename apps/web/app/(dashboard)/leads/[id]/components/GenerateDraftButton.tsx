@@ -2,7 +2,8 @@
 import { useState, useEffect } from "react";
 import { Sparkle, ArrowsClockwise } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/browser";
+import { createClient, realtimeAuthReady } from "@/lib/supabase/browser";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { useDictionary } from "@/lib/i18n/provider";
 import type { TLeadStatus } from "@client/shared/types";
@@ -37,23 +38,29 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
       }
     };
 
-    // Fast path: realtime UPDATE event
-    const channel = supabase
-      .channel(`draft-ready-${draftId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "drafts",
-          filter: `id=eq.${draftId}`,
-        },
-        (payload: { new: Record<string, unknown> }) => {
-          const newStatus = payload.new["status"] as string;
-          if (newStatus !== "generating") finish(newStatus);
-        },
-      )
-      .subscribe();
+    // Fast path: realtime UPDATE event. The join must carry the user JWT
+    // (see realtimeAuthReady), otherwise the subscription registers with anon
+    // claims and RLS drops every event (the poll below still catches it).
+    let channel: RealtimeChannel | null = null;
+    void realtimeAuthReady(supabase).then(() => {
+      if (settled) return;
+      channel = supabase
+        .channel(`draft-ready-${draftId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "drafts",
+            filter: `id=eq.${draftId}`,
+          },
+          (payload: { new: Record<string, unknown> }) => {
+            const newStatus = payload.new["status"] as string;
+            if (newStatus !== "generating") finish(newStatus);
+          },
+        )
+        .subscribe();
+    });
 
     // Fallback: poll every 2s in case realtime doesn't deliver
     // (RLS / publication / network can all silently drop UPDATE events).
@@ -80,7 +87,7 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
     return () => {
       clearInterval(poll);
       clearTimeout(timeout);
-      void supabase.removeChannel(channel);
+      if (channel) void supabase.removeChannel(channel);
     };
   }, [draftId, t]);
 

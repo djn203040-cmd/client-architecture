@@ -39,10 +39,20 @@ describe("security headers contract", () => {
     expect(csp).toContain("frame-src https://app.cal.com");
   });
 
-  it("dev CSP loosens with unsafe-eval + localhost ws", () => {
+  it("dev CSP loosens with unsafe-eval + localhost/127.0.0.1 ws", () => {
     const csp = buildCsp({ nonce: "abc", isDev: true });
     expect(csp).toContain("'unsafe-eval'");
     expect(csp).toContain("ws://localhost:*");
+    // CSP host matching is literal, `localhost` doesn't cover `127.0.0.1` —
+    // and the local Supabase stack (REST + Realtime WS) lives on 127.0.0.1.
+    expect(csp).toContain("ws://127.0.0.1:*");
+    expect(csp).toContain("http://127.0.0.1:*");
+  });
+
+  it("prod CSP never contains the dev-only loopback hosts", () => {
+    const csp = buildCsp({ nonce: "abc", isDev: false });
+    expect(csp).not.toContain("localhost");
+    expect(csp).not.toContain("127.0.0.1");
   });
 
   // Regression: both of these force http→https on subresources. Over the

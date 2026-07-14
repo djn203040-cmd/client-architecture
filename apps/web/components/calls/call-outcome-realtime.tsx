@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
-import { createClient } from "@/lib/supabase/browser";
+import { createClient, realtimeAuthReady } from "@/lib/supabase/browser";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { Database } from "@client/database";
 
 type CallOutcomeRow = Database["public"]["Tables"]["call_outcomes"]["Row"] & {
@@ -37,8 +38,14 @@ export function useCallOutcomeRealtime(
 
   useEffect(() => {
     const supabase = createClient();
+    let cancelled = false;
+    let channel: RealtimeChannel | null = null;
 
-    const channel = supabase
+    // The join must carry the user JWT (see realtimeAuthReady), otherwise the
+    // subscription registers with anon claims and RLS drops every event.
+    void realtimeAuthReady(supabase).then(() => {
+      if (cancelled) return;
+      channel = supabase
       .channel(
         `coach-call-outcomes-${status}-${coachId}${leadId ? `-${leadId}` : ""}`,
       )
@@ -104,9 +111,11 @@ export function useCallOutcomeRealtime(
         },
       )
       .subscribe(() => setLoading(false));
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
     };
   }, [coachId, status, leadId]);
 

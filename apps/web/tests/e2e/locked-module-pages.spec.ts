@@ -62,32 +62,28 @@ for (const { path, titleSegment, taglineSegment } of PAGES) {
   });
 }
 
-test("sidebar locked tile deep-links to /modules/threshold", async ({ coach, page, browserName }) => {
+test("sidebar locked tile deep-links to /modules/threshold", async ({ coach, page }) => {
   await withOnboardingComplete(coach.id);
   await page.context().addCookies(coach.cookies);
 
   await page.goto("/dashboard");
   const link = page.getByRole("link", { name: /The Threshold Experience/ });
-  // The deep-link contract, that the tile points at the route, is asserted in
-  // every engine. WebKit's App-Router soft navigation doesn't settle reliably
-  // under Playwright (30s hang), so the click-through itself is covered in
-  // chromium + firefox only.
   await expect(link).toHaveAttribute("href", "/modules/threshold");
-  if (browserName === "webkit") return;
+  // Click-through runs in every engine: the old WebKit skip ("soft navigation
+  // doesn't settle, 30s hang") was the HSTS/upgrade-insecure-requests
+  // never-hydrates bug fixed in #124, not a WebKit navigation quirk.
   await Promise.all([page.waitForURL("**/modules/threshold"), link.click()]);
   expect(page.url()).toContain("/modules/threshold");
 });
 
-test("sidebar locked tile deep-links to /modules/continuation", async ({ coach, page, browserName }) => {
+test("sidebar locked tile deep-links to /modules/continuation", async ({ coach, page }) => {
   await withOnboardingComplete(coach.id);
   await page.context().addCookies(coach.cookies);
 
   await page.goto("/dashboard");
   const link = page.getByRole("link", { name: /The Continuation/ });
-  // See the threshold test above, href contract everywhere, click-through
-  // skipped in WebKit where App-Router soft nav hangs under Playwright.
   await expect(link).toHaveAttribute("href", "/modules/continuation");
-  if (browserName === "webkit") return;
+  // See the threshold test above — WebKit click-through re-enabled post-#124.
   await Promise.all([page.waitForURL("**/modules/continuation"), link.click()]);
   expect(page.url()).toContain("/modules/continuation");
 });
