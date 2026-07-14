@@ -13,6 +13,10 @@ const FRAME_H = 1490;
 /** Scroll progress range mapped onto the frame sequence (holds at both ends). */
 const SCRUB_START = 0.06;
 const SCRUB_END = 0.88;
+/** Canvas rests oversized, easing back to 1 as the explosion needs headroom. */
+const SCALE_MAX = 1.16;
+
+const smoothstep = (x: number) => x * x * (3 - 2 * x);
 
 export default function LandingHero() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -81,6 +85,8 @@ export default function LandingHero() {
         Math.floor(t * TOTAL_FRAMES),
         TOTAL_FRAMES - 1
       );
+      const settle = smoothstep(Math.min(progress / 0.5, 1));
+      canvas.style.transform = `scale(${SCALE_MAX - (SCALE_MAX - 1) * settle})`;
       if (hintRef.current) {
         hintRef.current.style.opacity = progress > 0.04 ? "0" : "1";
       }
@@ -121,6 +127,13 @@ export default function LandingHero() {
       )}
 
       <div className="l4-sticky">
+        {/* Giant tone-on-tone headline. Sits UNDER the canvas; the darken
+            blend lets it show through the cream while the laptop occludes it. */}
+        <div className="l4-ghost" aria-hidden="true">
+          <span className="l4-ghost-line">Leads</span>
+          <span className="l4-ghost-line l4-ghost-line-2">don&rsquo;t die</span>
+        </div>
+
         <div className="l4-stage">
           <canvas
             ref={canvasRef}
@@ -129,21 +142,32 @@ export default function LandingHero() {
           />
         </div>
 
+        <nav className="l4-nav" aria-label="Landing">
+          <span className="l4-wordmark">The Client Architecture</span>
+          <a className="l4-nav-cta" href="#book">
+            Book a call
+          </a>
+        </nav>
+
         <div className="l4-grid">
           <header className="l4-copy">
-            <p className="l4-eyebrow">The Client Architecture</p>
             <h1 className="l4-title">
-              The follow-up,
-              <br />
-              handled.
+              <span className="l4-title-sr">Leads don&rsquo;t die.</span> They
+              get abandoned.
             </h1>
             <p className="l4-sub">
-              Every sales call deserves a second message. We write it in your
-              voice and wait for your nod.
+              You already paid for them — the ads, the content, the call
+              itself. Then the week gets loud, the follow-up slips, and a yes
+              becomes a stranger. We write the follow-up in your voice, wait
+              for your nod, and send it from your own inbox. Every call. Every
+              time.
             </p>
             <div className="l4-actions">
               <a className="l4-cta" href="#book">
                 Book a call
+              </a>
+              <a className="l4-cta-ghost" href="#promise">
+                See the system
               </a>
             </div>
           </header>

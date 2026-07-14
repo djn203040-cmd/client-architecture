@@ -1,26 +1,32 @@
 /* ------------------------------------------------------------------
    The Client Architecture — Landing direction E "The Perch"
-   Copy left, scroll-scrubbed frame canvas right
+   Hero: giant type layered behind a scroll-scrubbed frame canvas
+   Sections: /1 promise, /2 numbers, /3 first 24h, /4 modules, /5 CTA
    ------------------------------------------------------------------ */
 
 .l4-root {
-  /* Palette tuned to the rendered frames (warm beige studio sweep) */
-  --l4-bg: #e3d3bb;
-  --l4-bg-light: #ecdfc9;
-  --l4-bg-deep: #d9c8ac;
-  --l4-ink: #241d13;
-  --l4-ink-soft: #5c5240;
+  /* App branding */
+  --l4-cream: #f5f0e5;
+  --l4-cream-soft: #fcf8f0;
   --l4-forest: #14281f;
-  --l4-ember: #b45a2b;
-  --l4-ember-soft: #c96f3b;
+  --l4-forest-soft: #4a7d5e;
+  --l4-ember: #d97a2d;
+  --l4-ember-soft: #e89a60;
+  --l4-ink: #14201a;
+  --l4-ink-soft: #4a5550;
+  /* Hero gradient endpoints sampled from the frame sequence itself */
+  --l4-hero-top: #ddcdb5;
+  --l4-hero-bottom: #ede2cf;
+  --l4-ghost: #d5c2a6;
 
-  background: #ede2cf;
+  background: var(--l4-cream);
   color: var(--l4-ink);
   font-family: var(--font-sans);
   overflow-x: clip;
 }
 
-/* ---------- Runway + sticky stage ---------- */
+/* ================= HERO ================= */
+
 .l4-runway {
   position: relative;
   height: 420vh;
@@ -31,9 +37,10 @@
   top: 0;
   height: 100vh;
   overflow: hidden;
-  /* Vertical gradient sampled from the frame sequence's own left-edge pixels so
-     the full-bleed canvas sits seamlessly against the page with no masking.
-     Must live on the 100vh sticky viewport, not the 420vh runway. */
+  isolation: isolate;
+  /* Vertical gradient sampled from the frames' own left-edge pixels so the
+     full-bleed canvas sits seamlessly with no masking. Lives on the 100vh
+     sticky viewport, never on the tall runway. */
   background: linear-gradient(
     to bottom,
     #ddcdb5 0%,
@@ -45,6 +52,94 @@
   );
 }
 
+/* ---------- Ghost headline (behind the animation) ---------- */
+.l4-ghost {
+  position: absolute;
+  z-index: 0;
+  top: 6vh;
+  left: 3.4vw;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  pointer-events: none;
+}
+
+.l4-ghost-line {
+  font-size: clamp(76px, 12vw, 186px);
+  line-height: 0.9;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--l4-ghost);
+  white-space: nowrap;
+}
+
+.l4-ghost-line-2 {
+  margin-left: 8vw;
+}
+
+/* ---------- Canvas stage (full-bleed right, blended over the ghost) ---------- */
+.l4-stage {
+  position: absolute;
+  inset: 0 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+  /* Lets the ghost type show through the cream while the laptop, branch and
+     dark screen correctly occlude it — real layering without alpha frames.
+     Must sit on the stage (not the canvas): the blend needs the ghost text in
+     its backdrop, and a z-indexed child would only blend inside the stage. */
+  mix-blend-mode: darken;
+}
+
+.l4-canvas {
+  display: block;
+  height: 100vh;
+  width: auto;
+  aspect-ratio: 1200 / 1490;
+  transform-origin: 100% 82%;
+  will-change: transform;
+}
+
+/* ---------- Nav ---------- */
+.l4-nav {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 26px clamp(20px, 3.4vw, 52px);
+}
+
+.l4-wordmark {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--l4-ink);
+}
+
+.l4-nav-cta {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--l4-cream-soft);
+  background: var(--l4-forest);
+  padding: 10px 22px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+.l4-nav-cta:hover {
+  transform: translateY(-1px);
+  background: #1c3a2c;
+}
+
+/* ---------- Front copy ---------- */
 .l4-grid {
   position: relative;
   z-index: 2;
@@ -53,52 +148,47 @@
   max-width: min(1340px, calc(100vw - 48px));
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  align-items: center;
+  align-items: end;
   gap: 24px;
   pointer-events: none;
 }
 
 .l4-copy {
   pointer-events: auto;
-}
-
-/* ---------- Copy column ---------- */
-.l4-copy {
-  padding-bottom: 6vh;
-}
-
-.l4-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--l4-ink-soft);
-  margin-bottom: 22px;
+  padding-bottom: 13vh;
 }
 
 .l4-title {
-  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-size: clamp(44px, 5.4vw, 76px);
-  line-height: 1.02;
+  font-size: clamp(30px, 3.1vw, 46px);
+  line-height: 1.06;
   letter-spacing: -0.02em;
-  font-weight: 500;
+  font-weight: 650;
   color: var(--l4-forest);
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   text-wrap: balance;
 }
 
+.l4-title-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .l4-sub {
-  font-size: clamp(16px, 1.35vw, 19px);
-  line-height: 1.55;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.6;
   color: var(--l4-ink-soft);
-  max-width: 42ch;
-  margin-bottom: 36px;
+  max-width: 46ch;
+  margin-bottom: 32px;
 }
 
 .l4-actions {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 22px;
 }
 
 .l4-cta {
@@ -106,7 +196,7 @@
   padding: 15px 32px;
   border-radius: 999px;
   background: var(--l4-forest);
-  color: #f5f0e5;
+  color: var(--l4-cream);
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -121,25 +211,24 @@
   box-shadow: 0 20px 40px -14px rgb(20 40 31 / 60%);
 }
 
-/* ---------- Canvas stage (full-bleed, pinned to the right edge) ---------- */
-.l4-stage {
-  position: absolute;
-  inset: 0 0 0 auto;
-  z-index: 1;
-  display: flex;
-  justify-content: flex-end;
+.l4-cta-ghost {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--l4-ink);
+  text-decoration: none;
+  border-bottom: 1px solid rgb(20 32 26 / 35%);
+  padding-bottom: 3px;
+  transition: border-color 0.25s ease;
 }
 
-.l4-canvas {
-  display: block;
-  height: 100vh;
-  width: auto;
-  aspect-ratio: 1200 / 1490;
+.l4-cta-ghost:hover {
+  border-color: var(--l4-ink);
 }
 
 /* ---------- Scroll hint ---------- */
 .l4-hint {
   position: absolute;
+  z-index: 3;
   bottom: 26px;
   left: 50%;
   transform: translateX(-50%);
@@ -183,7 +272,7 @@
   position: fixed;
   inset: 0;
   z-index: 80;
-  background: var(--l4-bg-light);
+  background: var(--l4-cream);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -192,10 +281,10 @@
 }
 
 .l4-loader-mark {
-  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-size: 22px;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
   color: var(--l4-forest);
-  letter-spacing: 0.02em;
 }
 
 .l4-loader-pct {
@@ -220,25 +309,377 @@
   transition: width 0.2s ease;
 }
 
-/* ---------- Mobile ---------- */
+/* ================= SECTIONS ================= */
+
+.l4-section {
+  position: relative;
+  margin: 0 auto;
+  max-width: min(1340px, calc(100vw - 48px));
+  padding: clamp(90px, 12vh, 150px) 0;
+}
+
+/* Hand the hero's bottom gradient color off to the brand cream */
+.l4-section-promise {
+  max-width: none;
+  padding-inline: max(24px, calc((100vw - 1340px) / 2));
+  background: linear-gradient(to bottom, var(--l4-hero-bottom) 0%, var(--l4-cream) 22%);
+}
+
+.l4-marker {
+  position: absolute;
+  top: clamp(70px, 10vh, 120px);
+  right: max(24px, calc((100vw - 1340px) / 2));
+  font-size: clamp(44px, 4.6vw, 72px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--l4-forest);
+  opacity: 0.9;
+}
+
+.l4-section:not(.l4-section-promise) .l4-marker {
+  right: 0;
+}
+
+.l4-display {
+  font-size: clamp(52px, 7.2vw, 118px);
+  line-height: 0.95;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  color: var(--l4-forest);
+  text-wrap: balance;
+}
+
+.l4-display-indent {
+  display: inline-block;
+  margin-left: clamp(40px, 8vw, 150px);
+}
+
+.l4-display-cream {
+  color: var(--l4-cream);
+}
+
+.l4-lede {
+  margin-top: 32px;
+  font-size: clamp(15px, 1.3vw, 19px);
+  line-height: 1.6;
+  color: var(--l4-ink-soft);
+  max-width: 52ch;
+}
+
+/* ---------- /1 Promise cards ---------- */
+.l4-promise-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(18px, 2vw, 30px);
+  margin-top: clamp(56px, 8vh, 100px);
+}
+
+.l4-card {
+  background: var(--l4-cream-soft);
+  border: 1px solid rgb(20 40 31 / 10%);
+  border-radius: 18px;
+  padding: 30px 28px 34px;
+  box-shadow: 0 24px 50px -36px rgb(20 40 31 / 35%);
+}
+
+.l4-card:nth-child(2) {
+  transform: translateY(clamp(16px, 3vh, 36px));
+}
+
+.l4-card:nth-child(3) {
+  transform: translateY(clamp(32px, 6vh, 72px));
+}
+
+.l4-card-no {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--l4-forest-soft);
+  margin-bottom: 16px;
+}
+
+.l4-card p {
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--l4-ink);
+}
+
+/* ---------- /2 Numbers ---------- */
+.l4-numbers {
+  list-style: none;
+  margin: clamp(56px, 9vh, 110px) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.l4-number-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 320px) minmax(0, 560px);
+  justify-content: space-between;
+  align-items: start;
+  gap: 24px;
+  padding: clamp(34px, 5vh, 54px) 0;
+  border-top: 1px solid rgb(20 40 31 / 14%);
+}
+
+.l4-number {
+  font-size: clamp(64px, 7.5vw, 128px);
+  line-height: 0.9;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--l4-forest);
+}
+
+.l4-number-copy h3 {
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--l4-forest);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.l4-number-copy p {
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--l4-ink-soft);
+}
+
+/* ---------- /3 The first 24 hours ---------- */
+.l4-day-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: clamp(24px, 3vw, 48px);
+  align-items: center;
+  margin-top: clamp(56px, 8vh, 100px);
+}
+
+.l4-day-col {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(40px, 7vh, 80px);
+}
+
+.l4-step-no {
+  display: block;
+  font-size: clamp(36px, 3.4vw, 54px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--l4-forest);
+  margin-bottom: 12px;
+}
+
+.l4-step h3 {
+  font-size: 16px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--l4-forest);
+  margin-bottom: 8px;
+}
+
+.l4-step p {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--l4-ink-soft);
+  max-width: 34ch;
+}
+
+.l4-day-col:last-child .l4-step {
+  text-align: right;
+}
+
+.l4-day-col:last-child .l4-step p {
+  margin-left: auto;
+}
+
+.l4-day-figure {
+  margin: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 40px 80px -40px rgb(20 40 31 / 45%);
+}
+
+.l4-day-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.l4-day-coda {
+  margin: clamp(48px, 7vh, 80px) auto 0;
+  max-width: 62ch;
+  text-align: center;
+  font-size: clamp(16px, 1.5vw, 21px);
+  line-height: 1.6;
+  font-weight: 500;
+  color: var(--l4-forest);
+}
+
+/* ---------- /4 Modules ---------- */
+.l4-section-modules {
+  background: var(--l4-forest);
+}
+
+.l4-modules-inner .l4-marker {
+  color: var(--l4-cream);
+}
+
+.l4-modules-sub {
+  margin-top: 28px;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.6;
+  color: rgb(245 240 229 / 72%);
+  max-width: 52ch;
+}
+
+.l4-modules-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(18px, 2vw, 30px);
+  margin-top: clamp(48px, 7vh, 90px);
+}
+
+.l4-module {
+  border-radius: 18px;
+  padding: 32px 28px 36px;
+  border: 1px solid rgb(245 240 229 / 22%);
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+}
+
+.l4-module-live {
+  background: var(--l4-cream);
+  border-color: transparent;
+}
+
+.l4-module-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--l4-ember-soft);
+  margin-bottom: 20px;
+}
+
+.l4-module-live .l4-module-tag {
+  color: var(--l4-ember);
+}
+
+.l4-module h3 {
+  font-size: clamp(21px, 1.8vw, 26px);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  color: var(--l4-cream);
+  margin-bottom: 14px;
+}
+
+.l4-module-live h3 {
+  color: var(--l4-forest);
+}
+
+.l4-module p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgb(245 240 229 / 70%);
+  flex-grow: 1;
+}
+
+.l4-module-live p {
+  color: var(--l4-ink-soft);
+}
+
+.l4-module-cta {
+  margin-top: 24px;
+  align-self: flex-start;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--l4-cream);
+  text-decoration: none;
+  border-bottom: 1px solid rgb(245 240 229 / 40%);
+  padding-bottom: 3px;
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+
+.l4-module-cta:hover {
+  color: var(--l4-ember-soft);
+  border-color: var(--l4-ember-soft);
+}
+
+/* ---------- /5 Final ---------- */
+.l4-section-final {
+  text-align: left;
+  padding-bottom: 60px;
+}
+
+.l4-final-display {
+  font-size: clamp(36px, 5vw, 82px);
+  text-transform: none;
+  letter-spacing: -0.03em;
+}
+
+.l4-final-sub {
+  margin-top: 28px;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.6;
+  color: var(--l4-ink-soft);
+  max-width: 46ch;
+}
+
+.l4-final-kicker {
+  margin-top: 34px;
+  font-size: clamp(24px, 2.6vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--l4-ember);
+}
+
+.l4-cta-large {
+  margin-top: 40px;
+  font-size: 17px;
+  padding: 19px 44px;
+}
+
+.l4-footer {
+  margin-top: clamp(90px, 14vh, 160px);
+  padding-top: 28px;
+  border-top: 1px solid rgb(20 40 31 / 14%);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--l4-ink-soft);
+}
+
+.l4-footer a {
+  color: var(--l4-ink-soft);
+  text-decoration: none;
+  border-bottom: 1px solid rgb(20 32 26 / 25%);
+}
+
+/* ================= MOBILE ================= */
+
 @media (max-width: 900px) {
-  .l4-grid {
-    grid-template-columns: 1fr;
-    align-items: start;
-    padding-top: 11vh;
+  .l4-ghost {
+    top: 11vh;
+    left: 5vw;
   }
 
-  .l4-copy {
-    padding-bottom: 0;
-    text-align: center;
+  .l4-ghost-line {
+    font-size: clamp(64px, 19vw, 120px);
   }
 
-  .l4-sub {
-    margin-inline: auto;
-  }
-
-  .l4-actions {
-    justify-content: center;
+  .l4-ghost-line-2 {
+    margin-left: 8vw;
   }
 
   .l4-stage {
@@ -246,6 +687,65 @@
   }
 
   .l4-canvas {
-    height: 56vh;
+    height: 62vh;
+    transform-origin: 100% 100%;
+  }
+
+  .l4-grid {
+    grid-template-columns: 1fr;
+    align-items: end;
+  }
+
+  .l4-copy {
+    padding-bottom: 9vh;
+    max-width: 88vw;
+  }
+
+  .l4-title {
+    font-size: clamp(26px, 7.4vw, 34px);
+  }
+
+  .l4-sub {
+    font-size: 14.5px;
+  }
+
+  .l4-hint {
+    display: none;
+  }
+
+  .l4-promise-cards,
+  .l4-modules-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .l4-card:nth-child(2),
+  .l4-card:nth-child(3) {
+    transform: none;
+  }
+
+  .l4-number-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .l4-day-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .l4-day-figure {
+    order: -1;
+  }
+
+  .l4-day-col:last-child .l4-step {
+    text-align: left;
+  }
+
+  .l4-day-col:last-child .l4-step p {
+    margin-left: 0;
+  }
+
+  .l4-footer {
+    flex-direction: column;
+    gap: 10px;
   }
 }
