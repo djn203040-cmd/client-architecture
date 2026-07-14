@@ -140,8 +140,8 @@ export default function LandingHero() {
 
         <nav className="l4-nav" aria-label="Landing">
           <span className="l4-wordmark">The Client Architecture</span>
-          <a className="l4-nav-cta" href="#book">
-            Book a call
+          <a className="l4-nav-cta" href="/login">
+            Login
           </a>
         </nav>
 
