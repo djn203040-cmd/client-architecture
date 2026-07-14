@@ -38,8 +38,13 @@ export function ProfileForm({ coach }: Props) {
   const t = useDictionary();
   const [displayName, setDisplayName] = useState(coach.display_name ?? coach.name ?? "");
   const [roleTitle, setRoleTitle] = useState(coach.role_title ?? "");
-  const [timezone, setTimezone] = useState(
-    coach.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
+  // Browser-dependent values (resolved zone, supported-zone list) must not be
+  // computed during render: SSR resolves the server's zone and Node's zone list,
+  // which mismatches the browser's and breaks hydration. Start deterministic,
+  // resolve in the mount effect below.
+  const [timezone, setTimezone] = useState(coach.timezone ?? "");
+  const [tzOptions, setTzOptions] = useState<string[]>(
+    coach.timezone ? [coach.timezone] : [],
   );
   const [workStart, setWorkStart] = useState(coach.working_hours?.start ?? "09:00");
   const [workEnd, setWorkEnd] = useState(coach.working_hours?.end ?? "18:00");
@@ -53,16 +58,16 @@ export function ProfileForm({ coach }: Props) {
   useAutosave(roleTitle, (v) => patchProfile({ role_title: v || null }));
   useAutosave(timezone, (v) => patchProfile({ timezone: v }));
 
-  // First-load backstop: onboarding (WizardShell → TimezoneCapture) already
-  // captures the browser zone on the coach's first step. This covers the edge
-  // case of a coach whose zone is still null by the time they reach Settings, 
-  // the autosave hook skips the picker's pre-filled value on initial render, so
-  // persist it once here rather than leaving them on the launch-default zone.
+  // Resolve browser-dependent values after mount (see comment on the timezone
+  // state above). First-load backstop: onboarding (WizardShell → TimezoneCapture)
+  // already captures the browser zone on the coach's first step; this covers the
+  // edge case of a coach whose zone is still null by the time they reach
+  // Settings — setTimezone here is a post-mount change, so the autosave hook
+  // picks it up and persists it.
   useEffect(() => {
+    setTzOptions(Intl.supportedValuesOf("timeZone"));
     if (!coach.timezone) {
-      patchProfile({
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      }).catch(() => {});
+      setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
     }
   }, [coach.timezone]);
   useAutosave(signature, (v) => patchProfile({ email_signature: v || null }));
@@ -154,7 +159,12 @@ export function ProfileForm({ coach }: Props) {
           onChange={(e) => setTimezone(e.target.value)}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         >
-          {Intl.supportedValuesOf("timeZone").map((tz) => (
+          {/* Keep the stored zone selectable even if this browser's supported
+              list doesn't include it. */}
+          {(timezone && !tzOptions.includes(timezone)
+            ? [timezone, ...tzOptions]
+            : tzOptions
+          ).map((tz) => (
             <option key={tz} value={tz}>{tz}</option>
           ))}
         </select>
