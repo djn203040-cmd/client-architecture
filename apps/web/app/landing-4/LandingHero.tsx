@@ -13,10 +13,6 @@ const FRAME_H = 1490;
 /** Scroll progress range mapped onto the frame sequence (holds at both ends). */
 const SCRUB_START = 0.06;
 const SCRUB_END = 0.88;
-/** Canvas rests oversized, easing back to 1 as the explosion needs headroom. */
-const SCALE_MAX = 1.3;
-
-const smoothstep = (x: number) => x * x * (3 - 2 * x);
 
 export default function LandingHero() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -85,8 +81,6 @@ export default function LandingHero() {
         Math.floor(t * TOTAL_FRAMES),
         TOTAL_FRAMES - 1
       );
-      const settle = smoothstep(Math.min(progress / 0.5, 1));
-      canvas.style.transform = `scale(${SCALE_MAX - (SCALE_MAX - 1) * settle})`;
       if (hintRef.current) {
         hintRef.current.style.opacity = progress > 0.04 ? "0" : "1";
       }

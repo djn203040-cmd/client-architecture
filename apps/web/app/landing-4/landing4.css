@@ -89,16 +89,18 @@
   z-index: 2;
   display: flex;
   justify-content: flex-end;
+  align-items: flex-end;
   pointer-events: none;
 }
 
 .l4-canvas {
   display: block;
-  height: 100vh;
+  /* Constant, slightly oversized: bottom-anchored so the log stays grounded
+     while the frame's empty top headroom overflows above the viewport —
+     the plane's final position still clears the fold. */
+  height: 108vh;
   width: auto;
   aspect-ratio: 1200 / 1490;
-  transform-origin: 100% 82%;
-  will-change: transform;
 }
 
 /* ---------- Nav ---------- */
