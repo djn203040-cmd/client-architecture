@@ -116,8 +116,10 @@ function GmailChip({ status }: { status: IntegrationStatus | null }) {
       </span>
     );
   }
+  // Not bg-secondary: --secondary aliases --primary-soft (green), which made
+  // this pill read as Connected at a glance on the roster.
   return (
-    <span className="text-xs px-2 py-1 rounded-md bg-secondary text-secondary-foreground">
+    <span className="text-xs px-2 py-1 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400">
       Disconnected
     </span>
   );

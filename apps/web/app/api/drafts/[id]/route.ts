@@ -173,11 +173,21 @@ export async function DELETE(
 
   // Wind down side effects while the row still exists: cancel any sleeping
   // Inngest timers (cancelOn consumers exit on this event) and retire the
-  // Slack buttons (the sync needs the draft to resolve its message).
-  await inngest.send({
-    name: "draft/cancelled",
-    data: { draftId: id, coachId: draft.coach_id },
-  });
+  // Slack buttons (the sync resolves its message via notification_log.draft_id,
+  // which the delete nulls). Both are best-effort: an Inngest outage must not
+  // block the delete, and a lost cancellation is backstopped by the post-sleep
+  // eligibility re-check (a missing draft/lead self-cancels the run).
+  try {
+    await inngest.send({
+      name: "draft/cancelled",
+      data: { draftId: id, coachId: draft.coach_id },
+    });
+  } catch (err) {
+    console.error("[drafts/delete] inngest cancel event failed (delete proceeds)", {
+      draftId: id,
+      reason: err instanceof Error ? err.message : "unknown",
+    });
+  }
   await syncSlackDraftMessage({ draftId: id, coachId: draft.coach_id, state: "cancelled" });
 
   const { error } = await adminClient.from("drafts").delete().eq("id", id);
