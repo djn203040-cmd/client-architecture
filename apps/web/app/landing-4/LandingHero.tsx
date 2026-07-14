@@ -121,6 +121,14 @@ export default function LandingHero() {
       )}
 
       <div className="l4-sticky">
+        <div className="l4-stage">
+          <canvas
+            ref={canvasRef}
+            className="l4-canvas"
+            aria-label="A laptop resting on a branch; its interface lifts off the screen as you scroll"
+          />
+        </div>
+
         <div className="l4-grid">
           <header className="l4-copy">
             <p className="l4-eyebrow">The Client Architecture</p>
@@ -139,14 +147,6 @@ export default function LandingHero() {
               </a>
             </div>
           </header>
-
-          <div className="l4-stage">
-            <canvas
-              ref={canvasRef}
-              className="l4-canvas"
-              aria-label="A laptop resting on a branch; its interface lifts off the screen as you scroll"
-            />
-          </div>
         </div>
 
         <div className="l4-hint" ref={hintRef} aria-hidden="true">

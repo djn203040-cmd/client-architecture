@@ -14,12 +14,7 @@
   --l4-ember: #b45a2b;
   --l4-ember-soft: #c96f3b;
 
-  background: radial-gradient(
-    130% 110% at 68% 38%,
-    var(--l4-bg-light) 0%,
-    var(--l4-bg) 55%,
-    var(--l4-bg-deep) 100%
-  );
+  background: #ede2cf;
   color: var(--l4-ink);
   font-family: var(--font-sans);
   overflow-x: clip;
@@ -36,9 +31,23 @@
   top: 0;
   height: 100vh;
   overflow: hidden;
+  /* Vertical gradient sampled from the frame sequence's own left-edge pixels so
+     the full-bleed canvas sits seamlessly against the page with no masking.
+     Must live on the 100vh sticky viewport, not the 420vh runway. */
+  background: linear-gradient(
+    to bottom,
+    #ddcdb5 0%,
+    #eedfcb 24%,
+    #efe2d0 47%,
+    #f0e8d6 70%,
+    #efe4d1 94%,
+    #ede2cf 100%
+  );
 }
 
 .l4-grid {
+  position: relative;
+  z-index: 2;
   height: 100%;
   margin: 0 auto;
   max-width: min(1340px, calc(100vw - 48px));
@@ -46,6 +55,11 @@
   grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
   align-items: center;
   gap: 24px;
+  pointer-events: none;
+}
+
+.l4-copy {
+  pointer-events: auto;
 }
 
 /* ---------- Copy column ---------- */
@@ -107,32 +121,20 @@
   box-shadow: 0 20px 40px -14px rgb(20 40 31 / 60%);
 }
 
-/* ---------- Canvas stage ---------- */
+/* ---------- Canvas stage (full-bleed, pinned to the right edge) ---------- */
 .l4-stage {
-  height: 100%;
-  display: grid;
-  place-items: center;
-  min-width: 0;
+  position: absolute;
+  inset: 0 0 0 auto;
+  z-index: 1;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .l4-canvas {
   display: block;
+  height: 100vh;
   width: auto;
-  height: min(94vh, 100%);
-  max-width: 100%;
   aspect-ratio: 1200 / 1490;
-  object-fit: contain;
-  /* Feather edges into the page gradient so the frames sit borderless */
-  -webkit-mask-image: radial-gradient(
-    ellipse 72% 66% at 50% 50%,
-    black 50%,
-    transparent 88%
-  );
-  mask-image: radial-gradient(
-    ellipse 72% 66% at 50% 50%,
-    black 50%,
-    transparent 88%
-  );
 }
 
 /* ---------- Scroll hint ---------- */
@@ -222,10 +224,8 @@
 @media (max-width: 900px) {
   .l4-grid {
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
     align-items: start;
-    padding-top: 12vh;
-    gap: 8px;
+    padding-top: 11vh;
   }
 
   .l4-copy {
@@ -242,11 +242,10 @@
   }
 
   .l4-stage {
-    align-self: stretch;
+    align-items: flex-end;
   }
 
   .l4-canvas {
-    height: 100%;
-    max-height: 52vh;
+    height: 56vh;
   }
 }
