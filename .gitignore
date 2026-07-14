@@ -65,7 +65,9 @@ supabase/.temp/
 /apps/web/app/landing/
 /apps/web/app/landing-2/
 /apps/web/app/landing-3/
-/apps/web/public/
+# Public assets stay local except the shipped landing page frames
+/apps/web/public/*
+!/apps/web/public/landing-4/
 
 # Local Supabase CLI branch state (per-machine, never shared)
 supabase/.branches/
