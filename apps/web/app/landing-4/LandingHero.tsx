@@ -14,7 +14,7 @@ const FRAME_H = 1490;
 const SCRUB_START = 0.06;
 const SCRUB_END = 0.88;
 /** Canvas rests oversized, easing back to 1 as the explosion needs headroom. */
-const SCALE_MAX = 1.16;
+const SCALE_MAX = 1.3;
 
 const smoothstep = (x: number) => x * x * (3 - 2 * x);
 
@@ -96,6 +96,8 @@ export default function LandingHero() {
     const tick = () => {
       const frame = framesRef.current[currentFrameRef.current];
       if (frame && currentFrameRef.current !== drawnFrameRef.current) {
+        // Frames carry alpha now — clear or the previous frame ghosts through.
+        ctx.clearRect(0, 0, FRAME_W, FRAME_H);
         ctx.drawImage(frame, 0, 0, FRAME_W, FRAME_H);
         drawnFrameRef.current = currentFrameRef.current;
       }

@@ -83,14 +83,13 @@
 .l4-stage {
   position: absolute;
   inset: 0 0 0 auto;
+  /* Above the ghost headline AND the front copy: the frames are true alpha
+     cutouts, so the explosion flies over the text while transparent areas
+     leave it fully readable. Nav (z3) stays on top. */
+  z-index: 2;
   display: flex;
   justify-content: flex-end;
   pointer-events: none;
-  /* Lets the ghost type show through the cream while the laptop, branch and
-     dark screen correctly occlude it — real layering without alpha frames.
-     Must sit on the stage (not the canvas): the blend needs the ghost text in
-     its backdrop, and a z-indexed child would only blend inside the stage. */
-  mix-blend-mode: darken;
 }
 
 .l4-canvas {
@@ -142,7 +141,7 @@
 /* ---------- Front copy ---------- */
 .l4-grid {
   position: relative;
-  z-index: 2;
+  z-index: 1;
   height: 100%;
   margin: 0 auto;
   max-width: min(1340px, calc(100vw - 48px));
@@ -499,9 +498,7 @@
 
 .l4-day-figure {
   margin: 0;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 40px 80px -40px rgb(20 40 31 / 45%);
+  filter: drop-shadow(0 40px 50px rgb(20 40 31 / 30%));
 }
 
 .l4-day-figure img {
