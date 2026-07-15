@@ -78,11 +78,39 @@ export const tour = defineMessages({
       },
       settings: {
         title: "Your voice, your rules",
-        body: "Teach the AI your voice, connect Gmail and your calendar, choose how hands-off you want to be, and set where we notify you. It's all here whenever you need it.",
+        body: "You set most of this up during onboarding, but everything stays changeable. Let me point out where each piece lives, for the day you want to adjust something.",
+      },
+      "settings-notifications": {
+        title: "Choose where we ping you",
+        body: "When a draft is ready or a lead replies, you get a heads-up. Decide here which alerts reach you and where, email, Slack, or WhatsApp, so the system finds you where you actually look.",
+      },
+      "settings-autonomous": {
+        title: "Decide how much runs on its own",
+        body: "The trust dial. Approve every draft yourself, let unreviewed drafts send themselves after their 24-hour window, or go fully hands-off. You picked a mode during onboarding, and this is where you change your mind as trust grows.",
+      },
+      "settings-voice": {
+        title: "Your voice profile lives here",
+        body: "Everything the AI writes is shaped by this: your tone, your go-to phrases, and real examples of how you write. It was built during onboarding, but it isn't locked, if your style evolves or something reads off, adjust it here.",
       },
       "voice-refine": {
         title: "It learns when a draft sounds off",
         body: "The AI writes in your voice, and it keeps getting closer. If a draft ever sounds slightly not-you, paste it here with a quick note on what's wrong. It turns that into a rule every future draft follows, so it sounds more like you the more you use it.",
+      },
+      "settings-sales": {
+        title: "How you sell, on record",
+        body: "Your sales approach, your programs and pricing, and how you bridge objections. When a lead hesitates, the AI draws on all of this to respond the way you would. Keep it current whenever your offers change.",
+      },
+      "settings-calendar": {
+        title: "Where new leads come from",
+        body: "Your booking calendar feeds leads in automatically the moment a call is booked. If you ever switch booking tools, or a connection needs a nudge, this is where you fix it.",
+      },
+      "settings-integrations": {
+        title: "One glance at the plumbing",
+        body: "Gmail sends every follow-up as you and pulls replies back in. This panel shows the health of each connection, and if anything ever shows as disconnected, one click here brings it back.",
+      },
+      feedback: {
+        title: "This megaphone shapes the product",
+        body: "One last thing, and it matters. This button follows you on every page. Something confusing, broken, or brilliant? Open it, write a line or two, hit send. It lands directly with us, along with the page you were on. It's the fastest way to make this fit you better, so use it freely.",
       },
       done: {
         title: "That's the whole tour",
@@ -164,11 +192,39 @@ export const tour = defineMessages({
       },
       settings: {
         title: "Din stemme, dine regler",
-        body: "Lær AI'en din stemme, forbind Gmail og din kalender, vælg hvor meget du selv vil røre ved, og bestem hvor vi giver dig besked. Det hele ligger her, når du får brug for det.",
+        body: "Det meste her satte du op under opsætningen, men alt kan ændres. Lad mig vise dig, hvor hver del bor, til den dag du vil justere noget.",
+      },
+      "settings-notifications": {
+        title: "Vælg, hvor vi giver dig besked",
+        body: "Når et udkast er klar, eller et lead svarer, får du besked. Her bestemmer du, hvilke beskeder der når dig, og hvor, mail, Slack eller WhatsApp, så systemet fanger dig der, hvor du faktisk kigger.",
+      },
+      "settings-autonomous": {
+        title: "Bestem, hvor meget der kører af sig selv",
+        body: "Tillidsknappen. Godkend hvert udkast selv, lad ugennemsete udkast sende sig selv efter deres 24-timers vindue, eller slip tøjlerne helt. Du valgte en tilstand under opsætningen, og det er her, du ombestemmer dig, efterhånden som tilliden vokser.",
+      },
+      "settings-voice": {
+        title: "Din stemmeprofil bor her",
+        body: "Alt, hvad AI'en skriver, er formet af det her: din tone, dine faste vendinger og rigtige eksempler på, hvordan du skriver. Den blev bygget under opsætningen, men den er ikke låst, udvikler din stil sig, eller lyder noget forkert, justerer du den her.",
       },
       "voice-refine": {
         title: "Den lærer, når et udkast lyder forkert",
         body: "AI'en skriver i din stemme, og den rammer tættere og tættere. Hvis et udkast nogensinde lyder en anelse ikke-dig, indsæt det her med en kort note om, hvad der er galt. Den laver det om til en regel, som alle fremtidige udkast følger, så det lyder mere som dig, jo mere du bruger det.",
+      },
+      "settings-sales": {
+        title: "Sådan sælger du, sort på hvidt",
+        body: "Din salgstilgang, dine programmer og priser, og hvordan du bygger bro over indvendinger. Når et lead tøver, trækker AI'en på alt det her for at svare, som du ville gøre det. Hold det opdateret, når dine tilbud ændrer sig.",
+      },
+      "settings-calendar": {
+        title: "Her kommer nye leads fra",
+        body: "Din bookingkalender sender leads ind automatisk, i samme øjeblik en samtale bliver booket. Skifter du bookingværktøj, eller skal en forbindelse have et puf, er det her, du ordner det.",
+      },
+      "settings-integrations": {
+        title: "Ét blik på maskinrummet",
+        body: "Gmail sender hver opfølgning som dig og henter svar tilbage ind. Panelet her viser, hvordan hver forbindelse har det, og står noget som afbrudt, henter ét klik den tilbage.",
+      },
+      feedback: {
+        title: "Megafonen her former produktet",
+        body: "Én sidste ting, og den er vigtig. Knappen her følger med dig på alle sider. Noget forvirrende, noget i stykker eller noget genialt? Åbn den, skriv et par linjer og send. Det lander direkte hos os, sammen med hvilken side du stod på. Det er den hurtigste vej til, at det her passer bedre til dig, så brug den flittigt.",
       },
       done: {
         title: "Det var hele rundvisningen",

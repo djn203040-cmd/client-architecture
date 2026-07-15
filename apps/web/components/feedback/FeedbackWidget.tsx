@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CreateFeedbackSchema, type TFeedbackSentiment } from "@client/shared/validators";
+import { TOUR_ANCHOR } from "@/lib/tour/anchors";
 import { useDictionary } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 
@@ -70,6 +71,7 @@ export function FeedbackWidget() {
       <PopoverTrigger asChild>
         <button
           type="button"
+          data-tour={TOUR_ANCHOR.feedbackButton}
           aria-label={t.buttonLabel}
           title={t.buttonLabel}
           className="fixed right-4 bottom-20 z-40 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none lg:right-6 lg:bottom-6"

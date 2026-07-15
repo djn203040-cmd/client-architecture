@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getServerDictionary } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { TOUR_ANCHOR } from "@/lib/tour/anchors";
 import { SettingsNav } from "@/components/settings/SettingsNav";
 import { ProfileSection } from "@/components/settings/ProfileSection";
 import { NotificationsSection } from "@/components/settings/NotificationsSection";
@@ -82,26 +83,26 @@ export default async function SettingsPage({
         <ProfileSection coach={coach} />
       </section>
 
-      <section id="notifications" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+      <section id="notifications" data-tour={TOUR_ANCHOR.settingsNotifications} className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <NotificationsSection
           prefs={prefsRes.data ?? []}
           integrations={integrationsRes.data ?? []}
         />
       </section>
 
-      <section id="autonomous" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+      <section id="autonomous" data-tour={TOUR_ANCHOR.settingsAutonomous} className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <AutonomousSection autonomousMode={coach.autonomous_mode} />
       </section>
 
-      <section id="voice" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+      <section id="voice" data-tour={TOUR_ANCHOR.settingsVoice} className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <VoiceSection voiceModel={initialVoiceModel} />
       </section>
 
-      <section id="sales" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+      <section id="sales" data-tour={TOUR_ANCHOR.settingsSales} className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <SalesToolkitSection salesToolkit={coach.sales_toolkit} />
       </section>
 
-      <section id="calendar" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+      <section id="calendar" data-tour={TOUR_ANCHOR.settingsCalendar} className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <CalendarSection
           activeProvider={(coach.active_calendar_provider as CalendarProviderId | null) ?? null}
           integrations={integrationsRes.data ?? []}
@@ -115,7 +116,7 @@ export default async function SettingsPage({
         />
       </section>
 
-      <section id="integrations" className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+      <section id="integrations" data-tour={TOUR_ANCHOR.settingsIntegrations} className="scroll-mt-24 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <IntegrationsSection integrations={integrationsRes.data ?? []} />
       </section>
 
