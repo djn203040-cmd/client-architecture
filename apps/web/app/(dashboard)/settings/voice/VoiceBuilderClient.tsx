@@ -15,9 +15,13 @@ type State = "idle" | "analyzing" | "complete";
 export function VoiceBuilderClient({
   initialVoiceModel,
   onSaved,
+  variant = "settings",
 }: {
   initialVoiceModel: TVoiceProfile | null;
   onSaved?: (profile: TVoiceProfile) => void;
+  // "onboarding" auto-saves the profile the moment analysis completes, so a
+  // coach who never spots the Save button still clears the 8-example gate.
+  variant?: "settings" | "onboarding";
 }) {
   const t = useDictionary();
   const [state, setState] = useState<State>(initialVoiceModel ? "complete" : "idle");
@@ -27,6 +31,15 @@ export function VoiceBuilderClient({
   async function onAnalyzed(result: TVoiceProfile) {
     setProfile(result);
     setState("complete");
+    if (variant === "onboarding") {
+      const r = await fetch("/api/voice/save", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(result),
+      });
+      // Silent on failure: the Save button below remains the manual fallback.
+      if (r.ok) onSaved?.(result);
+    }
   }
 
   function onReanalyze() {
@@ -113,6 +126,7 @@ export function VoiceBuilderClient({
         onAnalyzed={onAnalyzed}
         onAnalyzing={() => setState("analyzing")}
         isAnalyzing={state === "analyzing"}
+        variant={variant}
       />
 
       {state === "complete" && profile && (

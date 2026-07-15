@@ -21,7 +21,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { Plus, Trash, Check, Info } from "@phosphor-icons/react";
+import { Plus, Trash, Check, Info, CaretDown, CaretRight } from "@phosphor-icons/react";
 
 interface Props {
   initial: TSalesToolkit;
@@ -29,6 +29,10 @@ interface Props {
   // during onboarding (not something a coach should do at setup), on in Settings
   // (the "down the line" place to tweak it). Defaults to off.
   showApproachOverride?: boolean;
+  // "onboarding" keeps only the style picker in view and tucks everything else
+  // (philosophy, packages, bridges, downsells, leverage) behind a collapsed
+  // "add your programs & offers" section, so the step reads as one decision.
+  variant?: "settings" | "onboarding";
 }
 
 const EMPTY_PACKAGE: TSalesPackage = {
@@ -329,9 +333,11 @@ function PackageListEditor({
   );
 }
 
-export function SalesToolkitForm({ initial, showApproachOverride = false }: Props) {
+export function SalesToolkitForm({ initial, showApproachOverride = false, variant = "settings" }: Props) {
   const t = useDictionary();
   const st = t.settings.salesToolkit;
+  const isOnboarding = variant === "onboarding";
+  const [showDetails, setShowDetails] = useState(false);
   const [salesStyle, setSalesStyle] = useState<TSalesStyle | null>(initial.sales_style);
   const [philosophy, setPhilosophy] = useState(initial.philosophy);
   const [approachOverride, setApproachOverride] = useState(initial.approach_override);
@@ -372,10 +378,8 @@ export function SalesToolkitForm({ initial, showApproachOverride = false }: Prop
 
   useAutosave(toolkit, patchToolkit);
 
-  return (
-    <div className="space-y-6">
-      <StylePicker value={salesStyle} onChange={setSalesStyle} />
-
+  const details = (
+    <>
       <div className="space-y-1.5">
         <Label htmlFor="st-philosophy">{st.philosophyLabel}</Label>
         <p className="text-xs text-muted-foreground max-w-[65ch]">
@@ -431,6 +435,43 @@ export function SalesToolkitForm({ initial, showApproachOverride = false }: Prop
         />
         <p className="text-xs text-muted-foreground text-right">{leveragePoints.length}/1500</p>
       </div>
+    </>
+  );
+
+  return (
+    <div className="space-y-6">
+      <StylePicker value={salesStyle} onChange={setSalesStyle} />
+
+      {isOnboarding ? (
+        <div className="rounded-2xl border border-border p-4 space-y-6">
+          <button
+            type="button"
+            onClick={() => setShowDetails((s) => !s)}
+            aria-expanded={showDetails}
+            className="flex w-full items-center gap-2 text-left"
+          >
+            {showDetails ? (
+              <CaretDown weight="bold" className="size-3.5 text-muted-foreground shrink-0" />
+            ) : (
+              <CaretRight weight="bold" className="size-3.5 text-muted-foreground shrink-0" />
+            )}
+            <span className="text-sm font-medium">{st.detailsTitle}</span>
+            <span className="text-[10px] uppercase tracking-wide font-medium rounded-full px-2 py-0.5 bg-secondary text-secondary-foreground shrink-0">
+              {st.detailsBadge}
+            </span>
+          </button>
+          {showDetails && (
+            <>
+              <p className="text-xs text-muted-foreground leading-relaxed -mt-3">
+                {st.detailsHint}
+              </p>
+              {details}
+            </>
+          )}
+        </div>
+      ) : (
+        details
+      )}
 
       {showApproachOverride && (
         <div className="space-y-1.5 rounded-xl border border-white/10 bg-white/5 p-4">

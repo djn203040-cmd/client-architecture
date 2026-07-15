@@ -112,6 +112,22 @@ export const settingsAdvanced = defineMessages({
         chars: (n: string) => `${n} chars`,
         uploadFiles: (ext: string) => `Upload ${ext} files`,
         uploadHint: "Select one or many, successive uploads add to what's already here.",
+        importCardTitle: "Build it from your sent emails",
+        importCardBadge: "Easiest",
+        importCardBody:
+          "We read emails you've already sent from your connected Gmail and learn how you write. We only read — nothing is sent or changed.",
+        importButton: "Use my sent emails",
+        importing: "Reading your sent emails…",
+        importFailed:
+          "We couldn't read your sent emails. Try again, or paste some messages below instead.",
+        importTooFew:
+          "We couldn't find enough sent emails to learn from. Paste some messages below instead.",
+        imported: (n: number) =>
+          `Found ${n} emails you've written. Now analyzing your writing…`,
+        moreContextTitle: "Give the voice more context",
+        moreContextBadge: "Recommended",
+        moreContextHint:
+          "Add messages from other places you write — LinkedIn, Instagram, WhatsApp — and the voice gets even closer to you.",
       },
     },
     autonomous: {
@@ -145,8 +161,8 @@ export const settingsAdvanced = defineMessages({
         eventDraftReady: "Draft ready",
         eventLeadReplied: "Lead replied",
         eventCallOutcome: "Call outcome needed",
-        eventIntegrationBroken: "Integration broken",
-        eventHardBounce: "Hard bounce",
+        eventIntegrationBroken: "A connection stopped working",
+        eventHardBounce: "Email couldn't be delivered",
         channelDashboard: "Dashboard",
         channelEmail: "Email",
         channelSlack: "Slack",
@@ -175,6 +191,8 @@ export const settingsAdvanced = defineMessages({
           `${provider} sign-in isn't configured on our end yet. Set`,
         andThen: "and",
         inYourEnv: "in your env, then restart the dev server.",
+        notConfiguredFriendly: (provider: string) =>
+          `${provider} sign-in isn't ready on our side yet. Skip this step — Daniel will set it up with you.`,
       },
       apiKeyForm: {
         invalidKey: "That key didn't work, double-check it and try again.",
@@ -317,6 +335,22 @@ export const settingsAdvanced = defineMessages({
         chars: (n: string) => `${n} tegn`,
         uploadFiles: (ext: string) => `Upload ${ext}-filer`,
         uploadHint: "Vælg en eller flere — nye uploads lægges oven i det, der allerede er her.",
+        importCardTitle: "Byg den ud fra dine sendte e-mails",
+        importCardBadge: "Nemmest",
+        importCardBody:
+          "Vi læser e-mails, du allerede har sendt fra din forbundne Gmail, og lærer, hvordan du skriver. Vi læser kun — intet sendes eller ændres.",
+        importButton: "Brug mine sendte e-mails",
+        importing: "Læser dine sendte e-mails…",
+        importFailed:
+          "Vi kunne ikke læse dine sendte e-mails. Prøv igen, eller indsæt nogle beskeder nedenfor i stedet.",
+        importTooFew:
+          "Vi fandt ikke nok sendte e-mails at lære af. Indsæt nogle beskeder nedenfor i stedet.",
+        imported: (n: number) =>
+          `Fandt ${n} e-mails, du har skrevet. Analyserer nu din skrivning…`,
+        moreContextTitle: "Giv stemmen mere kontekst",
+        moreContextBadge: "Anbefales",
+        moreContextHint:
+          "Tilføj beskeder fra andre steder, du skriver — LinkedIn, Instagram, WhatsApp — så rammer stemmen dig endnu bedre.",
       },
     },
     autonomous: {
@@ -350,8 +384,8 @@ export const settingsAdvanced = defineMessages({
         eventDraftReady: "Udkast klar",
         eventLeadReplied: "Lead har svaret",
         eventCallOutcome: "Samtaleudfald mangler",
-        eventIntegrationBroken: "Integration nede",
-        eventHardBounce: "Hård afvisning",
+        eventIntegrationBroken: "En forbindelse virker ikke længere",
+        eventHardBounce: "E-mail kunne ikke leveres",
         channelDashboard: "Overblik",
         channelEmail: "E-mail",
         channelSlack: "Slack",
@@ -380,6 +414,8 @@ export const settingsAdvanced = defineMessages({
           `Login med ${provider} er ikke sat op hos os endnu. Angiv`,
         andThen: "og",
         inYourEnv: "i dit env, og genstart så udviklingsserveren.",
+        notConfiguredFriendly: (provider: string) =>
+          `Login med ${provider} er ikke klar hos os endnu. Spring dette trin over — Daniel sætter det op sammen med dig.`,
       },
       apiKeyForm: {
         invalidKey: "Den nøgle virkede ikke — tjek den, og prøv igen.",

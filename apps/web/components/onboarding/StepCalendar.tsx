@@ -7,13 +7,16 @@ import { ProviderCard } from "@/components/calendar/ProviderCard";
 import { ConnectButton } from "@/components/calendar/ConnectButton";
 import { ApiKeyForm } from "@/components/calendar/ApiKeyForm";
 import { WebhookSetupPanel } from "@/components/calendar/WebhookSetupPanel";
-import {
-  CALENDAR_PROVIDER_IDS,
-  CALENDAR_PROVIDERS,
-  type CalendarProviderId,
-} from "@/lib/calendar/providers";
+import { CALENDAR_PROVIDERS, type CalendarProviderId } from "@/lib/calendar/providers";
 import { toast } from "sonner";
 import { useDictionary } from "@/lib/i18n/provider";
+import { completeStep, nextRoute, advanceErrorMessage } from "./completeStep";
+import { VideoLink } from "./VideoLink";
+
+// Onboarding shows only the two tools Daniel supports hands-off (both register
+// their webhook automatically, so connecting really is a couple of clicks).
+// Everything else lives in Settings, or Daniel sets it up with the coach.
+const ONBOARDING_PROVIDERS: CalendarProviderId[] = ["calendly", "cal_com"];
 
 interface Props {
   // Provider currently connected for this coach, if any.
@@ -35,21 +38,16 @@ export function StepCalendar({ activeProvider, oauthConfigured }: Props) {
   async function advance(skip: boolean) {
     setAdvancing(true);
     try {
-      const advanceRes = await fetch("/api/onboarding/complete-step", {
-        method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ step: "calendar" }),
-      });
-      if (!advanceRes.ok) {
-        const body = (await advanceRes.json().catch(() => ({}))) as { error?: string };
-        toast.error(body.error ?? t.onboarding.calendar.advanceFailed);
+      const res = await completeStep("calendar");
+      if (!res.ok) {
+        toast.error(advanceErrorMessage(res, t.onboarding.errors, t.onboarding.calendar.advanceFailed));
         return;
       }
       if (skip) {
         toast.message(t.onboarding.calendar.skippedToast);
       }
       router.refresh();
-      router.push("/onboarding/voice" as never);
+      router.push(nextRoute("calendar", res.completed) as never);
     } finally {
       setAdvancing(false);
     }
@@ -61,8 +59,8 @@ export function StepCalendar({ activeProvider, oauthConfigured }: Props) {
         {t.onboarding.calendar.intro}
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {CALENDAR_PROVIDER_IDS.map((id) => {
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {ONBOARDING_PROVIDERS.map((id) => {
           const config = CALENDAR_PROVIDERS[id];
           return (
             <ProviderCard
@@ -79,9 +77,12 @@ export function StepCalendar({ activeProvider, oauthConfigured }: Props) {
 
       {selectedConfig && !isConnected && (
         <div className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-4">
-          <div>
-            <h3 className="text-sm font-semibold">{selectedConfig.label}</h3>
-            <p className="text-xs text-muted-foreground mt-1">{selectedConfig.shortDescription}</p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold">{selectedConfig.label}</h3>
+              <p className="text-xs text-muted-foreground mt-1">{selectedConfig.shortDescription}</p>
+            </div>
+            <VideoLink videoKey={selectedConfig.id === "cal_com" ? "calcomApiKey" : "calendarConnect"} />
           </div>
 
           {selectedConfig.authType === "oauth2" ? (
@@ -108,6 +109,10 @@ export function StepCalendar({ activeProvider, oauthConfigured }: Props) {
           <WebhookSetupPanel providerId={selectedConfig.id} />
         </div>
       )}
+
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        {t.onboarding.calendar.otherTool}
+      </p>
 
       <div className="flex items-center justify-between pt-2">
         <Button variant="ghost" size="sm" onClick={() => advance(true)} disabled={advancing}>

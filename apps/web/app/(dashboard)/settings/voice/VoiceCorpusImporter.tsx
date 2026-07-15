@@ -2,7 +2,8 @@
 import { useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowsClockwise, ArrowsIn, ArrowsOut, ArrowCounterClockwise, CalendarBlank, Funnel, Upload, User } from "@phosphor-icons/react";
+import { ArrowsClockwise, ArrowsIn, ArrowsOut, ArrowCounterClockwise, CalendarBlank, CaretDown, CaretRight, EnvelopeSimple, Funnel, Upload, User } from "@phosphor-icons/react";
+import { VideoLink } from "@/components/onboarding/VideoLink";
 import { cn } from "@/lib/utils";
 import { useDictionary, useLocale } from "@/lib/i18n/provider";
 import { toDateLocale } from "@/lib/format/datetime";
@@ -76,14 +77,21 @@ export function VoiceCorpusImporter({
   onAnalyzed,
   onAnalyzing,
   isAnalyzing,
+  variant = "settings",
 }: {
   onAnalyzed: (profile: TVoiceProfile) => void;
   onAnalyzing: () => void;
   isAnalyzing: boolean;
+  // "onboarding" leads with the one-click sent-emails import and tucks the
+  // four paste/upload channels behind a "give the voice more context" section.
+  variant?: "settings" | "onboarding";
 }) {
   const t = useDictionary();
   const copy = t.settingsAdvanced.voice.corpusImporter;
+  const isOnboarding = variant === "onboarding";
   const [corpus, setCorpus] = useState<Corpus>({ gmail: "", linkedin: "", instagram: "", whatsapp: "" });
+  const [importing, setImporting] = useState(false);
+  const [showMoreContext, setShowMoreContext] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [preFilter, setPreFilter] = useState<Partial<Record<keyof Corpus, string>>>({});
   const [selfNames, setSelfNames] = useState<Record<keyof Corpus, string[]>>({
@@ -176,13 +184,13 @@ export function VoiceCorpusImporter({
     }
   }
 
-  async function analyze() {
+  async function analyze(corpusOverride?: Corpus) {
     onAnalyzing();
     try {
       const r = await fetch("/api/voice/analyze", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ corpus }),
+        body: JSON.stringify({ corpus: corpusOverride ?? corpus }),
       });
       if (!r.ok) {
         const data = await r.json().catch(() => ({}));
@@ -197,60 +205,156 @@ export function VoiceCorpusImporter({
     }
   }
 
+  // One click: pull the coach's sent emails server-side, drop them into the
+  // Gmail channel, and run the analysis immediately. No exports, no pasting.
+  async function importFromGmail() {
+    setImporting(true);
+    try {
+      const r = await fetch("/api/voice/import-gmail", { method: "POST" });
+      const data = (await r.json().catch(() => ({}))) as {
+        text?: string;
+        messageCount?: number;
+        code?: string;
+      };
+      if (!r.ok || !data.text) {
+        const { toast } = await import("sonner");
+        toast.error(data.code === "too_few" ? copy.importTooFew : copy.importFailed);
+        return;
+      }
+      const nextCorpus = { ...corpus, gmail: data.text };
+      setCorpus(nextCorpus);
+      const { toast } = await import("sonner");
+      toast.success(copy.imported(data.messageCount ?? 0));
+      setImporting(false);
+      await analyze(nextCorpus);
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  const channelCards = CHANNELS.map(({ key, accept, acceptLabel }) => {
+    const isExpanded = Boolean(expanded[key]);
+    return (
+      <ChannelCard
+        key={key}
+        channel={key}
+        label={channelLabel(copy, key)}
+        placeholder={channelPlaceholder(copy, key)}
+        accept={accept}
+        acceptLabel={acceptLabel}
+        value={corpus[key]}
+        isExpanded={isExpanded}
+        isAnalyzing={isAnalyzing}
+        selfNames={selfNames[key]}
+        dateWindow={dateWindow[key]}
+        isFiltered={key in preFilter}
+        onToggleExpanded={() => toggleExpanded(key)}
+        onChange={(v) => setChannel(key, v)}
+        onToggleSelf={(name) => toggleSelf(key, name)}
+        onSetWindow={(w) => setWindow(key, w)}
+        onApplyFilter={() => applyFilter(key)}
+        onRestoreOriginal={() => restoreOriginal(key)}
+        onPickFile={() => fileRefs.current[key]?.click()}
+        fileInputRef={(el) => { fileRefs.current[key] = el; }}
+        onFileChange={(files) => { if (files && files.length > 0) void handleFileUpload(key, files); }}
+      />
+    );
+  });
+
+  const analyzeBlock = hasContent && (
+    <div className="space-y-2">
+      <Button
+        className="min-h-[44px] w-full sm:w-auto gap-2"
+        onClick={() => void analyze()}
+        disabled={isAnalyzing || importing}
+      >
+        {isAnalyzing ? (
+          <>
+            <ArrowsClockwise weight="regular" className="size-4 animate-spin" />
+            {copy.analyzing}
+          </>
+        ) : (
+          copy.analyzeMyWriting
+        )}
+      </Button>
+      {isAnalyzing && (
+        <p className="text-xs text-muted-foreground leading-relaxed" role="status">
+          {copy.analyzeHint}
+        </p>
+      )}
+    </div>
+  );
+
+  if (!isOnboarding) {
+    return (
+      <div className="space-y-4">
+        {channelCards}
+        {analyzeBlock}
+      </div>
+    );
+  }
+
+  const busy = importing || isAnalyzing;
+
   return (
     <div className="space-y-4">
-      {CHANNELS.map(({ key, accept, acceptLabel }) => {
-        const isExpanded = Boolean(expanded[key]);
-        return (
-          <ChannelCard
-            key={key}
-            channel={key}
-            label={channelLabel(copy, key)}
-            placeholder={channelPlaceholder(copy, key)}
-            accept={accept}
-            acceptLabel={acceptLabel}
-            value={corpus[key]}
-            isExpanded={isExpanded}
-            isAnalyzing={isAnalyzing}
-            selfNames={selfNames[key]}
-            dateWindow={dateWindow[key]}
-            isFiltered={key in preFilter}
-            onToggleExpanded={() => toggleExpanded(key)}
-            onChange={(v) => setChannel(key, v)}
-            onToggleSelf={(name) => toggleSelf(key, name)}
-            onSetWindow={(w) => setWindow(key, w)}
-            onApplyFilter={() => applyFilter(key)}
-            onRestoreOriginal={() => restoreOriginal(key)}
-            onPickFile={() => fileRefs.current[key]?.click()}
-            fileInputRef={(el) => { fileRefs.current[key] = el; }}
-            onFileChange={(files) => { if (files && files.length > 0) void handleFileUpload(key, files); }}
-          />
-        );
-      })}
-
-      {hasContent && (
-        <div className="space-y-2">
-          <Button
-            className="min-h-[44px] w-full sm:w-auto gap-2"
-            onClick={analyze}
-            disabled={isAnalyzing}
-          >
-            {isAnalyzing ? (
-              <>
-                <ArrowsClockwise weight="regular" className="size-4 animate-spin" />
-                {copy.analyzing}
-              </>
-            ) : (
-              copy.analyzeMyWriting
-            )}
-          </Button>
-          {isAnalyzing && (
-            <p className="text-xs text-muted-foreground leading-relaxed" role="status">
-              {copy.analyzeHint}
-            </p>
-          )}
+      {/* One-click path: import sent emails and analyze in the same motion. */}
+      <div className="rounded-2xl border border-primary/30 bg-primary/5 p-6 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold">{copy.importCardTitle}</h3>
+          <span className="text-[10px] uppercase tracking-wide font-medium rounded-full px-2 py-0.5 bg-primary text-primary-foreground shrink-0">
+            {copy.importCardBadge}
+          </span>
         </div>
-      )}
+        <p className="text-xs text-muted-foreground leading-relaxed">{copy.importCardBody}</p>
+        <Button className="min-h-[44px] w-full gap-2" onClick={() => void importFromGmail()} disabled={busy}>
+          {busy ? (
+            <>
+              <ArrowsClockwise weight="regular" className="size-4 animate-spin" />
+              {importing ? copy.importing : copy.analyzing}
+            </>
+          ) : (
+            <>
+              <EnvelopeSimple weight="bold" className="size-4" />
+              {copy.importButton}
+            </>
+          )}
+        </Button>
+        {busy && (
+          <p className="text-xs text-muted-foreground leading-relaxed" role="status">
+            {importing ? copy.importing : copy.analyzeHint}
+          </p>
+        )}
+        <VideoLink videoKey="voiceImport" />
+      </div>
+
+      {/* Optional path: more channels for a closer voice match. */}
+      <div className="rounded-2xl border border-border p-4 space-y-4">
+        <button
+          type="button"
+          onClick={() => setShowMoreContext((s) => !s)}
+          aria-expanded={showMoreContext}
+          className="flex w-full items-center gap-2 text-left"
+        >
+          {showMoreContext ? (
+            <CaretDown weight="bold" className="size-3.5 text-muted-foreground shrink-0" />
+          ) : (
+            <CaretRight weight="bold" className="size-3.5 text-muted-foreground shrink-0" />
+          )}
+          <span className="text-sm font-medium">{copy.moreContextTitle}</span>
+          <span className="text-[10px] uppercase tracking-wide font-medium rounded-full px-2 py-0.5 bg-secondary text-secondary-foreground shrink-0">
+            {copy.moreContextBadge}
+          </span>
+        </button>
+        {showMoreContext && (
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground leading-relaxed">{copy.moreContextHint}</p>
+            <VideoLink videoKey="voiceMoreContext" />
+            {channelCards}
+            {analyzeBlock}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

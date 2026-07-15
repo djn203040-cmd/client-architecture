@@ -6,6 +6,7 @@ import { VoiceBuilderClient } from "@/app/(dashboard)/settings/voice/VoiceBuilde
 import { toast } from "sonner";
 import type { TVoiceProfile } from "@client/shared/validators";
 import { useDictionary } from "@/lib/i18n/provider";
+import { completeStep, nextRoute, advanceErrorMessage } from "./completeStep";
 
 interface Props {
   initialVoiceModel: TVoiceProfile | null;
@@ -25,17 +26,13 @@ export function StepVoice({ initialVoiceModel, initialExampleCount }: Props) {
   async function advance() {
     setAdvancing(true);
     try {
-      const r = await fetch("/api/onboarding/complete-step", {
-        method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ step: "voice" }),
-      });
-      if (!r.ok) {
-        const body = await r.json().catch(() => ({}));
-        toast.error(body.error ?? t.onboarding.voice.notComplete);
+      const res = await completeStep("voice");
+      if (!res.ok) {
+        toast.error(advanceErrorMessage(res, t.onboarding.errors, t.onboarding.voice.notComplete));
         return;
       }
-      router.push("/onboarding/first-lead" as never);
+      router.refresh();
+      router.push(nextRoute("voice", res.completed) as never);
     } finally {
       setAdvancing(false);
     }
@@ -61,7 +58,11 @@ export function StepVoice({ initialVoiceModel, initialExampleCount }: Props) {
         </span>
       </div>
 
-      <VoiceBuilderClient initialVoiceModel={initialVoiceModel} onSaved={onProfileSaved} />
+      <VoiceBuilderClient
+        initialVoiceModel={initialVoiceModel}
+        onSaved={onProfileSaved}
+        variant="onboarding"
+      />
 
       <div className="flex justify-end pt-2">
         <Button onClick={advance} disabled={!meetsMinimum || advancing} size="sm">

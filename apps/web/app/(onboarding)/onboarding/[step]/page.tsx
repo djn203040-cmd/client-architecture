@@ -4,6 +4,7 @@ import {
   OnboardingStepEnum,
   SalesToolkitSchema,
   EMPTY_SALES_TOOLKIT,
+  STEP_ORDER,
   type OnboardingProgress,
 } from "@client/shared/validators";
 import { coerceLanguage } from "@client/shared/validators";
@@ -49,8 +50,12 @@ export default async function OnboardingStepPage({ params }: Props) {
   const progress = (coach?.onboarding_progress ?? {}) as OnboardingProgress;
   const nextStep = nextIncompleteStep(progress);
 
-  // Prevent step skipping, redirect to the actual next step
-  if (nextStep && step !== nextStep) redirect(`/onboarding/${nextStep}` as never);
+  // Prevent skipping AHEAD (redirect to the actual next step), but allow
+  // revisiting completed steps so the wizard's Back button works. Progress
+  // completes in order, so any step at or before nextStep is safe ground.
+  if (nextStep && STEP_ORDER.indexOf(step) > STEP_ORDER.indexOf(nextStep)) {
+    redirect(`/onboarding/${nextStep}` as never);
+  }
 
   // All steps done but completed_at never got set (orphaned state), self-heal and exit.
   if (!nextStep) {
@@ -123,6 +128,7 @@ export default async function OnboardingStepPage({ params }: Props) {
       <StepNotifications
         initialPrefs={prefs ?? []}
         integrations={integrations ?? []}
+        coachEmail={user.email ?? ""}
       />
     );
   }

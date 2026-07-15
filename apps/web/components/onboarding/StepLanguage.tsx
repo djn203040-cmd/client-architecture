@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import type { TLanguage } from "@client/shared/validators";
+import { completeStep, nextRoute } from "./completeStep";
 
 interface Props {
   initialLanguage: TLanguage;
@@ -39,18 +40,13 @@ export function StepLanguage({ initialLanguage }: Props) {
         toast.error("Couldn't save your choice. Try again.");
         return;
       }
-      const advance = await fetch("/api/onboarding/complete-step", {
-        method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ step: "language" }),
-      });
+      const advance = await completeStep("language");
       if (!advance.ok) {
-        const body = await advance.json().catch(() => ({}));
-        toast.error(body.error ?? "Couldn't continue. Try again.");
+        toast.error(advance.error ?? "Couldn't continue. Try again.");
         return;
       }
       router.refresh();
-      router.push("/onboarding/gmail" as never);
+      router.push(nextRoute("language", advance.completed) as never);
     } finally {
       setSubmitting(false);
     }

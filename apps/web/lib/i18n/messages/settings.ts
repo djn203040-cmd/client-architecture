@@ -96,6 +96,10 @@ export const settings = defineMessages({
       stylePickerLabel: "How do you sell?",
       stylePickerHelper:
         "Pick the approach that sounds most like you. It shapes how the AI handles a lead who hesitates. You can change it any time.",
+      detailsTitle: "Add your programs & offers",
+      detailsBadge: "Recommended",
+      detailsHint:
+        "Used when a lead hesitates — so the AI can suggest the right program, price, or a smaller first step, the way you would. Everything in here is optional.",
       bestFor: "Best for:",
       exampleAria: (label: string) => `Example of how ${label} sounds`,
       inAction: (label: string) => `${label} in action`,
@@ -344,6 +348,10 @@ export const settings = defineMessages({
       stylePickerLabel: "Hvordan sælger du?",
       stylePickerHelper:
         "Vælg den tilgang, der ligner dig mest. Den styrer, hvordan AI'en håndterer et lead, der tøver. Du kan ændre det når som helst.",
+      detailsTitle: "Tilføj dine programmer og tilbud",
+      detailsBadge: "Anbefales",
+      detailsHint:
+        "Bruges når et lead tøver — så AI'en kan foreslå det rette program, den rette pris eller et mindre første skridt, som du selv ville. Alt herinde er valgfrit.",
       bestFor: "Bedst til:",
       exampleAria: (label: string) => `Eksempel på, hvordan ${label} lyder`,
       inAction: (label: string) => `${label} i praksis`,

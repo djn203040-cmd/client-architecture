@@ -9,7 +9,7 @@ interface Props {
   draftId: string;
   draftBody: string;
   leadName: string;
-  onApproved: (celebrationMessage: string) => void;
+  onApproved: () => void;
 }
 
 export function DemoLeadDraft({ draftId, draftBody, leadName, onApproved }: Props) {
@@ -29,8 +29,9 @@ export function DemoLeadDraft({ draftId, draftBody, leadName, onApproved }: Prop
         toast.error(body.error ?? t.onboarding.demoDraft.approveFailed);
         return;
       }
-      const { celebrationMessage } = await r.json();
-      onApproved(celebrationMessage);
+      // Celebration copy is localized client-side (t.onboarding.firstLead.celebration),
+      // the server's message is ignored.
+      onApproved();
     } finally {
       setApproving(false);
     }

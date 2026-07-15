@@ -29,7 +29,10 @@ export async function PATCH(req: NextRequest) {
       .eq("provider", "gmail")
       .maybeSingle();
     if (integ?.status !== "connected") {
-      return NextResponse.json({ error: "Gmail not connected" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Gmail not connected", code: "gmail_not_connected" },
+        { status: 409 },
+      );
     }
   }
 
@@ -41,7 +44,10 @@ export async function PATCH(req: NextRequest) {
       .single();
     const vm = coach?.voice_model as { selected_examples?: string[] } | null;
     if (!vm?.selected_examples || vm.selected_examples.length < 8) {
-      return NextResponse.json({ error: "Voice model requires at least 8 examples" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Voice model requires at least 8 examples", code: "voice_examples_min" },
+        { status: 409 },
+      );
     }
   }
 
@@ -54,7 +60,10 @@ export async function PATCH(req: NextRequest) {
       .eq("generation_context->>demo" as never, "true")
       .maybeSingle();
     if (!demoDraft) {
-      return NextResponse.json({ error: "Demo draft not approved yet" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Demo draft not approved yet", code: "demo_not_approved" },
+        { status: 409 },
+      );
     }
   }
 
@@ -76,7 +85,10 @@ export async function PATCH(req: NextRequest) {
       const settings = coach?.notification_settings as { dashboard_only_acknowledged?: boolean } | null;
       if (!settings?.dashboard_only_acknowledged) {
         return NextResponse.json(
-          { error: "Enable at least one notification channel or acknowledge dashboard-only mode" },
+          {
+            error: "Enable at least one notification channel or acknowledge dashboard-only mode",
+            code: "notifications_channel_required",
+          },
           { status: 409 },
         );
       }
@@ -108,7 +120,7 @@ export async function PATCH(req: NextRequest) {
     .eq("id", user.id);
   if (updateError) {
     return NextResponse.json(
-      { error: `Couldn't save progress (${updateError.code ?? "unknown"})` },
+      { error: "Couldn't save your progress. Try again.", code: "save_failed" },
       { status: 500 },
     );
   }

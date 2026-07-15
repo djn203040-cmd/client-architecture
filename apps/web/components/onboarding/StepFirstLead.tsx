@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { DemoLeadDraft } from "./DemoLeadDraft";
 import { CheckCircle } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { useDictionary } from "@/lib/i18n/provider";
+import { completeStep, nextRoute, advanceErrorMessage } from "./completeStep";
 
 interface SeedResult {
   leadId: string;
@@ -18,41 +19,37 @@ export function StepFirstLead() {
   const router = useRouter();
   const [seed, setSeed] = useState<SeedResult | null>(null);
   const [seeding, setSeeding] = useState(true);
-  const [celebration, setCelebration] = useState<string | null>(null);
+  const [celebrating, setCelebrating] = useState(false);
   const [advancing, setAdvancing] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function seedDemo() {
-      try {
-        const r = await fetch("/api/onboarding/seed-demo", { method: "POST" });
-        if (!r.ok) throw new Error("Seed failed");
-        const data = await r.json();
-        if (!cancelled) setSeed(data);
-      } catch {
-        if (!cancelled) toast.error(t.onboarding.firstLead.loadFailed);
-      } finally {
-        if (!cancelled) setSeeding(false);
-      }
+  const seedDemo = useCallback(async () => {
+    setSeeding(true);
+    try {
+      const r = await fetch("/api/onboarding/seed-demo", { method: "POST" });
+      if (!r.ok) throw new Error("Seed failed");
+      const data = await r.json();
+      setSeed(data);
+    } catch {
+      toast.error(t.onboarding.firstLead.loadFailed);
+    } finally {
+      setSeeding(false);
     }
-    seedDemo();
-    return () => { cancelled = true; };
   }, [t.onboarding.firstLead.loadFailed]);
+
+  useEffect(() => {
+    void seedDemo();
+  }, [seedDemo]);
 
   async function advance() {
     setAdvancing(true);
     try {
-      const r = await fetch("/api/onboarding/complete-step", {
-        method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ step: "first-lead" }),
-      });
-      if (!r.ok) {
-        const body = await r.json().catch(() => ({}));
-        toast.error(body.error ?? t.onboarding.firstLead.advanceFailed);
+      const res = await completeStep("first-lead");
+      if (!res.ok) {
+        toast.error(advanceErrorMessage(res, t.onboarding.errors, t.onboarding.firstLead.advanceFailed));
         return;
       }
-      router.push("/onboarding/notifications" as never);
+      router.refresh();
+      router.push(nextRoute("first-lead", res.completed) as never);
     } finally {
       setAdvancing(false);
     }
@@ -67,12 +64,12 @@ export function StepFirstLead() {
     );
   }
 
-  if (celebration) {
+  if (celebrating) {
     return (
       <div className="space-y-5">
         <div className="flex items-start gap-3 rounded-xl bg-[oklch(60%_0.14_145)]/10 border border-[oklch(60%_0.14_145)]/20 px-4 py-3">
           <CheckCircle weight="fill" className="w-5 h-5 text-[oklch(60%_0.14_145)] shrink-0 mt-0.5" />
-          <p className="text-sm leading-relaxed">{celebration}</p>
+          <p className="text-sm leading-relaxed">{t.onboarding.firstLead.celebration}</p>
         </div>
         <div className="flex justify-end">
           <Button onClick={advance} disabled={advancing} size="sm">
@@ -85,9 +82,14 @@ export function StepFirstLead() {
 
   if (!seed) {
     return (
-      <p className="text-sm text-muted-foreground py-4">
-        {t.onboarding.firstLead.loadFailedBody}
-      </p>
+      <div className="py-4 flex flex-col items-start gap-4">
+        <p className="text-sm text-muted-foreground">
+          {t.onboarding.firstLead.loadFailedBody}
+        </p>
+        <Button size="sm" variant="secondary" onClick={() => void seedDemo()}>
+          {t.onboarding.firstLead.retry}
+        </Button>
+      </div>
     );
   }
 
@@ -100,7 +102,7 @@ export function StepFirstLead() {
         draftId={seed.draftId}
         draftBody={seed.draftBody}
         leadName="Alex Rivera"
-        onApproved={setCelebration}
+        onApproved={() => setCelebrating(true)}
       />
     </div>
   );

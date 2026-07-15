@@ -18,6 +18,13 @@ const BodySchema = z.object({
   enabled: z.boolean(),
 });
 
+// Alternate body: the onboarding wizard's "only notify me on the dashboard"
+// checkbox. Stored on coaches.notification_settings, where the onboarding
+// completion gate reads it.
+const AcknowledgeSchema = z.object({
+  acknowledge_dashboard_only: z.boolean(),
+});
+
 export async function PATCH(req: NextRequest) {
   const supabase = await createClient();
   const {
@@ -26,6 +33,30 @@ export async function PATCH(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json().catch(() => null);
+
+  const ackParsed = AcknowledgeSchema.safeParse(body);
+  if (ackParsed.success) {
+    const { data: coach } = await adminClient
+      .from("coaches")
+      .select("notification_settings")
+      .eq("id", user.id)
+      .single();
+    const current = (coach?.notification_settings ?? {}) as Record<string, unknown>;
+    const { error } = await adminClient
+      .from("coaches")
+      .update({
+        notification_settings: {
+          ...current,
+          dashboard_only_acknowledged: ackParsed.data.acknowledge_dashboard_only,
+        },
+      })
+      .eq("id", user.id);
+    if (error) {
+      return NextResponse.json({ ok: false, reason: "update_failed" }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 

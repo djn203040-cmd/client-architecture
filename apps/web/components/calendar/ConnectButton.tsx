@@ -18,22 +18,31 @@ export function ConnectButton({ provider, oauthConfigured, disabled }: Props) {
   const label = copy.signInWith(provider.label);
 
   if (!oauthConfigured) {
+    // Env-var specifics are developer-facing; a coach in production just needs
+    // to know this one isn't ready and that skipping is fine.
+    const showEnvDetails = process.env.NODE_ENV !== "production";
     return (
       <div className="space-y-2">
         <Button disabled className="w-full" variant="secondary">
           {label}
         </Button>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          {copy.notConfigured(provider.label)}{" "}
-          <code className="font-mono text-[10px] px-1 py-0.5 rounded bg-muted">
-            {provider.oauth?.clientIdEnv}
-          </code>{" "}
-          {copy.andThen}{" "}
-          <code className="font-mono text-[10px] px-1 py-0.5 rounded bg-muted">
-            {provider.oauth?.clientSecretEnv}
-          </code>{" "}
-          {copy.inYourEnv}
-        </p>
+        {showEnvDetails ? (
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {copy.notConfigured(provider.label)}{" "}
+            <code className="font-mono text-[10px] px-1 py-0.5 rounded bg-muted">
+              {provider.oauth?.clientIdEnv}
+            </code>{" "}
+            {copy.andThen}{" "}
+            <code className="font-mono text-[10px] px-1 py-0.5 rounded bg-muted">
+              {provider.oauth?.clientSecretEnv}
+            </code>{" "}
+            {copy.inYourEnv}
+          </p>
+        ) : (
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {copy.notConfiguredFriendly(provider.label)}
+          </p>
+        )}
       </div>
     );
   }

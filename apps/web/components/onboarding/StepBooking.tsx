@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { CheckCircle, Link as LinkIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { useDictionary } from "@/lib/i18n/provider";
+import { completeStep, nextRoute, advanceErrorMessage } from "./completeStep";
+import { VideoLink } from "./VideoLink";
 
 interface Props {
   initialUrl: string | null;
@@ -49,18 +51,13 @@ export function StepBooking({ initialUrl }: Props) {
           return;
         }
       }
-      const advance = await fetch("/api/onboarding/complete-step", {
-        method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ step: "booking" }),
-      });
+      const advance = await completeStep("booking");
       if (!advance.ok) {
-        const body = await advance.json().catch(() => ({}));
-        toast.error(body.error ?? t.onboarding.booking.advanceFailed);
+        toast.error(advanceErrorMessage(advance, t.onboarding.errors, t.onboarding.booking.advanceFailed));
         return;
       }
       router.refresh();
-      router.push("/onboarding/calendar" as never);
+      router.push(nextRoute("booking", advance.completed) as never);
     } finally {
       setSubmitting(false);
     }
@@ -98,11 +95,12 @@ export function StepBooking({ initialUrl }: Props) {
         )}
       </div>
 
-      <div>
+      <div className="space-y-2">
+        <VideoLink videoKey="bookingLink" />
         <button
           type="button"
           onClick={() => setShowHints((s) => !s)}
-          className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+          className="block text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
         >
           {showHints ? t.onboarding.booking.hideHints : t.onboarding.booking.showHints}
         </button>

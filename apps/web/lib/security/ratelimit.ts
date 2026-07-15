@@ -49,6 +49,9 @@ export const draftsGenerateLimiter = make("drafts-generate", 20, "1 h");
 export const draftsRegenerateLimiter = make("drafts-regenerate", 20, "1 h");
 export const voiceAnalyzeLimiter = make("voice-analyze", 10, "1 h");
 export const voiceRefineLimiter = make("voice-refine", 20, "1 h");
+// Sent-emails voice import: Gmail-API-only (no Anthropic), but each run does a
+// few hundred message fetches, so keep retries bounded.
+export const voiceImportGmailLimiter = make("voice-import-gmail", 6, "1 h");
 export const webhookLimiter = make("webhook", 100, "60 s");
 export const reviewTokenLimiter = make("review-token", 5, "5 m");
 export const unsubscribeLimiter = make("unsubscribe", 10, "60 s");
@@ -73,6 +76,7 @@ export const RATE_LIMIT_REGISTRY = {
   draftsRegenerate: { target: "/api/drafts/[id]/regenerate", policy: "20 / 1h / coach" },
   voiceAnalyze: { target: "/api/voice/analyze", policy: "10 / 1h / coach" },
   voiceRefine: { target: "/api/voice/refine", policy: "20 / 1h / coach" },
+  voiceImportGmail: { target: "/api/voice/import-gmail", policy: "6 / 1h / coach" },
   webhook: { target: "/api/webhooks/*", policy: "100 / 60s / source IP" },
   reviewToken: { target: "/api/review/[token]", policy: "5 / 5m / token" },
   unsubscribe: { target: "/api/unsubscribe", policy: "10 / 60s / IP" },
