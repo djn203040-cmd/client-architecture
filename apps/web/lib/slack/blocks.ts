@@ -1,5 +1,13 @@
 import "server-only";
 
+// Slack mrkdwn treats `&`, `<`, `>` as control characters (`<url|label>` renders
+// a clickable link). Lead-controlled text (reply subject inherited from a lead's
+// inbound email) must be escaped per Slack's spec before going into an mrkdwn
+// field, or a lead can inject a clickable link into the coach's DM.
+function escapeSlackMrkdwn(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 export interface DraftReadyBlockArgs {
   draftId: string;
   leadName: string;
@@ -27,7 +35,10 @@ export function buildDraftReadyBlocks(args: DraftReadyBlockArgs): unknown[] {
     { type: "divider" },
     {
       type: "section",
-      text: { type: "mrkdwn", text: `*Subject:* ${args.subject}\n\n${args.body}` },
+      text: {
+        type: "mrkdwn",
+        text: `*Subject:* ${escapeSlackMrkdwn(args.subject)}\n\n${escapeSlackMrkdwn(args.body)}`,
+      },
     },
     { type: "divider" },
     {

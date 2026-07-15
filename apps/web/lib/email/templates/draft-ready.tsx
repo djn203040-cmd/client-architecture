@@ -1,4 +1,5 @@
 import "server-only";
+import { escapeHtml } from "@/lib/html/escape";
 
 interface DraftReadyArgs {
   leadName: string;
@@ -60,6 +61,11 @@ export function buildDraftReadyEmail(args: DraftReadyArgs): {
   subject: string;
 } {
   const subject = `Draft ready for ${args.leadName}`;
+  // Lead-controlled fields (name inherited from calendar bookings, subject from
+  // inbound reply subjects) — escape before splicing into notification HTML.
+  const leadNameHtml = escapeHtml(args.leadName);
+  const subjectHtml = escapeHtml(args.subject);
+  const bodyHtml = escapeHtml(args.body);
 
   const confidencePill =
     args.confidenceLevel === "low"
@@ -68,14 +74,14 @@ export function buildDraftReadyEmail(args: DraftReadyArgs): {
 
   const content = `
 <p style="margin:0 0 4px;font-size:14px;color:#666;font-weight:500;letter-spacing:0.05em;">Sonorous</p>
-<h1 style="margin:12px 0 4px;font-size:20px;font-weight:600;color:#111;line-height:1.3;">Draft ready for ${args.leadName}</h1>
+<h1 style="margin:12px 0 4px;font-size:20px;font-weight:600;color:#111;line-height:1.3;">Draft ready for ${leadNameHtml}</h1>
 <p style="margin:0 0 24px;font-size:14px;color:#666;">Scheduled to send at ${args.sendTime}</p>
 
 <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#f9f7f3;border-radius:12px;padding:24px;margin:0 0 24px;">
 <tr><td>
 ${confidencePill}
-<p style="margin:0 0 8px;font-size:14px;color:#111;"><span style="color:#666;">Subject:</span> <strong>${args.subject}</strong></p>
-<p style="margin:0;font-size:14px;color:#222;line-height:1.6;white-space:pre-wrap;">${args.body}</p>
+<p style="margin:0 0 8px;font-size:14px;color:#111;"><span style="color:#666;">Subject:</span> <strong>${subjectHtml}</strong></p>
+<p style="margin:0;font-size:14px;color:#222;line-height:1.6;white-space:pre-wrap;">${bodyHtml}</p>
 </td></tr>
 </table>
 
@@ -116,6 +122,9 @@ export function buildDraftFollowupEmail(args: DraftReadyArgs): {
   subject: string;
 } {
   const subject = `Reminder: draft for ${args.leadName} still waiting`;
+  const leadNameHtml = escapeHtml(args.leadName);
+  const subjectHtml = escapeHtml(args.subject);
+  const bodyHtml = escapeHtml(args.body);
 
   const confidencePill =
     args.confidenceLevel === "low"
@@ -124,14 +133,14 @@ export function buildDraftFollowupEmail(args: DraftReadyArgs): {
 
   const content = `
 <p style="margin:0 0 4px;font-size:14px;color:#666;font-weight:500;letter-spacing:0.05em;">Sonorous</p>
-<h1 style="margin:12px 0 4px;font-size:20px;font-weight:600;color:#111;line-height:1.3;">Reminder: draft for ${args.leadName}</h1>
+<h1 style="margin:12px 0 4px;font-size:20px;font-weight:600;color:#111;line-height:1.3;">Reminder: draft for ${leadNameHtml}</h1>
 <p style="margin:0 0 24px;font-size:14px;color:#666;">Reminder: scheduled to send at ${args.sendTime}</p>
 
 <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#f9f7f3;border-radius:12px;padding:24px;margin:0 0 24px;">
 <tr><td>
 ${confidencePill}
-<p style="margin:0 0 8px;font-size:14px;color:#111;"><span style="color:#666;">Subject:</span> <strong>${args.subject}</strong></p>
-<p style="margin:0;font-size:14px;color:#222;line-height:1.6;white-space:pre-wrap;">${args.body}</p>
+<p style="margin:0 0 8px;font-size:14px;color:#111;"><span style="color:#666;">Subject:</span> <strong>${subjectHtml}</strong></p>
+<p style="margin:0;font-size:14px;color:#222;line-height:1.6;white-space:pre-wrap;">${bodyHtml}</p>
 </td></tr>
 </table>
 
@@ -172,11 +181,13 @@ export function buildHardBounceEmail(args: HardBounceArgs): {
   subject: string;
 } {
   const subject = `Email to ${args.leadEmail} bounced`;
+  const leadNameHtml = escapeHtml(args.leadName);
+  const leadEmailHtml = escapeHtml(args.leadEmail);
 
   const content = `
 <p style="margin:0 0 4px;font-size:14px;color:#666;font-weight:500;letter-spacing:0.05em;">Sonorous</p>
-<h1 style="margin:12px 0 4px;font-size:20px;font-weight:600;color:#111;line-height:1.3;">Email to ${args.leadName} bounced</h1>
-<p style="margin:0 0 24px;font-size:14px;color:#666;">The email address <strong>${args.leadEmail}</strong> could not be reached.</p>
+<h1 style="margin:12px 0 4px;font-size:20px;font-weight:600;color:#111;line-height:1.3;">Email to ${leadNameHtml} bounced</h1>
+<p style="margin:0 0 24px;font-size:14px;color:#666;">The email address <strong>${leadEmailHtml}</strong> could not be reached.</p>
 
 <p style="margin:0 0 24px;font-size:14px;color:#444;line-height:1.6;">
 Update the email address for this lead to resume their sequence.

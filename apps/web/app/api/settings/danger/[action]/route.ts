@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/supabase/admin";
 import { writeAuditLog } from "@/lib/audit/log";
 import { getResendClient } from "@/lib/resend/client";
+import { purgeCoachVaultSecrets } from "@/lib/account/purge";
 import { DANGER_PHRASES, matchesConfirmPhrase } from "@/lib/i18n/confirm-phrases";
 import type { TAuditAction } from "@client/shared/validators";
 
@@ -129,7 +130,20 @@ export async function POST(
       adminClient,
     );
 
+    // Purge Vault secrets (OAuth tokens + voice corpus) BEFORE the cascade drops
+    // the integrations rows that point at them — otherwise the tokens orphan.
+    await purgeCoachVaultSecrets(user.id);
+
     await adminClient.from("coaches").delete().eq("id", user.id);
+
+    // Remove the Supabase Auth record too, or the "deleted" coach can still log
+    // in and their email/PII lingers in auth.users (incomplete GDPR erasure).
+    try {
+      await adminClient.auth.admin.deleteUser(user.id);
+    } catch {
+      // Best-effort: the coaches row is already gone, so RLS denies all access
+      // regardless; a lingering auth row grants nothing.
+    }
 
     return NextResponse.json({ ok: true });
   }

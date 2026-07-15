@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/supabase/admin";
-import { healthLimiter, enforce, ipFromRequest } from "@/lib/security/ratelimit";
+import {
+  healthLimiter,
+  enforce,
+  ipFromRequest,
+  rateLimitingConfigured,
+  pingRateLimitStore,
+} from "@/lib/security/ratelimit";
 
 // 06-PLAN.md §1.10, Health check with per-dependency status.
 // Public endpoint; rate-limited at the edge (Upstash). No PII leaked.
@@ -45,6 +51,24 @@ function probeTwilio(): DepHealth {
   };
 }
 
+// Rate-limit store (Upstash Redis). When it's absent, every limiter fails OPEN
+// — no rate limiting at all. In production that's a real security regression
+// (e.g. env vars cleared), so surface it as "down" (flips overall health to 503
+// and trips uptime alerts). Locally / in preview, running without Redis is the
+// expected dev setup, so it's just "unknown".
+async function probeRateLimiting(): Promise<DepHealth> {
+  const isProd =
+    process.env["VERCEL_ENV"] === "production" || process.env["NODE_ENV"] === "production";
+  if (!rateLimitingConfigured) {
+    return { status: isProd ? "down" : "unknown", error: "not_configured" };
+  }
+  const start = Date.now();
+  const alive = await pingRateLimitStore();
+  return alive
+    ? { status: "ok", latency_ms: Date.now() - start }
+    : { status: "down", error: "ping_failed", latency_ms: Date.now() - start };
+}
+
 export async function GET(req: Request) {
   const rl = await enforce(healthLimiter, ipFromRequest(req));
   if (!rl.success) {
@@ -54,9 +78,10 @@ export async function GET(req: Request) {
     );
   }
 
-  const [supabase] = await Promise.all([probeSupabase()]);
+  const [supabase, rate_limiting] = await Promise.all([probeSupabase(), probeRateLimiting()]);
   const deps = {
     supabase,
+    rate_limiting,
     inngest: probeInngest(),
     gmail_api: probeGmail(),
     twilio: probeTwilio(),

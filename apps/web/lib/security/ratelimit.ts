@@ -41,6 +41,14 @@ export const leadCreateLimiter = make("lead-create", 30, "60 s");
 // ---- 06-02 §3.8 coverage ----
 export const authLimiter = make("auth", 10, "60 s");
 export const draftsGenerateLimiter = make("drafts-generate", 20, "1 h");
+
+// Other coach-triggered Anthropic endpoints share the same pay-per-use cost
+// surface as /drafts/generate, so they need their own cost guards or the 20/h
+// limit above is trivially bypassable. Regenerate runs the full 2-call draft
+// pipeline; voice analyze/refine run corpus analysis (can be large inputs).
+export const draftsRegenerateLimiter = make("drafts-regenerate", 20, "1 h");
+export const voiceAnalyzeLimiter = make("voice-analyze", 10, "1 h");
+export const voiceRefineLimiter = make("voice-refine", 20, "1 h");
 export const webhookLimiter = make("webhook", 100, "60 s");
 export const reviewTokenLimiter = make("review-token", 5, "5 m");
 export const unsubscribeLimiter = make("unsubscribe", 10, "60 s");
@@ -62,6 +70,9 @@ export const trackOpenLimiter = make("track-open", 60, "60 s");
 export const RATE_LIMIT_REGISTRY = {
   auth: { target: "/api/auth/*", policy: "10 / 60s / IP" },
   draftsGenerate: { target: "/api/drafts/generate", policy: "20 / 1h / coach" },
+  draftsRegenerate: { target: "/api/drafts/[id]/regenerate", policy: "20 / 1h / coach" },
+  voiceAnalyze: { target: "/api/voice/analyze", policy: "10 / 1h / coach" },
+  voiceRefine: { target: "/api/voice/refine", policy: "20 / 1h / coach" },
   webhook: { target: "/api/webhooks/*", policy: "100 / 60s / source IP" },
   reviewToken: { target: "/api/review/[token]", policy: "5 / 5m / token" },
   unsubscribe: { target: "/api/unsubscribe", policy: "10 / 60s / IP" },
@@ -72,6 +83,29 @@ export const RATE_LIMIT_REGISTRY = {
   feedback: { target: "/api/feedback", policy: "20 / 1h / coach" },
   trackOpen: { target: "/api/track/open", policy: "60 / 60s / IP" },
 } as const;
+
+/**
+ * Whether a rate-limit backing store is configured. When false, every limiter
+ * is `null` and `enforce()` fails OPEN (no limiting). Captured at module load,
+ * same as the `redis` singleton the limiters use.
+ */
+export const rateLimitingConfigured = redis !== null;
+
+/**
+ * Liveness probe for the rate-limit store, used by /api/health. Returns false
+ * when unconfigured OR unreachable — either way the limiters aren't protecting
+ * anything. Uses the very same client the limiters use, so it can't drift from
+ * what production actually enforces.
+ */
+export async function pingRateLimitStore(): Promise<boolean> {
+  if (!redis) return false;
+  try {
+    const res = await redis.ping();
+    return res === "PONG";
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Helper: pick an identifier suitable for IP-keyed limits. Honors common

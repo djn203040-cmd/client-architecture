@@ -2,13 +2,20 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { analyzeVoiceCorpus } from "@client/ai-engine";
+import { voiceAnalyzeLimiter, enforce } from "@/lib/security/ratelimit";
+
+// Per-channel corpus cap (~120 KB). Enough for a rich few-hundred-message
+// export, bounded so a single request can't ship megabytes into a paid
+// Anthropic call.
+const MAX_CORPUS_CHARS = 120_000;
+const corpusField = z.string().max(MAX_CORPUS_CHARS).optional();
 
 const VoiceAnalyzeSchema = z.object({
   corpus: z.object({
-    gmail: z.string().optional(),
-    linkedin: z.string().optional(),
-    instagram: z.string().optional(),
-    whatsapp: z.string().optional(),
+    gmail: corpusField,
+    linkedin: corpusField,
+    instagram: corpusField,
+    whatsapp: corpusField,
   }),
 });
 
@@ -16,6 +23,15 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Cost-guard rate limit: corpus analysis is a paid Anthropic call.
+  const rl = await enforce(voiceAnalyzeLimiter, `coach:${user.id}`);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded, try again in an hour." },
+      { status: 429, headers: { "Retry-After": "3600" } },
+    );
+  }
 
   const body = await request.json().catch(() => null);
   const parsed = VoiceAnalyzeSchema.safeParse(body);

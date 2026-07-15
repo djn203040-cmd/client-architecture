@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/supabase/admin";
 import { writeAuditLog } from "@/lib/audit/log";
+import { purgeCoachVaultSecrets } from "@/lib/account/purge";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -72,7 +73,13 @@ export async function POST(req: Request) {
     adminClient,
   );
 
-  // 2. Cascade delete (FK CASCADE drops leads / drafts / sequences / etc).
+  // 2. Purge Vault secrets (OAuth tokens + voice corpus) BEFORE the cascade.
+  // The integrations rows that hold the vault_secret_id pointers cascade away
+  // with the coaches row, so enumerating them afterwards would miss the live
+  // OAuth tokens and orphan them in vault.secrets.
+  await purgeCoachVaultSecrets(coach.id);
+
+  // 3. Cascade delete (FK CASCADE drops leads / drafts / sequences / etc).
   const { error: deleteError } = await adminClient
     .from("coaches")
     .delete()
@@ -83,11 +90,6 @@ export async function POST(req: Request) {
       { status: 500 },
     );
   }
-
-  // 3. Best-effort Vault cleanup for OAuth + voice corpus secrets.
-  await Promise.allSettled([
-    adminClient.rpc("delete_voice_corpus", { p_coach_id: coach.id }),
-  ]);
 
   // 4. Revoke the auth.users row via admin API.
   try {

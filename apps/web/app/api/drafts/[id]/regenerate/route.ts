@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { decryptTranscript } from '@/lib/crypto/transcript-cipher';
 import { isHardBlocked } from '@client/ai-engine';
 import { VoiceProfileSchema, coerceSalesToolkit, coerceLanguage } from '@client/shared/validators';
+import { draftsRegenerateLimiter, enforce } from '@/lib/security/ratelimit';
 import type { TLeadStatus } from '@client/shared/types';
 
 export async function POST(
@@ -15,6 +16,17 @@ export async function POST(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  // Cost-guard rate limit: regenerate runs the full paid draft pipeline, so it
+  // needs the same per-coach hourly cap as /drafts/generate (else that cap is
+  // bypassable by looping regenerate).
+  const rl = await enforce(draftsRegenerateLimiter, `coach:${user.id}`);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded, try again in an hour.' },
+      { status: 429, headers: { 'Retry-After': '3600' } },
+    );
+  }
 
   // Load draft + ownership check (T-02-21)
   const { data: draft } = await supabase

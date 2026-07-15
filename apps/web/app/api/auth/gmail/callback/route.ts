@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/supabase/admin";
-import { createOAuth2Client } from "@/lib/gmail/auth";
+import { createOAuth2Client, verifyGmailOAuthState } from "@/lib/gmail/auth";
 import { validateGmailScopes, parseScopeString } from "@/lib/gmail/scope-validation";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL!;
@@ -8,16 +8,26 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL!;
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
-  const coachId = searchParams.get("state");
+  const state = searchParams.get("state");
   const error = searchParams.get("error");
   const scopeStr = searchParams.get("scope");
 
   if (error) {
     return NextResponse.redirect(new URL(`/settings?error=oauth_${encodeURIComponent(error)}`, APP_URL));
   }
-  if (!code || !coachId) {
+  if (!code || !state) {
     return NextResponse.redirect(new URL("/settings?error=oauth_missing_params", APP_URL));
   }
+
+  // Verify the HMAC-signed state before trusting the coach_id it carries.
+  // A raw/forged state would let an attacker bind their own Gmail tokens to a
+  // victim's coach_id; only our authenticated authorize route can mint a valid
+  // signed state (expired/tampered states fail closed here).
+  const verified = verifyGmailOAuthState(state);
+  if (!verified) {
+    return NextResponse.redirect(new URL("/settings?error=oauth_invalid_state", APP_URL));
+  }
+  const coachId = verified.coachId;
 
   // 1. Exchange code for tokens
   let tokens: import("googleapis").Auth.Credentials;

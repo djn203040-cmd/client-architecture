@@ -184,11 +184,14 @@ export async function POST(req: Request) {
     if (action.action_id === "draft_approve") {
       const { data: draft } = await adminClient
         .from("drafts")
-        .select("lead_id, sequence_id")
+        .select("lead_id, sequence_id, coach_id")
         .eq("id", draftId)
         .single();
 
-      if (!draft) {
+      // Ownership: the coach resolved from the signed team_id MUST own this
+      // draft (mirrors the call-outcome branch, T-07-15). Prevents a mis-mapped
+      // workspace from approving another coach's draft.
+      if (!draft || draft.coach_id !== coachId) {
         await respondViaResponseUrl(payload.response_url, {
           response_type: "ephemeral",
           text: "This draft no longer exists.",
@@ -233,6 +236,16 @@ export async function POST(req: Request) {
     }
 
     if (action.action_id === "draft_hold") {
+      // Ownership check before mutating (holdDraftAtomic is keyed only by draftId).
+      const { data: holdDraft } = await adminClient
+        .from("drafts")
+        .select("coach_id")
+        .eq("id", draftId)
+        .single();
+      if (!holdDraft || holdDraft.coach_id !== coachId) {
+        return NextResponse.json({ ok: true });
+      }
+
       const result = await holdDraftAtomic(draftId, "slack");
       if (!result.ok) {
         await respondViaResponseUrl(payload.response_url, {
@@ -255,10 +268,12 @@ export async function POST(req: Request) {
     if (action.action_id === "draft_edit") {
       const { data: draft } = await adminClient
         .from("drafts")
-        .select("subject, body")
+        .select("subject, body, coach_id")
         .eq("id", draftId)
         .single();
-      if (!draft) return NextResponse.json({ ok: false }, { status: 200 });
+      if (!draft || draft.coach_id !== coachId) {
+        return NextResponse.json({ ok: false }, { status: 200 });
+      }
 
       try {
         const slack = await getSlackClientForCoach(coachId);
@@ -305,7 +320,9 @@ export async function POST(req: Request) {
       .select("subject, body, lead_id, sequence_id, coach_id")
       .eq("id", draftId)
       .single();
-    if (!prev) return NextResponse.json({ response_action: "clear" });
+    if (!prev || prev.coach_id !== coachId) {
+      return NextResponse.json({ response_action: "clear" });
+    }
 
     // Record edit in draft_edits (original_body/edited_body per schema)
     await adminClient.from("draft_edits").insert({
