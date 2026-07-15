@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, CircleNotch } from "@phosphor-icons/react";
@@ -48,7 +48,10 @@ export function TourOverlay() {
   const [rect, setRect] = useState<Rect | null>(null);
   const [notFound, setNotFound] = useState(false);
 
-  const tipRef = useRef<HTMLDivElement>(null);
+  // Callback ref, not a plain ref: AnimatePresence swaps step cards from its
+  // own internal render, so this component never re-renders on the swap — a
+  // passive ref would leave tipSize measured from the *previous* step's card.
+  const [tipEl, setTipEl] = useState<HTMLDivElement | null>(null);
   const [tipSize, setTipSize] = useState<{ w: number; h: number } | null>(null);
 
   const targetKey = step ? step.id : "none";
@@ -110,18 +113,23 @@ export function TourOverlay() {
   // Measure the tooltip so we can position (and clamp) it precisely. Layout
   // size (offsetWidth/Height), not getBoundingClientRect: the entry animation
   // scales the card, and a mid-animation rect under-measures, leaving the card
-  // positioned lower than its settled height needs.
+  // positioned lower than its settled height needs. Re-measures whenever the
+  // mounted card changes (step swap) or reflows (ResizeObserver).
   useLayoutEffect(() => {
-    const el = tipRef.current;
-    if (!el) return;
-    setTipSize((prev) =>
-      prev &&
-      Math.abs(prev.w - el.offsetWidth) < 1 &&
-      Math.abs(prev.h - el.offsetHeight) < 1
-        ? prev
-        : { w: el.offsetWidth, h: el.offsetHeight },
-    );
-  });
+    if (!tipEl) return;
+    const measure = () =>
+      setTipSize((prev) =>
+        prev &&
+        Math.abs(prev.w - tipEl.offsetWidth) < 1 &&
+        Math.abs(prev.h - tipEl.offsetHeight) < 1
+          ? prev
+          : { w: tipEl.offsetWidth, h: tipEl.offsetHeight },
+      );
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(tipEl);
+    return () => ro.disconnect();
+  }, [tipEl]);
 
   if (typeof document === "undefined" || !step) return null;
 
@@ -165,7 +173,7 @@ export function TourOverlay() {
       <AnimatePresence mode="wait">
         <motion.div
           key={step.id}
-          ref={tipRef}
+          ref={setTipEl}
           role="dialog"
           aria-modal="false"
           aria-label={t.tour.steps[step.id]?.title ?? step.title}
