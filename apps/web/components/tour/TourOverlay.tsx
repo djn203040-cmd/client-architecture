@@ -107,15 +107,19 @@ export function TourOverlay() {
     return () => el.removeEventListener("click", handler);
   }, [step, next, rect]);
 
-  // Measure the tooltip so we can position (and clamp) it precisely.
+  // Measure the tooltip so we can position (and clamp) it precisely. Layout
+  // size (offsetWidth/Height), not getBoundingClientRect: the entry animation
+  // scales the card, and a mid-animation rect under-measures, leaving the card
+  // positioned lower than its settled height needs.
   useLayoutEffect(() => {
     const el = tipRef.current;
     if (!el) return;
-    const r = el.getBoundingClientRect();
     setTipSize((prev) =>
-      prev && Math.abs(prev.w - r.width) < 1 && Math.abs(prev.h - r.height) < 1
+      prev &&
+      Math.abs(prev.w - el.offsetWidth) < 1 &&
+      Math.abs(prev.h - el.offsetHeight) < 1
         ? prev
-        : { w: r.width, h: r.height },
+        : { w: el.offsetWidth, h: el.offsetHeight },
     );
   });
 
@@ -129,7 +133,7 @@ export function TourOverlay() {
 
   const pos = centered
     ? { top: vh / 2 - tipH / 2, left: vw / 2 - tipW / 2, placement: "center" as const }
-    : placeTooltip(rect as Rect, tipW, tipH, step.placement ?? "auto", vw, vh);
+    : placeTooltip(rect as Rect, tipW, tipH, step.placement ?? "auto", vw, vh, step.gap ?? GAP);
 
   const isLast = stepNumber >= totalSteps;
   const isFirst = stepNumber <= 1;
@@ -269,6 +273,7 @@ function placeTooltip(
   pref: TourPlacement,
   vw: number,
   vh: number,
+  gap: number,
 ): { top: number; left: number; placement: SidePlacement; caret: number } {
   const cx = rect.left + rect.width / 2;
   const cy = rect.top + rect.height / 2;
@@ -279,10 +284,10 @@ function placeTooltip(
     pref === "auto" || pref === "center" ? "bottom" : pref;
 
   const fits = {
-    right: rect.left + rect.width + GAP + w <= vw - MARGIN,
-    left: rect.left - GAP - w >= MARGIN,
-    bottom: rect.top + rect.height + GAP + h <= vh - MARGIN,
-    top: rect.top - GAP - h >= MARGIN,
+    right: rect.left + rect.width + gap + w <= vw - MARGIN,
+    left: rect.left - gap - w >= MARGIN,
+    bottom: rect.top + rect.height + gap + h <= vh - MARGIN,
+    top: rect.top - gap - h >= MARGIN,
   };
   if (!fits[placement]) {
     const fallback = (["right", "bottom", "left", "top"] as SidePlacement[]).find(
@@ -295,20 +300,20 @@ function placeTooltip(
   let left: number;
   switch (placement) {
     case "right":
-      left = rect.left + rect.width + GAP;
+      left = rect.left + rect.width + gap;
       top = cy - h / 2;
       break;
     case "left":
-      left = rect.left - GAP - w;
+      left = rect.left - gap - w;
       top = cy - h / 2;
       break;
     case "top":
-      top = rect.top - GAP - h;
+      top = rect.top - gap - h;
       left = cx - w / 2;
       break;
     case "bottom":
     default:
-      top = rect.top + rect.height + GAP;
+      top = rect.top + rect.height + gap;
       left = cx - w / 2;
       break;
   }

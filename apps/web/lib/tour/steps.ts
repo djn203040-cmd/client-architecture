@@ -14,6 +14,9 @@ export interface TourStep {
   /** Body copy. Kept plain-text; the overlay renders it as a paragraph. */
   body: string;
   placement?: TourPlacement;
+  /** Distance in px between the target and the tooltip (default 14). Bump it
+   *  for small targets whose spotlight halo must stay fully visible. */
+  gap?: number;
   /** When true, the step advances only once the user clicks the spotlighted
    *  element (the "now click Drafts" moments). A Next button is still offered. */
   clickToAdvance?: boolean;
@@ -228,6 +231,7 @@ export const TOUR_STEPS: TourStep[] = [
     title: "This megaphone shapes the product",
     body: "One last thing, and it matters. This button follows you on every page. Something confusing, broken, or brilliant? Open it, write a line or two, hit send. It lands directly with us, along with the page you were on. It's the fastest way to make this fit you better, so use it freely.",
     placement: "top",
+    gap: 48,
   },
   {
     id: "done",
