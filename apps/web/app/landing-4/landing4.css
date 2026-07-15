@@ -681,13 +681,31 @@
     margin-left: 8vw;
   }
 
+  .l4-sticky {
+    /* Vertical room reserved for the copy block at the bottom of the
+       viewport — the animation must never intrude into it. */
+    --l4-copy-clear: min(46vh, 310px);
+  }
+
   .l4-stage {
     align-items: flex-end;
+    /* Lift the laptop into the band between the ghost headline and the
+       copy instead of letting it land on top of the text. */
+    padding-bottom: var(--l4-copy-clear);
   }
 
   .l4-canvas {
-    height: 62vh;
-    transform-origin: 100% 100%;
+    height: min(52vh, calc(100vh - var(--l4-copy-clear) - 80px));
+    /* The frames carry a faint semi-transparent wash around the cutout;
+       with the whole canvas inside the viewport its edges read as a box.
+       Fade the exposed left/top/bottom edges into the page gradient
+       (the right edge bleeds off-screen). */
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 36px),
+      linear-gradient(to bottom, transparent, #000 30px, #000 calc(100% - 24px), transparent);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to right, transparent, #000 36px),
+      linear-gradient(to bottom, transparent, #000 30px, #000 calc(100% - 24px), transparent);
+    mask-composite: intersect;
   }
 
   .l4-grid {
@@ -696,7 +714,7 @@
   }
 
   .l4-copy {
-    padding-bottom: 9vh;
+    padding-bottom: max(3vh, 20px);
     max-width: 88vw;
   }
 
