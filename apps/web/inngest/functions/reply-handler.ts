@@ -2,6 +2,8 @@ import { inngest } from "@/inngest/client";
 import { adminClient } from "@/lib/supabase/admin";
 import { generateReplyDraft } from "@/lib/drafts/generate-reply";
 import { LEAD_REPLIED } from "@client/shared/constants/events";
+import { isSendBlocked } from "@client/shared";
+import type { TLeadStatus } from "@client/shared/types";
 
 type StepTools = {
   run<T>(id: string, fn: () => Promise<T> | T): Promise<T>;
@@ -28,33 +30,53 @@ export async function replyHandlerFn({
 }) {
   const { coachId, leadId, messageId, threadId } = event.data;
 
-  // D-16 step 1: Update lead state to replied + log event
-  await step.run("update-lead-status", async () => {
+  // D-16 step 1: Update lead state to replied + log event.
+  //
+  // Guard against demoting a lead OUT of a terminal state. Without this, a
+  // "thanks!" from a CONVERTED client would overwrite status → 'replied', which
+  // (a) loses the converted flag and (b) makes them re-engagement-eligible
+  // (checkReengageEligible gates on status === 'replied'), so the nurture loop
+  // would nudge a paying client and eventually mark them 'lost'. A SEND-BLOCKED
+  // lead (unsubscribed/DNC/bounced/lost) must not re-enter automation at all.
+  const gate = await step.run("update-lead-status", async () => {
     const { data: lead } = await adminClient
       .from("leads")
-      .select("status")
+      .select("status, do_not_contact")
       .eq("id", leadId)
       .single();
 
-    await adminClient
-      .from("leads")
-      .update({ status: "replied" })
-      .eq("id", leadId)
-      .eq("coach_id", coachId);
+    const status = (lead?.status ?? "unknown") as TLeadStatus;
+    const sendBlocked = isSendBlocked(status, lead?.do_not_contact ?? false);
+    const isConverted = status === "converted";
 
-    await adminClient.from("lead_events").insert({
-      lead_id: leadId,
-      coach_id: coachId,
-      event_type: "state_changed",
-      payload: {
-        from: lead?.status ?? "unknown",
-        to: "replied",
-        trigger: "lead_reply",
-        messageId,
-      },
-      triggered_by: "system",
-    });
+    // Only demote to 'replied' from a non-terminal state. Converted stays
+    // converted (still sendable per D-01, but never re-engaged); send-blocked
+    // leads keep their blocking state.
+    if (!sendBlocked && !isConverted) {
+      await adminClient
+        .from("leads")
+        .update({ status: "replied" })
+        .eq("id", leadId)
+        .eq("coach_id", coachId);
+
+      await adminClient.from("lead_events").insert({
+        lead_id: leadId,
+        coach_id: coachId,
+        event_type: "state_changed",
+        payload: { from: status, to: "replied", trigger: "lead_reply", messageId },
+        triggered_by: "system",
+      });
+    }
+
+    return { sendBlocked, isConverted };
   });
+
+  // A send-blocked lead (unsubscribed/DNC/bounced/lost) gets no outbound
+  // automation: no reply draft, no auto-send, no coach nudge to reply. The
+  // inbound is already recorded (email_events) and visible in the thread.
+  if (gate.sendBlocked) {
+    return { ok: true, leadId, skipped: "send_blocked", draftGenerated: false };
+  }
 
   // D-16 step 2: Pause active sequence for this lead (SEQ-009)
   await step.run("pause-sequence", async () => {

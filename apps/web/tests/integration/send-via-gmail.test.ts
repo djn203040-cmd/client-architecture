@@ -4,16 +4,24 @@ import type { InngestHandler } from "@/tests/utils/inngest-runner";
 
 // Mock the send library so we exercise the Inngest orchestration (skip / deliver
 // / record sequencing) without touching Gmail or the database.
-const { mockLoad, mockDeliver, mockRecord } = vi.hoisted(() => ({
+const { mockLoad, mockDeliver, mockRecord, mockSafety } = vi.hoisted(() => ({
   mockLoad: vi.fn(),
   mockDeliver: vi.fn(),
   mockRecord: vi.fn(),
+  mockSafety: vi.fn(),
 }));
 
 vi.mock("@/lib/gmail/send", () => ({
   loadSendContext: mockLoad,
   deliverDraft: mockDeliver,
   recordDelivery: mockRecord,
+}));
+
+// The send pipeline runs a defense-in-depth pre-send safety check (a lead can go
+// DNC/unsubscribed/reply after approval but before send). Mock it so these
+// orchestration tests default to "not blocked"; one test below exercises a block.
+vi.mock("@/inngest/functions/sequence-step", () => ({
+  runPreSendSafetyCheck: mockSafety,
 }));
 
 import { sendViaGmailHandler as _handler } from "@/inngest/functions/send-via-gmail";
@@ -32,6 +40,7 @@ const CTX = {
   threadId: null,
   inReplyTo: null,
   touchpointIndex: 1,
+  sequenceId: null,
 };
 
 function makeEvent(source = "dashboard") {
@@ -43,6 +52,8 @@ function makeEvent(source = "dashboard") {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Default: lead is sendable. Individual tests override to exercise a block.
+  mockSafety.mockResolvedValue(null);
 });
 
 describe("sendViaGmail handler", () => {
@@ -122,6 +133,17 @@ describe("sendViaGmail handler", () => {
 
     expect(mockDeliver).toHaveBeenCalled();
     expect(result).toMatchObject({ sent: true });
+  });
+
+  it("blocks the send when the pre-send safety check fails (lead went DNC/unsubscribed after approval)", async () => {
+    mockLoad.mockResolvedValue({ ctx: CTX });
+    mockSafety.mockResolvedValue("dnc_flag");
+
+    const result = await runInngestStep(handler, makeEvent("sequence_scheduled"));
+
+    expect(mockDeliver).not.toHaveBeenCalled();
+    expect(mockRecord).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ sent: false, skipped: "dnc_flag" });
   });
 
   it("defaults source to 'unknown' when omitted", async () => {

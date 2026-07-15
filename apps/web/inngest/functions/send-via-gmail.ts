@@ -8,6 +8,7 @@ import {
   type SendContext,
 } from "@/lib/gmail/send";
 import { syncSlackDraftMessage } from "@/lib/slack/sync-draft-message";
+import { runPreSendSafetyCheck } from "@/inngest/functions/sequence-step";
 
 type SendEvent = {
   name: string;
@@ -46,6 +47,19 @@ export async function sendViaGmailHandler({
     return { sent: false, skipped: loaded.skip ?? "no_context", draftId };
   }
   const ctx: SendContext = loaded.ctx;
+
+  // Defense-in-depth pre-send safety check. Every approval route runs this at
+  // approval time, but a lead can go DNC / unsubscribe / reply / bounce AFTER a
+  // draft is approved but BEFORE it sends (e.g. the reconciler re-emitting a
+  // stranded approved touchpoint, or a mode-B timer). This is the last gate
+  // before delivery, so a lead that became unsendable in the interim is never
+  // emailed — this is also the only safety check on the reconciler path.
+  const blocked = await step.run("pre-send-safety-check", () =>
+    runPreSendSafetyCheck(ctx.leadId, ctx.sequenceId),
+  );
+  if (blocked) {
+    return { sent: false, skipped: blocked, draftId };
+  }
 
   // Decouple approval from send for sequence touchpoints: an approved draft must
   // still wait for its fixed cadence time. Only the scheduled-send timer (which

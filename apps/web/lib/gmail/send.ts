@@ -12,20 +12,11 @@ const SENDABLE_STATUSES = ["approved", "edited"] as const;
 // Pure helpers, MIME assembly. No IO, unit-testable.
 // ----------------------------------------------------------------------------
 
-/** Escape the five HTML-significant characters for safe interpolation. */
-export function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-/** Plain-text draft body -> minimal HTML (escaped, newlines -> <br>). */
-export function textToHtml(text: string): string {
-  return escapeHtml(text).replace(/\r?\n/g, "<br>\n");
-}
+// Shared HTML escaping now lives in lib/html/escape.ts so coach-notification
+// templates can reuse the exact same routine. Imported for local use (textToHtml
+// below) and re-exported to keep every existing importer of this module working.
+import { escapeHtml, textToHtml } from "@/lib/html/escape";
+export { escapeHtml, textToHtml };
 
 /**
  * Normalize a reply subject to a single "Re: " prefix, collapsing any existing
@@ -140,6 +131,8 @@ export interface SendContext {
   touchpointIndex: number | null;
   /** Fixed cadence send time for sequence touchpoints; null for ad-hoc drafts. */
   scheduledSendAt: string | null;
+  /** Owning sequence; null for standalone/reply drafts. Feeds the pre-send safety check. */
+  sequenceId: string | null;
 }
 
 export interface LoadResult {
@@ -158,7 +151,7 @@ export async function loadSendContext(
 ): Promise<LoadResult> {
   const { data: draft } = await adminClient
     .from("drafts")
-    .select("id, coach_id, lead_id, status, body, subject, touchpoint_index, scheduled_send_at")
+    .select("id, coach_id, lead_id, status, body, subject, touchpoint_index, scheduled_send_at, sequence_id")
     .eq("id", draftId)
     .eq("coach_id", coachId)
     .maybeSingle();
@@ -228,6 +221,7 @@ export async function loadSendContext(
       inReplyTo,
       touchpointIndex: draft.touchpoint_index ?? null,
       scheduledSendAt: draft.scheduled_send_at ?? null,
+      sequenceId: draft.sequence_id ?? null,
     },
   };
 }
@@ -265,17 +259,27 @@ export async function deliverDraft(ctx: SendContext): Promise<Delivery> {
 
   // Read back the RFC 822 Message-ID Gmail assigned, this is what reply
   // detection correlates against, so store the authoritative value.
+  //
+  // The message is ALREADY sent by this point. A throw here would make Inngest
+  // retry the whole `deliver` step and re-run messages.send → duplicate email.
+  // So the read-back is best-effort: on failure we return an empty Message-ID
+  // (reply correlation has layered fallbacks incl. threadId) rather than let the
+  // send re-fire.
   let rfcMessageId = "";
   if (gmailId) {
-    const meta = await gmail.users.messages.get({
-      userId: "me",
-      id: gmailId,
-      format: "metadata",
-      metadataHeaders: ["Message-ID"],
-    });
-    rfcMessageId = extractHeader(meta.data.payload?.headers ?? [], "message-id")
-      .replace(/[<>]/g, "")
-      .trim();
+    try {
+      const meta = await gmail.users.messages.get({
+        userId: "me",
+        id: gmailId,
+        format: "metadata",
+        metadataHeaders: ["Message-ID"],
+      });
+      rfcMessageId = extractHeader(meta.data.payload?.headers ?? [], "message-id")
+        .replace(/[<>]/g, "")
+        .trim();
+    } catch {
+      rfcMessageId = "";
+    }
   }
 
   return { gmailMessageId: rfcMessageId, gmailThreadId };

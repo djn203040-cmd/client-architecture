@@ -89,7 +89,15 @@ export const sequenceCallCompleted = inngest.createFunction(
       return config?.call_completed_delays ?? [1, 4, 10];
     });
 
-    const sequenceStart = new Date();
+    // Anchor the cadence to enrollment time. This MUST be captured inside a
+    // memoized step: Inngest re-executes the whole handler body on every step
+    // boundary, so a bare `new Date()` here would be recomputed to the wake time
+    // after each sleepUntil, compounding every touchpoint's send date far past
+    // its fixed cadence offset.
+    const sequenceStartIso = await step.run("sequence-start", () =>
+      new Date().toISOString(),
+    );
+    const sequenceStart = new Date(sequenceStartIso);
     const totalTouchpoints = delays.length;
 
     for (let i = 0; i < delays.length; i++) {
