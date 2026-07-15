@@ -25,6 +25,9 @@ const PROVIDER_LABELS: Record<string, string> = {
   square: "Square",
   ms_bookings: "MS Bookings",
   tidycal: "TidyCal",
+  gmail: "Gmail",
+  slack: "Slack",
+  twilio: "Twilio",
 };
 
 interface Integration {
@@ -42,8 +45,10 @@ export async function IntegrationHealthCard({ integration }: Props) {
   const t = await getServerDictionary();
   const copy = t.settingsAdvanced.integrationHealth;
   const isConnected = integration.status === "connected";
-  const mode = PROVIDER_NO_SHOW_MODE[integration.provider] ?? "manual";
-  const tooltipText = mode === "auto" ? copy.noShowAuto : copy.noShowManual;
+  // The no-show tooltip only makes sense for calendar providers; the settings
+  // integrations list (gmail/slack/twilio) renders a plain label.
+  const mode = PROVIDER_NO_SHOW_MODE[integration.provider];
+  const tooltipText = mode ? (mode === "auto" ? copy.noShowAuto : copy.noShowManual) : null;
   const label = PROVIDER_LABELS[integration.provider] ?? integration.provider;
 
   return (
@@ -61,16 +66,20 @@ export async function IntegrationHealthCard({ integration }: Props) {
         ) : (
           <WarningCircle weight="regular" className="size-4 text-[var(--health-red)]" />
         )}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="cursor-default">{label}</span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{tooltipText}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {tooltipText ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-default">{label}</span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{tooltipText}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <span>{label}</span>
+        )}
       </div>
       <span className={isConnected ? "text-muted-foreground" : "text-[var(--health-red)]"}>
         {isConnected ? copy.connected : copy.disconnected}
