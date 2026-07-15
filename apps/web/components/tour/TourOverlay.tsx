@@ -172,7 +172,9 @@ export function TourOverlay() {
           className="pointer-events-auto absolute w-[min(360px,calc(100vw-40px))] rounded-2xl border border-black/5 bg-white text-neutral-900 shadow-[0_12px_40px_rgba(0,0,0,0.22)] dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-50"
           style={{ top: pos.top, left: pos.left }}
         >
-          {pos.placement !== "center" && <Caret placement={pos.placement} />}
+          {pos.placement !== "center" && (
+            <Caret placement={pos.placement} offset={pos.caret} />
+          )}
           <div className="p-6">
             {waiting ? (
               <div className="flex items-center gap-3 py-2">
@@ -267,7 +269,7 @@ function placeTooltip(
   pref: TourPlacement,
   vw: number,
   vh: number,
-): { top: number; left: number; placement: SidePlacement } {
+): { top: number; left: number; placement: SidePlacement; caret: number } {
   const cx = rect.left + rect.width / 2;
   const cy = rect.top + rect.height / 2;
 
@@ -314,17 +316,28 @@ function placeTooltip(
   // Clamp inside the viewport.
   left = Math.min(Math.max(left, MARGIN), vw - w - MARGIN);
   top = Math.min(Math.max(top, MARGIN), vh - h - MARGIN);
-  return { top, left, placement };
+
+  // Point the caret at the spotlighted element's centre even after clamping,
+  // kept clear of the card's rounded corners.
+  const caret =
+    placement === "top" || placement === "bottom"
+      ? Math.min(Math.max(cx - left, 18), w - 18)
+      : Math.min(Math.max(cy - top, 18), h - 18);
+  return { top, left, placement, caret };
 }
 
-function Caret({ placement }: { placement: SidePlacement }) {
+function Caret({ placement, offset }: { placement: SidePlacement; offset: number }) {
   const base =
     "absolute size-3 rotate-45 bg-white dark:bg-neutral-900 border-black/5 dark:border-white/10";
   const map: Record<SidePlacement, string> = {
-    right: `${base} left-[-6px] top-6 border-l border-b`,
-    left: `${base} right-[-6px] top-6 border-t border-r`,
-    top: `${base} bottom-[-6px] left-6 border-b border-r`,
-    bottom: `${base} top-[-6px] left-6 border-t border-l`,
+    right: `${base} left-[-6px] border-l border-b`,
+    left: `${base} right-[-6px] border-t border-r`,
+    top: `${base} bottom-[-6px] border-b border-r`,
+    bottom: `${base} top-[-6px] border-t border-l`,
   };
-  return <span aria-hidden className={map[placement]} />;
+  const style =
+    placement === "top" || placement === "bottom"
+      ? { left: offset - 6 }
+      : { top: offset - 6 };
+  return <span aria-hidden className={map[placement]} style={style} />;
 }

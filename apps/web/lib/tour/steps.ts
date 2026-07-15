@@ -227,7 +227,7 @@ export const TOUR_STEPS: TourStep[] = [
     target: TOUR_ANCHOR.feedbackButton,
     title: "This megaphone shapes the product",
     body: "One last thing, and it matters. This button follows you on every page. Something confusing, broken, or brilliant? Open it, write a line or two, hit send. It lands directly with us, along with the page you were on. It's the fastest way to make this fit you better, so use it freely.",
-    placement: "left",
+    placement: "top",
   },
   {
     id: "done",
