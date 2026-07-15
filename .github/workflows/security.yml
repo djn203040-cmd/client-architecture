@@ -45,7 +45,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Audit production deps (block high/critical)
-        run: pnpm audit --prod --audit-level=high
+        # npm retired the `pnpm audit` registry endpoint (HTTP 410, July 2026),
+        # so we query OSV.dev directly and gate on HIGH/CRITICAL advisories.
+        run: node scripts/audit-osv.mjs
 
   bundle-secret-leak:
     name: Client bundle secret leak check
