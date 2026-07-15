@@ -119,7 +119,7 @@ function ActionCard({ action, email }: { action: ActionConfig; email: string }) 
             variant="outline"
             size="sm"
             className={action.destructive
-              ? "border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 shrink-0"
+              ? "border-red-500/40 text-red-600 hover:bg-red-500/10 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 shrink-0"
               : "shrink-0"}
           >
             {action.label}

@@ -41,7 +41,7 @@ export default function InvalidTokenPage() {
             latest drafts.
           </p>
           <Button asChild variant="ghost" className="min-h-[44px]">
-            <Link href="/">Open dashboard</Link>
+            <Link href="/dashboard">Open dashboard</Link>
           </Button>
         </div>
       </div>

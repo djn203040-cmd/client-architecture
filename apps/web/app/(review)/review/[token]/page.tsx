@@ -91,7 +91,7 @@ function StateCard({
   icon,
   heading,
   body,
-  ctaHref = "/",
+  ctaHref = "/dashboard",
   ctaLabel = "Open dashboard",
 }: {
   icon: ReactNode;

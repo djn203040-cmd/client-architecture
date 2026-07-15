@@ -43,7 +43,7 @@ export function CallCelebrationEmptyState({ bucket = "awaiting" }: Props) {
       </h2>
       <p className="text-sm text-muted-foreground">{line}</p>
       <Button asChild variant="ghost" className="min-h-[44px]">
-        <Link href="/">
+        <Link href="/dashboard">
           <ArrowLeft className="size-4 mr-2" weight="regular" />
           {t.calls.emptyState.backToDashboard}
         </Link>

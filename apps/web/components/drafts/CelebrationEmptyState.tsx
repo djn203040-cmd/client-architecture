@@ -65,7 +65,7 @@ export function CelebrationEmptyState({ stat }: Props) {
       </h2>
       <StatLine stat={stat} />
       <Button asChild variant="ghost" className="min-h-[44px]">
-        <Link href="/">
+        <Link href="/dashboard">
           <ArrowLeft className="size-4 mr-2" weight="regular" />
           {t.drafts.emptyState.backToDashboard}
         </Link>
