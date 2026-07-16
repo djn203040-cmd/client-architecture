@@ -7,6 +7,7 @@ import { VoiceCorpusImporter } from "./VoiceCorpusImporter";
 import { VoiceProfileCard } from "./VoiceProfileCard";
 import { VoiceRefineCard } from "./VoiceRefineCard";
 import { ExamplesList } from "./ExamplesList";
+import { useVoiceRules } from "./useVoiceRules";
 import { useDictionary } from "@/lib/i18n/provider";
 import type { TVoiceProfile } from "@client/shared/validators";
 
@@ -70,52 +71,10 @@ export function VoiceBuilderClient({
     }
   }
 
-  // Persists a full profile immediately (used by the fine-tuning loop's add /
-  // delete rule actions, which save on the spot rather than waiting for the
-  // Save button). Updates local state only on success.
-  async function persist(next: TVoiceProfile): Promise<boolean> {
-    const r = await fetch("/api/voice/save", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(next),
-    });
-    if (!r.ok) {
-      toast.error(t.settingsAdvanced.voice.builder.persistFailed);
-      return false;
-    }
+  const { addRule, deleteRule } = useVoiceRules(profile, (next) => {
     setProfile(next);
     onSaved?.(next);
-    return true;
-  }
-
-  async function addRule(rule: string): Promise<boolean> {
-    if (!profile) return false;
-    const existing = profile.usage_rules ?? [];
-    if (existing.some((r) => r.rule.toLowerCase() === rule.toLowerCase())) {
-      toast.info(t.settingsAdvanced.voice.builder.ruleExists);
-      return true;
-    }
-    const next: TVoiceProfile = {
-      ...profile,
-      usage_rules: [
-        ...existing,
-        { rule, source: "feedback" as const, added_at: new Date().toISOString() },
-      ],
-    };
-    const ok = await persist(next);
-    if (ok) toast.success(t.settingsAdvanced.voice.builder.ruleAdded);
-    return ok;
-  }
-
-  async function deleteRule(index: number): Promise<boolean> {
-    if (!profile) return false;
-    const existing = profile.usage_rules ?? [];
-    const next: TVoiceProfile = {
-      ...profile,
-      usage_rules: existing.filter((_, i) => i !== index),
-    };
-    return persist(next);
-  }
+  });
 
   return (
     <div className="space-y-6">
@@ -151,11 +110,15 @@ export function VoiceBuilderClient({
               {saving ? t.settingsAdvanced.voice.builder.saving : t.settingsAdvanced.voice.builder.saveProfile}
             </Button>
           </div>
-          <VoiceRefineCard
-            rules={profile.usage_rules ?? []}
-            onAddRule={addRule}
-            onDeleteRule={deleteRule}
-          />
+          {/* Fine-tuning lives in Settings only. During onboarding the coach
+              meets it on the next step, right after seeing their first draft. */}
+          {variant === "settings" && (
+            <VoiceRefineCard
+              rules={profile.usage_rules ?? []}
+              onAddRule={addRule}
+              onDeleteRule={deleteRule}
+            />
+          )}
         </>
       )}
     </div>

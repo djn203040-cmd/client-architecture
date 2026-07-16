@@ -16,12 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
-import { Plus, Trash, Check, Info, CaretDown, CaretRight } from "@phosphor-icons/react";
+import { Plus, Trash, Check, CaretDown, CaretRight } from "@phosphor-icons/react";
 
 interface Props {
   initial: TSalesToolkit;
@@ -54,6 +49,8 @@ async function patchToolkit(toolkit: TSalesToolkit) {
 
 // The three-way style picker. Selecting a card sets the coach's whole selling
 // posture. Clicking the selected card again clears it (back to the balanced base).
+// Cards stack vertically and stay light — name + tagline — with the full
+// description and a concrete example tucked behind an expand toggle.
 function StylePicker({
   value,
   onChange,
@@ -62,6 +59,7 @@ function StylePicker({
   onChange: (next: TSalesStyle | null) => void;
 }) {
   const t = useDictionary();
+  const [expandedId, setExpandedId] = useState<TSalesStyle | null>(null);
   return (
     <div className="space-y-3">
       <div className="space-y-1">
@@ -71,29 +69,29 @@ function StylePicker({
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="space-y-3">
         {SALES_STYLES.map((style) => {
           const selected = value === style.id;
+          const expanded = expandedId === style.id;
           // Display copy is localized; SALES_STYLES is kept only for the id/enum.
           const copy = t.settings.salesToolkit.styles[style.id];
           return (
             <div
               key={style.id}
               className={[
-                "relative rounded-xl border transition-colors",
+                "rounded-xl border transition-colors",
                 selected
                   ? "border-primary/60 bg-primary/10"
                   : "border-white/10 bg-white/5 hover:bg-white/10",
               ].join(" ")}
             >
-              {/* Main selectable area. Kept as a sibling of the info button (not a
-                  parent) so we never nest a button inside a button. Right padding
-                  leaves room for the info trigger in the corner. */}
+              {/* Main selectable area. Sibling of the expand toggle (not a
+                  parent) so we never nest a button inside a button. */}
               <button
                 type="button"
                 aria-pressed={selected}
                 onClick={() => onChange(selected ? null : style.id)}
-                className="block w-full text-left rounded-xl p-4 pr-9 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="block w-full text-left rounded-t-xl p-4 pb-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <div className="flex items-center gap-1.5">
                   {selected && (
@@ -104,38 +102,52 @@ function StylePicker({
                   <p className="font-semibold">{copy.label}</p>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">{copy.tagline}</p>
-                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                  {copy.description}
-                </p>
-                <p className="text-[11px] text-muted-foreground/80 mt-2 leading-relaxed">
-                  <span className="font-medium">{t.settings.salesToolkit.bestFor}</span> {copy.bestFor}
-                </p>
               </button>
 
-              {/* Info affordance: on hover (or keyboard focus) shows a concrete
-                  example of how this style sounds, answering the same objection as
-                  the other two for easy comparison. */}
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label={t.settings.salesToolkit.exampleAria(copy.label)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute right-2 top-2 grid size-6 place-items-center rounded-full text-muted-foreground hover:text-foreground hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <Info className="size-4" />
-                  </button>
-                </HoverCardTrigger>
-                <HoverCardContent align="end" className="w-80 space-y-2">
-                  <p className="text-sm font-medium">{t.settings.salesToolkit.inAction(copy.label)}</p>
-                  <p className="text-xs text-muted-foreground italic">
-                    {t.settings.salesToolkit.scenario}
+              {/* Expand toggle: reveals the full description and a concrete
+                  example, answering the same objection across all three styles
+                  so they're directly comparable. */}
+              <button
+                type="button"
+                aria-expanded={expanded}
+                aria-label={t.settings.salesToolkit.exampleAria(copy.label)}
+                onClick={() => setExpandedId(expanded ? null : style.id)}
+                className="flex w-full items-center gap-1.5 rounded-b-xl border-t border-white/10 px-4 py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <CaretDown
+                  weight="bold"
+                  className={[
+                    "size-3.5 shrink-0 transition-transform",
+                    expanded ? "rotate-180" : "",
+                  ].join(" ")}
+                />
+                {expanded
+                  ? t.settings.salesToolkit.hideExample
+                  : t.settings.salesToolkit.showExample}
+              </button>
+
+              {expanded && (
+                <div className="px-4 pb-4 pt-1 space-y-3">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {copy.description}
                   </p>
-                  <div className="rounded-lg bg-white/5 border border-white/10 p-2.5">
-                    <p className="text-sm leading-relaxed">{copy.example}</p>
+                  <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
+                    <span className="font-medium">{t.settings.salesToolkit.bestFor}</span>{" "}
+                    {copy.bestFor}
+                  </p>
+                  <div className="space-y-1.5">
+                    <p className="text-sm font-medium">
+                      {t.settings.salesToolkit.inAction(copy.label)}
+                    </p>
+                    <p className="text-xs text-muted-foreground italic">
+                      {t.settings.salesToolkit.scenario}
+                    </p>
+                    <div className="rounded-lg bg-white/5 border border-white/10 p-2.5">
+                      <p className="text-sm leading-relaxed">{copy.example}</p>
+                    </div>
                   </div>
-                </HoverCardContent>
-              </HoverCard>
+                </div>
+              )}
             </div>
           );
         })}

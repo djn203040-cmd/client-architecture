@@ -11,15 +11,23 @@ export function VoiceRefineCard({
   rules,
   onAddRule,
   onDeleteRule,
+  heading,
+  intro,
+  initialDraftBody,
 }: {
   rules: TUsageRule[];
   // Persists a single approved rule. Resolves true on success so the card can
   // clear it from the proposed list; false leaves it for another try.
   onAddRule: (rule: string) => Promise<boolean>;
   onDeleteRule: (index: number) => Promise<boolean>;
+  /** Override the card heading/intro (onboarding asks "what didn't you like?"). */
+  heading?: string;
+  intro?: string;
+  /** Prefill the draft field, e.g. with the demo draft the coach just read. */
+  initialDraftBody?: string;
 }) {
   const t = useDictionary();
-  const [draftBody, setDraftBody] = useState("");
+  const [draftBody, setDraftBody] = useState(initialDraftBody ?? "");
   const [critique, setCritique] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [proposed, setProposed] = useState<string[] | null>(null);
@@ -81,9 +89,9 @@ export function VoiceRefineCard({
       className="rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] space-y-5"
     >
       <header className="space-y-1">
-        <h2 className="text-xl font-semibold">{t.settingsAdvanced.voice.refineCard.heading}</h2>
+        <h2 className="text-xl font-semibold">{heading ?? t.settingsAdvanced.voice.refineCard.heading}</h2>
         <p className="text-sm text-muted-foreground max-w-[65ch]">
-          {t.settingsAdvanced.voice.refineCard.intro}
+          {intro ?? t.settingsAdvanced.voice.refineCard.intro}
         </p>
       </header>
 

@@ -103,6 +103,8 @@ export const settings = defineMessages({
       bestFor: "Best for:",
       exampleAria: (label: string) => `Example of how ${label} sounds`,
       inAction: (label: string) => `${label} in action`,
+      showExample: "See an example",
+      hideExample: "Hide example",
       philosophyLabel: "Your sales philosophy",
       philosophyHelper:
         "One to three sentences on how you sell, in your own words. The AI uses this to fine tune its posture on top of the approach you picked above.",
@@ -355,6 +357,8 @@ export const settings = defineMessages({
       bestFor: "Bedst til:",
       exampleAria: (label: string) => `Eksempel på, hvordan ${label} lyder`,
       inAction: (label: string) => `${label} i praksis`,
+      showExample: "Se et eksempel",
+      hideExample: "Skjul eksempel",
       philosophyLabel: "Din salgsfilosofi",
       philosophyHelper:
         "En til tre sætninger om, hvordan du sælger — med dine egne ord. AI'en bruger det til at finjustere sin stil oven på den tilgang, du valgte ovenfor.",

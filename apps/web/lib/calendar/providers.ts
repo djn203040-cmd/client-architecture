@@ -130,7 +130,8 @@ export const CALENDAR_PROVIDERS: Record<CalendarProviderId, CalendarProviderConf
     authType: "api_key",
     marketingUrl: "https://cal.com",
     apiKey: {
-      helpUrl: "https://cal.com/docs/api-reference/v2/api-keys/create-an-api-key",
+      // "Get your API keys" section: create keys under Settings → Security in Cal.com.
+      helpUrl: "https://cal.com/docs/api-reference/v2/introduction",
       fieldLabel: "Cal.com API key",
       validationEndpoint: "https://api.cal.com/v2/me",
       validationAuth: "bearer",

@@ -30,6 +30,15 @@ interface Props {
   params: Promise<{ step: string }>;
 }
 
+// coaches.voice_model defaults to an empty JSONB {}. Treat anything without a
+// real profile shape as "not built yet" (null) so consumers never crash on
+// undefined arrays.
+function parseVoiceModel(raw: unknown): TVoiceProfile | null {
+  return raw && typeof raw === "object" && "tone_adjectives" in raw
+    ? (raw as TVoiceProfile)
+    : null;
+}
+
 export default async function OnboardingStepPage({ params }: Props) {
   const { step: rawStep } = await params;
   const parsed = OnboardingStepEnum.safeParse(rawStep);
@@ -98,25 +107,13 @@ export default async function OnboardingStepPage({ params }: Props) {
       />
     );
   } else if (step === "voice") {
-    // coaches.voice_model defaults to an empty JSONB {}. Treat anything without
-    // a real profile shape as "not built yet" (null) so the wizard shows the
-    // importer instead of crashing VoiceProfileCard on undefined arrays.
-    const rawVoiceModel = coach?.voice_model as
-      | TVoiceProfile
-      | null
-      | Record<string, never>;
-    const voiceModel =
-      rawVoiceModel &&
-      typeof rawVoiceModel === "object" &&
-      "tone_adjectives" in rawVoiceModel
-        ? (rawVoiceModel as TVoiceProfile)
-        : null;
+    const voiceModel = parseVoiceModel(coach?.voice_model);
     const exampleCount = voiceModel?.selected_examples?.length ?? 0;
     stepContent = (
       <StepVoice initialVoiceModel={voiceModel} initialExampleCount={exampleCount} />
     );
   } else if (step === "first-lead") {
-    stepContent = <StepFirstLead />;
+    stepContent = <StepFirstLead initialVoiceModel={parseVoiceModel(coach?.voice_model)} />;
   } else {
     // notifications
     const [{ data: prefs }, { data: integrations }] = await Promise.all([

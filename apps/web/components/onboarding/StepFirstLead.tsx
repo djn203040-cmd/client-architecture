@@ -1,10 +1,13 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { DemoLeadDraft } from "./DemoLeadDraft";
+import { VoiceRefineCard } from "@/app/(dashboard)/settings/voice/VoiceRefineCard";
+import { useVoiceRules } from "@/app/(dashboard)/settings/voice/useVoiceRules";
 import { CheckCircle } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import type { TVoiceProfile } from "@client/shared/validators";
 import { useDictionary } from "@/lib/i18n/provider";
 import { completeStep, nextRoute, advanceErrorMessage } from "./completeStep";
 
@@ -14,13 +17,22 @@ interface SeedResult {
   draftBody: string;
 }
 
-export function StepFirstLead() {
+interface Props {
+  initialVoiceModel: TVoiceProfile | null;
+}
+
+export function StepFirstLead({ initialVoiceModel }: Props) {
   const t = useDictionary();
   const router = useRouter();
   const [seed, setSeed] = useState<SeedResult | null>(null);
   const [seeding, setSeeding] = useState(true);
   const [celebrating, setCelebrating] = useState(false);
   const [advancing, setAdvancing] = useState(false);
+  const [profile, setProfile] = useState<TVoiceProfile | null>(initialVoiceModel);
+  const [showRefine, setShowRefine] = useState(false);
+  const refineRef = useRef<HTMLDivElement | null>(null);
+
+  const { addRule, deleteRule } = useVoiceRules(profile, setProfile);
 
   const seedDemo = useCallback(async () => {
     setSeeding(true);
@@ -39,6 +51,14 @@ export function StepFirstLead() {
   useEffect(() => {
     void seedDemo();
   }, [seedDemo]);
+
+  function openRefine() {
+    setShowRefine(true);
+    // Wait a frame so the card exists before we scroll down to it.
+    requestAnimationFrame(() => {
+      refineRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 
   async function advance() {
     setAdvancing(true);
@@ -104,6 +124,33 @@ export function StepFirstLead() {
         leadName="Alex Rivera"
         onApproved={() => setCelebrating(true)}
       />
+
+      {/* Escape hatch under the approve button: coaches who aren't happy with
+          the draft drop down into the fine-tuning loop right here. */}
+      {profile && (
+        <div className="text-center pt-1">
+          <button
+            type="button"
+            onClick={openRefine}
+            className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+          >
+            {t.onboarding.firstLead.dislikeLink}
+          </button>
+        </div>
+      )}
+
+      {showRefine && profile && (
+        <div ref={refineRef} className="pt-2 scroll-mt-4">
+          <VoiceRefineCard
+            heading={t.onboarding.firstLead.refineHeading}
+            intro={t.onboarding.firstLead.refineIntro}
+            initialDraftBody={seed.draftBody}
+            rules={profile.usage_rules ?? []}
+            onAddRule={addRule}
+            onDeleteRule={deleteRule}
+          />
+        </div>
+      )}
     </div>
   );
 }

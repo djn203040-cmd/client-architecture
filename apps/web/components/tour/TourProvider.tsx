@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { TOUR_STEPS, type TourStep } from "@/lib/tour/steps";
 import { useDictionary } from "@/lib/i18n/provider";
 import { TourOverlay } from "./TourOverlay";
+import { TourWelcomeDialog } from "./TourWelcomeDialog";
 
 const SEEN_KEY = "tca_tour_v1_seen";
 const STATE_KEY = "tca_tour_v1_state";
@@ -69,6 +70,7 @@ export function TourProvider({
   const t = useDictionary();
 
   const [active, setActive] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [demoLeadId, setDemoLeadId] = useState<string | null>(null);
   const [seedFailed, setSeedFailed] = useState(false);
@@ -135,12 +137,24 @@ export function TourProvider({
   }, []);
 
   const start = useCallback(() => {
+    setShowWelcome(false);
     setSeedFailed(false);
     seedStarted.current = false;
     setActive(true);
     setStepIndex(0);
     void seedDemo();
   }, [seedDemo]);
+
+  // Dismissing the welcome popup counts as "seen": the coach keeps the
+  // sidebar's "Take a tour" link, but we never auto-nag again.
+  const dismissWelcome = useCallback(() => {
+    setShowWelcome(false);
+    try {
+      localStorage.setItem(SEEN_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const stop = useCallback(() => {
     setActive(false);
@@ -193,8 +207,9 @@ export function TourProvider({
       /* ignore corrupt state */
     }
     if (!resumed && autoStart && !readSeen()) {
-      // Small delay so the dashboard has painted before the overlay drops in.
-      const t = setTimeout(start, 600);
+      // Small delay so the dashboard has painted before the popup drops in.
+      // The congrats popup fronts the tour; Start hands off into it.
+      const t = setTimeout(() => setShowWelcome(true), 600);
       return () => clearTimeout(t);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reason: mount-once bootstrap; must run a single time to resume/auto-start, re-running on dep changes would relaunch the tour
@@ -234,6 +249,9 @@ export function TourProvider({
   return (
     <TourContext.Provider value={value}>
       {children}
+      {showWelcome && !active && (
+        <TourWelcomeDialog onStart={start} onSkip={dismissWelcome} />
+      )}
       {active && <TourOverlay />}
     </TourContext.Provider>
   );

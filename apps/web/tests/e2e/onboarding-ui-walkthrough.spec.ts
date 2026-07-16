@@ -152,6 +152,10 @@ test("wizard UI walkthrough: friendly errors, simplified steps, back button", as
     )
     .toBe(5);
   await page.getByRole("button", { name: "Finish setup" }).click();
+  // Finishing celebrates in place (confetti overlay); the dashboard is one
+  // explicit click away.
+  await expect(page.getByText("Congrats — you're onboarded!")).toBeVisible();
+  await page.getByRole("button", { name: "Go to my dashboard" }).click();
   await expect(page).toHaveURL(/\/dashboard/);
 
   // Wizard is done: onboarding_completed_at is set.

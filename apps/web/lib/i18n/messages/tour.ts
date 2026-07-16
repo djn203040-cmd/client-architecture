@@ -15,6 +15,14 @@ export const tour = defineMessages({
     finish: "Finish",
     nextChapter: "Next chapter →",
     seedFailed: "Couldn't load the demo lead, showing the rest of the tour.",
+    // One-time congrats popup on the first dashboard visit after onboarding.
+    // Its "start" button hands off into the tour below.
+    welcomeDialog: {
+      title: "Congrats — it's all yours now",
+      body: "Everything is set up and working for you behind the scenes. Let me show you how it all fits together — it takes about two minutes.",
+      start: "Show me around",
+      skip: "I'll explore on my own",
+    },
     steps: {
       welcome: {
         title: "Welcome to The Client Architecture",
@@ -129,6 +137,12 @@ export const tour = defineMessages({
     finish: "Færdig",
     nextChapter: "Næste kapitel →",
     seedFailed: "Vi kunne ikke hente demo-leadet — du får resten af rundvisningen.",
+    welcomeDialog: {
+      title: "Tillykke — det hele er dit nu",
+      body: "Alt er sat op og arbejder for dig i baggrunden. Lad mig vise dig, hvordan det hele hænger sammen — det tager cirka to minutter.",
+      start: "Vis mig rundt",
+      skip: "Jeg kigger selv rundt",
+    },
     steps: {
       welcome: {
         title: "Velkommen til The Client Architecture",

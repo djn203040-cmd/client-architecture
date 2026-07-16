@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Envelope, ChatCircle, SquaresFour, LockSimple } from "@phosphor-icons/react";
+import { Confetti } from "@/components/ui/confetti";
+import { Envelope, ChatCircle, SquaresFour, LockSimple, CheckCircle } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { useDictionary } from "@/lib/i18n/provider";
 import { completeStep, advanceErrorMessage } from "./completeStep";
@@ -44,6 +45,8 @@ export function StepNotifications({ initialPrefs, integrations, coachEmail }: Pr
   const copy = t.onboarding.notifications;
   const router = useRouter();
   const [advancing, setAdvancing] = useState(false);
+  const [done, setDone] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   const slackConnected = integrations.some(
     (i) => i.provider === "slack" && i.status === "connected",
@@ -118,8 +121,7 @@ export function StepNotifications({ initialPrefs, integrations, coachEmail }: Pr
         toast.error(advanceErrorMessage(res, t.onboarding.errors, copy.advanceFailed));
         return;
       }
-      toast.success(copy.savedToast);
-      router.push("/dashboard");
+      setDone(true);
     } finally {
       setAdvancing(false);
     }
@@ -206,6 +208,41 @@ export function StepNotifications({ initialPrefs, integrations, coachEmail }: Pr
           {advancing ? copy.saving : copy.finish}
         </Button>
       </div>
+
+      {/* Full-screen celebration once the last step is saved. Confetti flies,
+          then the only way forward is the dashboard. */}
+      {done && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="onboarding-complete-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+        >
+          <Confetti />
+          <div className="relative w-full max-w-md rounded-2xl border border-border/60 bg-card shadow-xl dark:bg-[oklch(22%_0.02_80)] dark:border-white/10 p-8 text-center space-y-4">
+            <CheckCircle
+              weight="fill"
+              className="mx-auto size-12 text-[oklch(60%_0.14_145)]"
+            />
+            <h2 id="onboarding-complete-title" className="text-2xl font-semibold leading-snug">
+              {copy.doneTitle}
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {copy.doneBody}
+            </p>
+            <Button
+              className="w-full"
+              disabled={leaving}
+              onClick={() => {
+                setLeaving(true);
+                router.push("/dashboard");
+              }}
+            >
+              {leaving ? copy.doneLeaving : copy.doneCta}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

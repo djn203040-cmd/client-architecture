@@ -153,6 +153,10 @@ export const onboarding = defineMessages({
       advanceFailed: "Couldn't advance. Try again.",
       saving: "Saving…",
       continue: "Continue",
+      dislikeLink: "Didn't like the draft?",
+      refineHeading: "What didn't you like about your draft?",
+      refineIntro:
+        "Tell the AI what felt off. Your feedback becomes rules it remembers, so every draft after this one sounds more like you.",
     },
     // DemoLeadDraft
     demoDraft: {
@@ -181,10 +185,13 @@ export const onboarding = defineMessages({
       saveFailed: "Couldn't save that. Try again.",
       advanceFailed:
         "Turn on at least one channel, or tick the dashboard-only box.",
-      savedToast:
-        "Notifications set, you can change these anytime in Settings.",
       saving: "Saving…",
       finish: "Finish setup",
+      doneTitle: "Congrats — you're onboarded!",
+      doneBody:
+        "Your follow-up system is live. From here the AI writes, you approve, and every lead hears back — in your voice.",
+      doneCta: "Go to my dashboard",
+      doneLeaving: "Opening your dashboard…",
     },
   },
   da: {
@@ -326,6 +333,10 @@ export const onboarding = defineMessages({
       advanceFailed: "Vi kunne ikke gå videre. Prøv igen.",
       saving: "Gemmer…",
       continue: "Fortsæt",
+      dislikeLink: "Ikke tilfreds med udkastet?",
+      refineHeading: "Hvad kunne du ikke lide ved udkastet?",
+      refineIntro:
+        "Fortæl AI'en, hvad der ikke sad rigtigt. Din feedback bliver til regler, den husker — så hvert nyt udkast lyder mere som dig.",
     },
     demoDraft: {
       badge: "Demo i opsætningen",
@@ -352,10 +363,13 @@ export const onboarding = defineMessages({
       saveFailed: "Vi kunne ikke gemme det. Prøv igen.",
       advanceFailed:
         "Slå mindst én kanal til, eller sæt kryds i kun-overblik.",
-      savedToast:
-        "Notifikationer er sat — du kan altid ændre dem under Indstillinger.",
       saving: "Gemmer…",
       finish: "Afslut opsætningen",
+      doneTitle: "Tillykke — du er klar!",
+      doneBody:
+        "Dit opfølgningssystem kører nu. Herfra skriver AI'en, du godkender, og hvert lead hører fra dig — med din stemme.",
+      doneCta: "Gå til mit overblik",
+      doneLeaving: "Åbner dit overblik…",
     },
   },
 });
