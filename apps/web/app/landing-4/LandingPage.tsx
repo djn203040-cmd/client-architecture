@@ -135,7 +135,7 @@ export default function LandingPage({ copy }: { copy: TLandingCopy }) {
         <footer className="l4-footer">
           <span>The Client Architecture</span>
           <span className="l4-footer-din">
-            Built by Sonorous Digital — The Modern Architect&rsquo;s Office
+            Built by Sonorous Digital · The Modern Architect&rsquo;s Office
           </span>
           <a href="/privacy-policy">{copy.final.privacy}</a>
         </footer>
