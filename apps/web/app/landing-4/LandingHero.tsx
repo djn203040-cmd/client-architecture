@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import "./landing4.css";
+import type { TLandingHeroCopy } from "./copy";
 
 const TOTAL_FRAMES = 101;
 const FRAME_PATH = (i: number) =>
@@ -14,7 +15,7 @@ const FRAME_H = 1490;
 const SCRUB_START = 0.06;
 const SCRUB_END = 0.88;
 
-export default function LandingHero() {
+export default function LandingHero({ copy }: { copy: TLandingHeroCopy }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const runwayRef = useRef<HTMLDivElement | null>(null);
   const hintRef = useRef<HTMLDivElement | null>(null);
@@ -126,44 +127,37 @@ export default function LandingHero() {
         {/* Giant tone-on-tone headline. Sits UNDER the canvas; the darken
             blend lets it show through the cream while the laptop occludes it. */}
         <div className="l4-ghost" aria-hidden="true">
-          <span className="l4-ghost-line">Leads</span>
-          <span className="l4-ghost-line l4-ghost-line-2">don&rsquo;t die</span>
+          <span className="l4-ghost-line">{copy.ghostLine1}</span>
+          <span className="l4-ghost-line l4-ghost-line-2">{copy.ghostLine2}</span>
         </div>
 
         <div className="l4-stage">
           <canvas
             ref={canvasRef}
             className="l4-canvas"
-            aria-label="A laptop resting on a branch; its interface lifts off the screen as you scroll"
+            aria-label={copy.canvasAria}
           />
         </div>
 
         <nav className="l4-nav" aria-label="Landing">
           <span className="l4-wordmark">The Client Architecture</span>
           <a className="l4-nav-cta" href="/login">
-            Login
+            {copy.login}
           </a>
         </nav>
 
         <div className="l4-grid">
           <header className="l4-copy">
             <h1 className="l4-title">
-              <span className="l4-title-sr">Leads don&rsquo;t die.</span> They
-              get abandoned.
+              <span className="l4-title-sr">{copy.srTitle}</span> {copy.title}
             </h1>
-            <p className="l4-sub">
-              You already paid for them — the ads, the content, the call
-              itself. Then the week gets loud, the follow-up slips, and a yes
-              becomes a stranger. We write the follow-up in your voice, wait
-              for your nod, and send it from your own inbox. Every call. Every
-              time.
-            </p>
+            <p className="l4-sub">{copy.sub}</p>
             <div className="l4-actions">
               <a className="l4-cta" href="#book">
-                Book a call
+                {copy.ctaPrimary}
               </a>
               <a className="l4-cta-ghost" href="#promise">
-                See the system
+                {copy.ctaSecondary}
               </a>
             </div>
           </header>
@@ -171,7 +165,7 @@ export default function LandingHero() {
 
         <div className="l4-hint" ref={hintRef} aria-hidden="true">
           <span className="l4-hint-line" />
-          Scroll
+          {copy.hint}
         </div>
       </div>
     </div>

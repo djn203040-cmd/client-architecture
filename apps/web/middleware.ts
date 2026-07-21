@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { buildCsp, generateCspNonce, HSTS_HEADER, STATIC_SECURITY_HEADERS } from "./lib/security/csp";
+import { LEGACY_PROD_HOST, SITE_HOST_DA, SITE_HOST_EN, SITE_URL_EN } from "./lib/site-urls";
 
 function applySecurityHeaders(res: NextResponse, nonce: string, isDev: boolean): void {
   for (const [k, v] of Object.entries(STATIC_SECURITY_HEADERS)) {
@@ -23,6 +24,47 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-csp-nonce", nonce);
   requestHeaders.set("x-pathname", request.nextUrl.pathname);
+
+  // ── Host routing: .com is the canonical app domain, .dk serves the Danish
+  // landing. Assets (anything with a file extension) and API routes always
+  // fall through so frames, webhooks, and OAuth callbacks keep working on
+  // whichever host they were registered against.
+  const host = (request.headers.get("host") ?? "").toLowerCase().split(":")[0];
+  const { pathname, search } = request.nextUrl;
+  const isPageRequest = !pathname.startsWith("/api/") && !/\.[^/]+$/.test(pathname);
+
+  if (host === `www.${SITE_HOST_EN}` || host === `www.${SITE_HOST_DA}`) {
+    const res = NextResponse.redirect(`https://${host.slice(4)}${pathname}${search}`, 308);
+    applySecurityHeaders(res, nonce, isDev);
+    return res;
+  }
+
+  if (host === SITE_HOST_DA) {
+    if (pathname === "/") {
+      // Danish landing at the .dk root; keep the URL bar clean.
+      requestHeaders.set("x-pathname", "/da");
+      const res = NextResponse.rewrite(new URL("/da", request.url), {
+        request: { headers: requestHeaders },
+      });
+      applySecurityHeaders(res, nonce, isDev);
+      return res;
+    }
+    if (pathname !== "/da" && isPageRequest) {
+      // App lives on the .com — login, dashboard, unsubscribe, all of it.
+      const res = NextResponse.redirect(`${SITE_URL_EN}${pathname}${search}`, 308);
+      applySecurityHeaders(res, nonce, isDev);
+      return res;
+    }
+  }
+
+  if (host === LEGACY_PROD_HOST && isPageRequest) {
+    // Old links in already-sent emails land on the canonical domain. API
+    // routes are excluded: provider webhooks registered against this host
+    // must keep resolving here, not chase redirects.
+    const res = NextResponse.redirect(`${SITE_URL_EN}${pathname}${search}`, 308);
+    applySecurityHeaders(res, nonce, isDev);
+    return res;
+  }
 
   const supabaseResponse = NextResponse.next({
     request: { headers: requestHeaders },
