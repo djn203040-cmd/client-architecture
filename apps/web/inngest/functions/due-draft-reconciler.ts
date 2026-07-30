@@ -2,15 +2,11 @@ import "server-only";
 import { inngest } from "@/inngest/client";
 import { adminClient } from "@/lib/supabase/admin";
 import { CRON_RECONCILE_DUE_SENDS } from "@client/shared/constants/events";
+// Threshold is shared with the /admin stuck-sends surface so the two agree on
+// what "stuck" means. See packages/shared/src/constants/sends.ts.
+import { stuckSendingCutoff } from "@client/shared/constants/sends";
 
 type ReconcilerEvent = { name: string; data: Record<string, never> };
-
-/**
- * How long a draft may sit in the transient `sending` status before we treat it
- * as a crashed send rather than one in flight. A real send is seconds; Inngest
- * exhausts its 3 retries of the deliver/record steps well inside this.
- */
-const STUCK_SENDING_MINUTES = 15;
 
 type StepTools = {
   run<T>(id: string, fn: () => Promise<T> | T): Promise<T>;
@@ -100,12 +96,13 @@ export async function dueDraftReconcilerHandler({
  *
  * The unwitnessed case is deliberately not auto-retried: re-emitting a send that
  * may already have reached the lead would reintroduce exactly the duplicate this
- * whole mechanism exists to prevent. A stuck draft is visible and fixable by
- * hand (check the coach's Gmail Sent folder, then flip the status); a duplicate
- * email to a lead is not retractable.
+ * whole mechanism exists to prevent. It needs a human judgement instead, so it
+ * surfaces on /admin under System health, where the operator can query the
+ * coach's own Gmail for the answer and then mark it sent or re-queue it
+ * (lib/admin/stuck-sends.ts). A duplicate email to a lead is not retractable.
  */
 async function recoverStuckSendingDrafts() {
-  const cutoff = new Date(Date.now() - STUCK_SENDING_MINUTES * 60_000).toISOString();
+  const cutoff = stuckSendingCutoff();
 
   const { data: stuck } = await adminClient
     .from("drafts")
@@ -172,7 +169,7 @@ async function recoverStuckSendingDrafts() {
     // Not auto-resent on purpose (see above). IDs only, no PII per CALL-016.
     console.error(
       `[due-draft-reconciler] ${needsOperator.length} draft(s) stuck in 'sending' with no send ` +
-        `on record, needs a human to check Gmail Sent before resending:`,
+        `on record, awaiting an operator decision on /admin#system-health:`,
       needsOperator,
     );
   }
