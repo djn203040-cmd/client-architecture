@@ -5,6 +5,7 @@ import { WhyItMatters } from "@/components/modules/WhyItMatters";
 import { SocialProofSection } from "@/components/modules/SocialProofSection";
 import { CtaSection } from "@/components/modules/CtaSection";
 import { getServerDictionary } from "@/lib/i18n/server";
+import { BOOKING_CAL_LINK } from "@/lib/site-urls";
 
 export async function generateMetadata() {
   const t = await getServerDictionary();
@@ -79,7 +80,7 @@ export default async function ThresholdPage() {
         id="cta"
         headline={m.cta.headline}
         pickTimeLabel={shared.pickTime}
-        calLink="daniel/threshold-intro"
+        calLink={BOOKING_CAL_LINK}
         calNamespace="threshold"
         secondaryMailto={mailto}
         secondaryLabel={shared.talkFirst}

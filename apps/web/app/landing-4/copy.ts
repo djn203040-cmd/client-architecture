@@ -65,7 +65,6 @@ export type TLandingCopy = {
     subAfterEm: string;
     kicker: string;
     cta: string;
-    mailtoSubject: string;
     privacy: string;
   };
 };
@@ -112,8 +111,8 @@ export const landingCopy: Record<"en" | "da", TLandingCopy> = {
       displayLine2: "actually care about",
       rows: [
         {
-          figure: "80%",
-          heading: "Of sales take five or more follow-ups",
+          figure: "5+",
+          heading: "Follow-ups before a warm lead says yes",
           body: "And almost every coach quits after one. The gap between the follow-up a lead needs and the one they get is where your revenue quietly leaves.",
         },
         {
@@ -196,7 +195,6 @@ export const landingCopy: Record<"en" | "da", TLandingCopy> = {
         ". Or every lead you ever talk to gets followed up like they’re your only client. In your voice. On time. Forever. The next call you finish is the first one we follow.",
       kicker: "Let’s go collect them.",
       cta: "Book a call",
-      mailtoSubject: "The Client Architecture: Book a call",
       privacy: "Privacy",
     },
   },
@@ -241,8 +239,8 @@ export const landingCopy: Record<"en" | "da", TLandingCopy> = {
       displayLine2: "faktisk går op i",
       rows: [
         {
-          figure: "80%",
-          heading: "Af alle salg kræver fem eller flere opfølgninger",
+          figure: "5+",
+          heading: "Opfølgninger før et varmt lead siger ja",
           body: "Og næsten alle coaches stopper efter én. Hullet mellem den opfølgning, et lead har brug for, og den, de får, er dér, hvor din omsætning stille forsvinder.",
         },
         {
@@ -325,7 +323,6 @@ export const landingCopy: Record<"en" | "da", TLandingCopy> = {
         ". Eller også bliver hvert eneste lead, du taler med, fulgt op, som var de din eneste klient. Med din stemme. Til tiden. Altid. Den næste samtale, du afslutter, er den første, vi følger op på.",
       kicker: "Lad os hente dem hjem.",
       cta: "Book en samtale",
-      mailtoSubject: "The Client Architecture: Book en samtale",
       privacy: "Privatliv",
     },
   },

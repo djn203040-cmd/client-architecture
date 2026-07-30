@@ -1,9 +1,8 @@
 import LandingHero from "./LandingHero";
 import type { TLandingCopy } from "./copy";
+import { BOOKING_URL } from "@/lib/site-urls";
 
 export default function LandingPage({ copy }: { copy: TLandingCopy }) {
-  const bookHref = `mailto:djn203040@gmail.com?subject=${encodeURIComponent(copy.final.mailtoSubject)}`;
-
   return (
     <main className="l4-root">
       <LandingHero copy={copy.hero} />
@@ -129,7 +128,12 @@ export default function LandingPage({ copy }: { copy: TLandingCopy }) {
           {copy.final.subAfterEm}
         </p>
         <p className="l4-final-kicker">{copy.final.kicker}</p>
-        <a className="l4-cta l4-cta-large" href={bookHref}>
+        <a
+          className="l4-cta l4-cta-large"
+          href={BOOKING_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           {copy.final.cta}
         </a>
         <footer className="l4-footer">
