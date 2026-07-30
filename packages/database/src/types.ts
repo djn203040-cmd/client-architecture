@@ -318,6 +318,7 @@ export type Database = {
           sequence_config: Json | null
           service_info: Json | null
           timezone: string | null
+          tour_seen_at: string | null
           updated_at: string
           voice_model: Json | null
           working_hours: Json
@@ -345,6 +346,7 @@ export type Database = {
           sequence_config?: Json | null
           service_info?: Json | null
           timezone?: string | null
+          tour_seen_at?: string | null
           updated_at?: string
           voice_model?: Json | null
           working_hours?: Json
@@ -372,6 +374,7 @@ export type Database = {
           sequence_config?: Json | null
           service_info?: Json | null
           timezone?: string | null
+          tour_seen_at?: string | null
           updated_at?: string
           voice_model?: Json | null
           working_hours?: Json

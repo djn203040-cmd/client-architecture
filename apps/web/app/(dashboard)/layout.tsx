@@ -54,7 +54,12 @@ export default async function DashboardLayout({
 
   return (
     <I18nProvider locale={coerceLanguage(coach.language)}>
-      <TourProvider autoStart={!!coach.onboarding_completed_at}>
+      {/* Auto-launch the tour popup once only: onboarding done and never offered
+          before. `tour_seen_at` is the server-side flag, so a second browser,
+          a cleared localStorage or a domain change can't bring the popup back. */}
+      <TourProvider
+        autoStart={!!coach.onboarding_completed_at && !coach.tour_seen_at}
+      >
         <AppShell coachName={coach.name}>
           {!coach.onboarding_completed_at && (
             <OnboardingBanner progress={progress} coachCreatedAt={coach.created_at} />

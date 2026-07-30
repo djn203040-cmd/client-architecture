@@ -172,6 +172,7 @@ describe("coaches column-level UPDATE grant (#140)", () => {
     "service_info",
     "notification_settings",
     "active_calendar_provider",
+    "tour_seen_at",
     "role",
     "email",
     "name",

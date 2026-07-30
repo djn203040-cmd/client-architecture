@@ -62,7 +62,10 @@ export function TourProvider({
   autoStart = false,
 }: {
   children: React.ReactNode;
-  /** Coach has finished onboarding, eligible for the one-time auto-launch. */
+  /**
+   * Coach finished onboarding AND has never been offered the tour (server
+   * truth, `coaches.tour_seen_at`). False here is final: no auto-launch.
+   */
   autoStart?: boolean;
 }) {
   const router = useRouter();
@@ -75,6 +78,28 @@ export function TourProvider({
   const [demoLeadId, setDemoLeadId] = useState<string | null>(null);
   const [seedFailed, setSeedFailed] = useState(false);
   const seedStarted = useRef(false);
+  const seenSynced = useRef(false);
+
+  // Records "already offered" in both places: localStorage for an instant guard
+  // on this browser (no round trip before the popup timer), and the coach row so
+  // the popup never returns on another browser, device, or domain. Called the
+  // moment the popup is shown, so it is one-and-done however the coach reacts.
+  const markSeen = useCallback(() => {
+    try {
+      localStorage.setItem(SEEN_KEY, "1");
+    } catch {
+      /* storage unavailable, the server flag below still holds */
+    }
+    if (seenSynced.current) return;
+    seenSynced.current = true;
+    // keepalive: the coach may click Start (which routes) or navigate away
+    // within milliseconds of the popup appearing; the stamp must still land.
+    void fetch("/api/tour/seen", { method: "POST", keepalive: true }).catch(() => {
+      // Best effort. A failed stamp just means the popup may be offered once
+      // more on the next visit, never a broken dashboard.
+      seenSynced.current = false;
+    });
+  }, []);
 
   // Steps that need the demo lead are skipped only if seeding definitively failed.
   const shouldSkip = useCallback(
@@ -149,22 +174,18 @@ export function TourProvider({
   // sidebar's "Take a tour" link, but we never auto-nag again.
   const dismissWelcome = useCallback(() => {
     setShowWelcome(false);
-    try {
-      localStorage.setItem(SEEN_KEY, "1");
-    } catch {
-      /* ignore */
-    }
-  }, []);
+    markSeen();
+  }, [markSeen]);
 
   const stop = useCallback(() => {
     setActive(false);
+    markSeen();
     try {
-      localStorage.setItem(SEEN_KEY, "1");
       localStorage.removeItem(STATE_KEY);
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [markSeen]);
 
   const next = useCallback(() => {
     setStepIndex((i) => {
@@ -209,7 +230,12 @@ export function TourProvider({
     if (!resumed && autoStart && !readSeen()) {
       // Small delay so the dashboard has painted before the popup drops in.
       // The congrats popup fronts the tour; Start hands off into it.
-      const t = setTimeout(() => setShowWelcome(true), 600);
+      const t = setTimeout(() => {
+        setShowWelcome(true);
+        // Offered once is offered for good, whatever the coach does next
+        // (start it, dismiss it, or just navigate away).
+        markSeen();
+      }, 600);
       return () => clearTimeout(t);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reason: mount-once bootstrap; must run a single time to resume/auto-start, re-running on dep changes would relaunch the tour
