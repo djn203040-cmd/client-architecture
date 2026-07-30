@@ -4,8 +4,9 @@ import type { InngestHandler } from "@/tests/utils/inngest-runner";
 
 // Mock the send library so we exercise the Inngest orchestration (skip / deliver
 // / record sequencing) without touching Gmail or the database.
-const { mockLoad, mockDeliver, mockRecord, mockSafety } = vi.hoisted(() => ({
+const { mockLoad, mockClaim, mockDeliver, mockRecord, mockSafety } = vi.hoisted(() => ({
   mockLoad: vi.fn(),
+  mockClaim: vi.fn(),
   mockDeliver: vi.fn(),
   mockRecord: vi.fn(),
   mockSafety: vi.fn(),
@@ -13,6 +14,7 @@ const { mockLoad, mockDeliver, mockRecord, mockSafety } = vi.hoisted(() => ({
 
 vi.mock("@/lib/gmail/send", () => ({
   loadSendContext: mockLoad,
+  claimDraftForSend: mockClaim,
   deliverDraft: mockDeliver,
   recordDelivery: mockRecord,
 }));
@@ -54,6 +56,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   // Default: lead is sendable. Individual tests override to exercise a block.
   mockSafety.mockResolvedValue(null);
+  // Default: this run wins the claim. One test below exercises losing it.
+  mockClaim.mockResolvedValue(true);
 });
 
 describe("sendViaGmail handler", () => {
@@ -144,6 +148,50 @@ describe("sendViaGmail handler", () => {
     expect(mockDeliver).not.toHaveBeenCalled();
     expect(mockRecord).not.toHaveBeenCalled();
     expect(result).toMatchObject({ sent: false, skipped: "dnc_flag" });
+  });
+
+  // #139: the claim is what makes two concurrent send events safe.
+  it("does not send when another run already claimed the draft", async () => {
+    mockLoad.mockResolvedValue({ ctx: CTX });
+    mockClaim.mockResolvedValue(false);
+
+    const result = await runInngestStep(handler, makeEvent("sequence_scheduled"));
+
+    expect(mockDeliver).not.toHaveBeenCalled();
+    expect(mockRecord).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ sent: false, skipped: "claimed_by_another_send" });
+  });
+
+  it("claims the draft before delivering, never after", async () => {
+    mockLoad.mockResolvedValue({ ctx: CTX });
+    mockDeliver.mockResolvedValue({ gmailMessageId: "x", gmailThreadId: "y" });
+    mockRecord.mockResolvedValue(undefined);
+
+    await runInngestStep(handler, makeEvent());
+
+    expect(mockClaim).toHaveBeenCalledWith("draft-1", "coach-1");
+    expect(mockClaim.mock.invocationCallOrder[0]).toBeLessThan(
+      mockDeliver.mock.invocationCallOrder[0]!,
+    );
+  });
+
+  it("does not claim a draft it is going to defer (no stranding in 'sending')", async () => {
+    const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    mockLoad.mockResolvedValue({ ctx: { ...CTX, scheduledSendAt: future } });
+
+    const result = await runInngestStep(handler, makeEvent("dashboard"));
+
+    expect(result).toMatchObject({ skipped: "awaiting_scheduled_time" });
+    expect(mockClaim).not.toHaveBeenCalled();
+  });
+
+  it("does not claim a draft blocked by the pre-send safety check", async () => {
+    mockLoad.mockResolvedValue({ ctx: CTX });
+    mockSafety.mockResolvedValue("unsubscribed");
+
+    await runInngestStep(handler, makeEvent("sequence_scheduled"));
+
+    expect(mockClaim).not.toHaveBeenCalled();
   });
 
   it("defaults source to 'unknown' when omitted", async () => {

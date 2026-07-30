@@ -142,3 +142,92 @@ describe("RLS pen-test (static schema)", () => {
     );
   });
 });
+
+/**
+ * #140: RLS scopes the coaches row, but WHICH columns a coach may write is a
+ * column-level GRANT. These assertions are the guard rail: adding a
+ * server-owned column to that GRANT should fail the build, not ship quietly.
+ */
+describe("coaches column-level UPDATE grant (#140)", () => {
+  /** Columns a signed-in coach may write directly (Settings > Profile). */
+  const COACH_WRITABLE = [
+    "display_name",
+    "role_title",
+    "language",
+    "timezone",
+    "working_hours",
+    "email_signature",
+    "public_booking_url",
+  ];
+
+  /** Columns the server must own. A coach writing these bypasses an API gate. */
+  const SERVER_OWNED = [
+    "autonomous_mode",
+    "onboarding_progress",
+    "onboarding_completed_at",
+    "avatar_url",
+    "voice_model",
+    "sales_toolkit",
+    "sequence_config",
+    "service_info",
+    "notification_settings",
+    "active_calendar_provider",
+    "role",
+    "email",
+    "name",
+    "id",
+  ];
+
+  /** The final `GRANT UPDATE (...) ON public.coaches TO authenticated` column list. */
+  function grantedColumns(): string[] {
+    const matches = [
+      ...migrationsSql.matchAll(
+        /GRANT\s+UPDATE\s*\(([\s\S]*?)\)\s*ON\s+(?:public\.)?coaches\s+TO\s+authenticated/gi,
+      ),
+    ];
+    expect(matches.length, "no column-restricted GRANT UPDATE on coaches found").toBeGreaterThan(0);
+    return (matches.at(-1)![1] ?? "")
+      .split(",")
+      .map((c) => c.trim().replace(/--.*$/gm, "").trim())
+      .filter(Boolean);
+  }
+
+  it("revokes the blanket table-wide UPDATE from anon and authenticated", () => {
+    for (const role of ["anon", "authenticated"]) {
+      const re = new RegExp(
+        `REVOKE\\s+[^;]*UPDATE[^;]*ON\\s+(?:public\\.)?coaches\\s+FROM\\s+${role}`,
+        "i",
+      );
+      expect(migrationsSql, `blanket UPDATE never revoked from ${role}`).toMatch(re);
+    }
+  });
+
+  it("grants exactly the coach-writable profile columns", () => {
+    expect(grantedColumns().sort()).toEqual([...COACH_WRITABLE].sort());
+  });
+
+  it("grants no server-owned column to authenticated", () => {
+    const granted = new Set(grantedColumns());
+    const leaked = SERVER_OWNED.filter((c) => granted.has(c));
+    expect(leaked, `server-owned columns exposed to the browser: ${leaked.join(", ")}`).toEqual([]);
+  });
+
+  it("every granted column is writable through ProfilePatchSchema", async () => {
+    // The profile route is the one coaches write with the RLS client. If a
+    // column is granted but no validated route writes it, the grant is dead
+    // surface area; if a route writes it but it isn't granted, saves 500.
+    const settingsValidators = await readFile(
+      path.resolve(__dirname, "../../../../packages/shared/src/validators/settings.ts"),
+      "utf8",
+    );
+    const schemaBody = settingsValidators.match(
+      /export const ProfilePatchSchema = z\.object\(\{([\s\S]*?)\n\}\);/,
+    )?.[1];
+    expect(schemaBody, "ProfilePatchSchema not found").toBeTruthy();
+    for (const col of grantedColumns()) {
+      expect(schemaBody, `${col} is granted but absent from ProfilePatchSchema`).toMatch(
+        new RegExp(`^\\s*${col}:`, "m"),
+      );
+    }
+  });
+});

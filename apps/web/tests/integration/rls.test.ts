@@ -85,4 +85,76 @@ describe.skipIf(skipIf)("INFRA-001: RLS isolates coaches", () => {
     const { data } = await aClient.from("draft_edits").select("*").eq("coach_id", coachB.id);
     expect(data).toEqual([]);
   });
+
+  /**
+   * #140. RLS keeps a coach inside their own row; the column-level GRANT keeps
+   * them out of the columns the API routes own. Without the grant these writes
+   * all succeed, which is the bug.
+   */
+  describe("coaches column-level UPDATE grant (#140)", () => {
+    const asCoachA = () =>
+      createClient(SUPABASE_URL, ANON, {
+        global: { headers: { Authorization: `Bearer ${coachA.jwt}` } },
+      });
+
+    it("Coach A CAN update their own profile columns", async () => {
+      const { error } = await asCoachA()
+        .from("coaches")
+        .update({ display_name: "Renamed", timezone: "Europe/Copenhagen" })
+        .eq("id", coachA.id);
+      expect(error).toBeNull();
+
+      const { data } = await admin
+        .from("coaches")
+        .select("display_name, timezone")
+        .eq("id", coachA.id)
+        .single();
+      expect(data?.display_name).toBe("Renamed");
+      expect(data?.timezone).toBe("Europe/Copenhagen");
+    });
+
+    // Each of these bypasses a server-side gate if the browser can write it.
+    it.each<[column: string, value: unknown, why: string]>([
+      ["autonomous_mode", "mode_a", "skips the Mode-A confirm gate + audit log"],
+      ["onboarding_completed_at", new Date(0).toISOString(), "skips the wizard step gates"],
+      ["avatar_url", "https://evil.example/x.png", "arms the cross-tenant avatar delete"],
+      ["voice_model", { junk: true }, "feeds unvalidated JSON into AI prompts"],
+      ["sales_toolkit", { junk: true }, "feeds unvalidated JSON into AI prompts"],
+      ["sequence_config", { junk: true }, "reschedules the send cadence"],
+    ])("Coach A CANNOT update %s (%s)", async (column, value) => {
+      const { data: before } = await admin
+        .from("coaches")
+        .select(column)
+        .eq("id", coachA.id)
+        .single();
+
+      const { error } = await asCoachA()
+        .from("coaches")
+        .update({ [column]: value })
+        .eq("id", coachA.id);
+      expect(error, `${column} was writable from the browser`).toBeTruthy();
+
+      const { data: after } = await admin
+        .from("coaches")
+        .select(column)
+        .eq("id", coachA.id)
+        .single();
+      expect(after).toEqual(before);
+    });
+
+    it("Coach A cannot smuggle a server-owned column in alongside a granted one", async () => {
+      const { error } = await asCoachA()
+        .from("coaches")
+        .update({ display_name: "Legit", autonomous_mode: "mode_a" })
+        .eq("id", coachA.id);
+      expect(error).toBeTruthy();
+
+      const { data } = await admin
+        .from("coaches")
+        .select("autonomous_mode")
+        .eq("id", coachA.id)
+        .single();
+      expect(data?.autonomous_mode).not.toBe("mode_a");
+    });
+  });
 });

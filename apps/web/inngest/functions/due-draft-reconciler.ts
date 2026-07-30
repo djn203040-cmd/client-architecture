@@ -5,6 +5,13 @@ import { CRON_RECONCILE_DUE_SENDS } from "@client/shared/constants/events";
 
 type ReconcilerEvent = { name: string; data: Record<string, never> };
 
+/**
+ * How long a draft may sit in the transient `sending` status before we treat it
+ * as a crashed send rather than one in flight. A real send is seconds; Inngest
+ * exhausts its 3 retries of the deliver/record steps well inside this.
+ */
+const STUCK_SENDING_MINUTES = 15;
+
 type StepTools = {
   run<T>(id: string, fn: () => Promise<T> | T): Promise<T>;
   sendEvent(
@@ -24,9 +31,9 @@ type StepTools = {
  *
  * Every 10 min this finds drafts whose fixed send time has passed but which are
  * still in an approved state (a delivered draft would be `sent`), and re-emits
- * the single send event. It is idempotent: `send-via-gmail` → `loadSendContext`
- * skips anything already `status = 'sent'`, so a live timer that fires first, or
- * two reconciler runs, still send at most once. Emitting with
+ * the single send event. It is idempotent: `send-via-gmail` atomically claims the
+ * draft into `sending` (#139), so a live timer firing at the same moment as this
+ * tick, or two reconciler runs, still send at most once. Emitting with
  * `source: 'sequence_scheduled'` bypasses the cadence gate (the time has already
  * passed) and keeps the correct send semantics.
  *
@@ -69,7 +76,108 @@ export async function dueDraftReconcilerHandler({
     });
   }
 
-  return { stranded: stranded.length };
+  // Second sweep (#139): drafts stuck in the transient `sending` claim. Reaching
+  // here means send-via-gmail claimed the draft and then died past its retries,
+  // so nothing will move it on its own.
+  const recovered = await step.run("recover-stuck-sending", () =>
+    recoverStuckSendingDrafts(),
+  );
+
+  return { stranded: stranded.length, ...recovered };
+}
+
+/**
+ * Resolve drafts left in `sending` by a crashed send.
+ *
+ * The DB cannot tell "Gmail never got the message" apart from "Gmail got it but
+ * recordDelivery failed" — both leave the draft in `sending`. What it CAN tell is
+ * whether the send was witnessed: recordDelivery writes the `email_events` row
+ * BEFORE flipping the draft, so an existing 'sent' event means the email
+ * definitely went out.
+ *
+ *   witnessed  → finish the interrupted bookkeeping. Never re-send.
+ *   unwitnessed → log loudly and LEAVE IT in `sending`.
+ *
+ * The unwitnessed case is deliberately not auto-retried: re-emitting a send that
+ * may already have reached the lead would reintroduce exactly the duplicate this
+ * whole mechanism exists to prevent. A stuck draft is visible and fixable by
+ * hand (check the coach's Gmail Sent folder, then flip the status); a duplicate
+ * email to a lead is not retractable.
+ */
+async function recoverStuckSendingDrafts() {
+  const cutoff = new Date(Date.now() - STUCK_SENDING_MINUTES * 60_000).toISOString();
+
+  const { data: stuck } = await adminClient
+    .from("drafts")
+    .select("id, coach_id, lead_id, subject")
+    .eq("status", "sending")
+    .lte("updated_at", cutoff);
+
+  if (!stuck?.length) return { stuckSending: 0, completed: 0 };
+
+  const needsOperator: string[] = [];
+  let completed = 0;
+
+  for (const draft of stuck) {
+    const { data: witness } = await adminClient
+      .from("email_events")
+      .select("id, created_at")
+      .eq("draft_id", draft.id)
+      .eq("event_type", "sent")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (!witness) {
+      needsOperator.push(draft.id);
+      continue;
+    }
+
+    await adminClient
+      .from("drafts")
+      .update({ status: "sent", sent_at: witness.created_at })
+      .eq("id", draft.id)
+      .eq("status", "sending");
+
+    // recordDelivery's lead_events insert comes after the draft flip, so it is
+    // the step most likely to have been lost. Only add it if it is missing.
+    const { data: loggedEvent } = await adminClient
+      .from("lead_events")
+      .select("id")
+      .eq("lead_id", draft.lead_id)
+      .eq("event_type", "email_sent")
+      .contains("payload", { draft_id: draft.id })
+      .limit(1)
+      .maybeSingle();
+
+    if (!loggedEvent) {
+      await adminClient.from("lead_events").insert({
+        coach_id: draft.coach_id,
+        lead_id: draft.lead_id,
+        event_type: "email_sent",
+        payload: { draft_id: draft.id, subject: draft.subject, source: "reconciler_recovery" },
+        triggered_by: "system",
+      });
+    }
+
+    completed++;
+  }
+
+  if (completed > 0) {
+    console.warn(
+      `[due-draft-reconciler] completed ${completed} interrupted send(s) from email_events`,
+    );
+  }
+  if (needsOperator.length > 0) {
+    // Not auto-resent on purpose (see above). IDs only, no PII per CALL-016.
+    console.error(
+      `[due-draft-reconciler] ${needsOperator.length} draft(s) stuck in 'sending' with no send ` +
+        `on record, needs a human to check Gmail Sent before resending:`,
+      needsOperator,
+    );
+  }
+
+  return { stuckSending: stuck.length, completed };
 }
 
 export const dueDraftReconciler = inngest.createFunction(

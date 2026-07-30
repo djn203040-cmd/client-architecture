@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/supabase/admin";
 import { VoiceProfileSchema } from "@client/shared/validators";
 
 export async function POST(request: Request) {
@@ -13,7 +14,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid voice profile", details: parsed.error.issues }, { status: 400 });
   }
 
-  const { error } = await supabase
+  // voice_model is server-owned (not in the coaches column GRANT), so the write
+  // goes through the admin client. Scope stays on user.id from the session above.
+  const { error } = await adminClient
     .from("coaches")
     .update({ voice_model: parsed.data })
     .eq("id", user.id);

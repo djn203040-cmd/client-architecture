@@ -2,6 +2,7 @@ import "server-only";
 import { inngest } from "@/inngest/client";
 import {
   loadSendContext,
+  claimDraftForSend,
   deliverDraft,
   recordDelivery,
   type Delivery,
@@ -25,8 +26,10 @@ type StepTools = {
  * Mode A/B). Sends the approved draft as the coach via the Gmail API.
  *
  * Step boundaries matter: `deliver` is its own memoized step so an Inngest
- * retry of a later step never re-sends the email. Idempotency against
- * duplicate events is handled in `loadSendContext` (skips when status='sent').
+ * retry of a later step never re-sends the email. Idempotency against duplicate
+ * EVENTS is the `claim-draft` step: an atomic status CAS that exactly one racing
+ * send can win (#139). `loadSendContext`'s status read stays as a cheap early
+ * out, but it is not the guarantee.
  *
  * Exported separately from the createFunction wrapper so integration tests can
  * drive the handler without an Inngest dev server.
@@ -71,6 +74,16 @@ export async function sendViaGmailHandler({
     new Date(ctx.scheduledSendAt).getTime() > Date.now()
   ) {
     return { sent: false, skipped: "awaiting_scheduled_time", draftId };
+  }
+
+  // Last gate before delivery, and the one that actually makes this idempotent.
+  // Deliberately AFTER the cadence gate above: an early return past this point
+  // would leave the draft parked in `sending` with nothing to move it on.
+  const claimed = await step.run("claim-draft", () =>
+    claimDraftForSend(draftId, coachId),
+  );
+  if (!claimed) {
+    return { sent: false, skipped: "claimed_by_another_send", draftId };
   }
 
   const delivery: Delivery = await step.run("deliver", () => deliverDraft(ctx));

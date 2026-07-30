@@ -1093,6 +1093,7 @@ export type Database = {
         | "cancelled"
         | "generating"
         | "error"
+        | "sending"
       integration_provider:
         | "gmail"
         | "calendly"
@@ -1300,6 +1301,7 @@ export const Constants = {
         "cancelled",
         "generating",
         "error",
+        "sending",
       ],
       integration_provider: [
         "gmail",

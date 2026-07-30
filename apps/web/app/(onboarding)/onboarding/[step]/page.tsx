@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/supabase/admin";
 import {
   OnboardingStepEnum,
   SalesToolkitSchema,
@@ -69,7 +70,9 @@ export default async function OnboardingStepPage({ params }: Props) {
   // All steps done but completed_at never got set (orphaned state), self-heal and exit.
   if (!nextStep) {
     if (!coach?.onboarding_completed_at) {
-      await supabase
+      // onboarding_* is server-owned (not in the coaches column GRANT) so the
+      // wizard's step gates can't be skipped from the browser. Scope stays on user.id.
+      await adminClient
         .from("coaches")
         .update({ onboarding_completed_at: new Date().toISOString() })
         .eq("id", user.id);

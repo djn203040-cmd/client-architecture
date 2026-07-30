@@ -1,0 +1,25 @@
+-- Transient `sending` status: the claim that makes the send pipeline race-safe.
+--
+-- send-via-gmail guarded against duplicate `draft/send_via_gmail` events with a
+-- read-then-write: loadSendContext skipped when status='sent', but that status is
+-- read in one Inngest step and written (recordDelivery) several steps later. Two
+-- events for the same draft arriving inside that window (a late scheduled-send
+-- timer racing the 10-minute reconciler tick, or a coach approving an overdue
+-- draft the reconciler has already picked up) could both pass load-context before
+-- either recorded, and the lead got the same email twice.
+--
+-- `sending` closes the window: the send path claims the draft with a single
+-- atomic `UPDATE ... WHERE status IN ('approved','edited')`, and the loser of the
+-- race updates 0 rows and skips. Approval was already race-safe via the
+-- approve_draft_atomic advisory-lock CAS; this gives the send the same guarantee.
+--
+-- Lifetime is one send attempt. Nothing but the send path writes it, no UI
+-- surfaces it, and drafts.updated_at (stamped by drafts_set_updated_at) is the
+-- age used to detect a draft stuck mid-send.
+--
+-- Kept in its own migration because a new enum value cannot be USED in the same
+-- transaction that adds it.
+--
+-- Source: GitHub #139, pre-launch audit 2026-07-15.
+
+ALTER TYPE draft_status ADD VALUE IF NOT EXISTS 'sending';

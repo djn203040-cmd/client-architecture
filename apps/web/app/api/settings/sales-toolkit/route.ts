@@ -1,6 +1,7 @@
 import "server-only";
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/supabase/admin";
 import { SalesToolkitPatchSchema } from "@client/shared/validators";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +21,9 @@ export async function PATCH(req: NextRequest) {
       { status: 400 },
     );
 
-  const { data, error } = await supabase
+  // sales_toolkit is server-owned (not in the coaches column GRANT), so the write
+  // goes through the admin client. Scope stays on user.id from the session above.
+  const { data, error } = await adminClient
     .from("coaches")
     .update({ sales_toolkit: parsed.data })
     .eq("id", user.id)

@@ -51,7 +51,9 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  await supabase.from("coaches").update({ avatar_url: newUrl }).eq("id", user.id);
+  // avatar_url is server-owned (not in the coaches column GRANT) so that a coach
+  // cannot point it at another tenant's storage path. Scope stays on user.id.
+  await adminClient.from("coaches").update({ avatar_url: newUrl }).eq("id", user.id);
 
   return NextResponse.json({ url: newUrl });
 }

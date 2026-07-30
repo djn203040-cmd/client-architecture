@@ -2,6 +2,7 @@ import "server-only";
 import { NextResponse, type NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/supabase/admin";
 import {
   CompleteStepSchema,
   STEP_TO_PROGRESS_KEY,
@@ -114,7 +115,10 @@ export async function PATCH(req: NextRequest) {
   const updatePayload: Record<string, unknown> = { onboarding_progress: updatedProgress };
   if (allComplete) updatePayload.onboarding_completed_at = now;
 
-  const { error: updateError } = await supabase
+  // onboarding_progress / onboarding_completed_at are server-owned (not in the
+  // coaches column GRANT) so the per-step gates above can't be skipped straight
+  // from the browser. Scope stays on user.id from the session.
+  const { error: updateError } = await adminClient
     .from("coaches")
     .update(updatePayload)
     .eq("id", user.id);

@@ -115,7 +115,8 @@ export type SendSkip =
   | "draft_not_found"
   | "already_sent"
   | "not_sendable"
-  | "no_lead_email";
+  | "no_lead_email"
+  | "claimed_by_another_send";
 
 export interface SendContext {
   draftId: string;
@@ -224,6 +225,35 @@ export async function loadSendContext(
       sequenceId: draft.sequence_id ?? null,
     },
   };
+}
+
+/**
+ * Atomically claim a draft for exactly one send (#139).
+ *
+ * `loadSendContext` reads the status; this WRITES it, in a single statement
+ * whose WHERE clause is the precondition. Postgres serialises concurrent UPDATEs
+ * on the same row, so of two `draft/send_via_gmail` events racing (a late
+ * scheduled-send timer vs. the 10-minute reconciler tick, say) exactly one sees
+ * a row returned and proceeds; the other matches nothing and skips.
+ *
+ * MUST run in its own memoized Inngest step, AFTER the cadence gate, so a draft
+ * that returns early for `awaiting_scheduled_time` is never left in `sending`.
+ *
+ * Returns true when this caller owns the send.
+ */
+export async function claimDraftForSend(
+  draftId: string,
+  coachId: string,
+): Promise<boolean> {
+  const { data } = await adminClient
+    .from("drafts")
+    .update({ status: "sending" })
+    .eq("id", draftId)
+    .eq("coach_id", coachId)
+    .in("status", SENDABLE_STATUSES as unknown as string[])
+    .select("id");
+
+  return (data?.length ?? 0) > 0;
 }
 
 export interface Delivery {
