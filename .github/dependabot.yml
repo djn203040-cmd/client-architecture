@@ -11,9 +11,15 @@ updates:
       security-patches:
         applies-to: security-updates
         patterns: ["*"]
+      # Minor/patch only. A grouped major is a trap: PR #150 bundled eslint 9->10
+      # and typescript 6->7, both blocked upstream, in with 13 harmless bumps,
+      # so the whole group sat unmergeable and the safe updates went stale with
+      # it. Majors excluded here get their own individual PRs, which can be
+      # parked without holding anything else hostage.
       dev-dependencies:
         dependency-type: development
         patterns: ["*"]
+        update-types: ["minor", "patch"]
         exclude-patterns:
           - "@types/*"
     labels:
