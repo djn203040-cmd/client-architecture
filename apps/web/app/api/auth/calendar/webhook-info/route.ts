@@ -28,8 +28,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, error: "unknown_provider" }, { status: 400 });
   }
 
-  // Auto-mode providers (calendly, cal_com, acuity) verify with env-level secrets
-  // and register their webhook automatically on connect. No per-coach secret needed.
+  // Auto-mode providers (calendly, cal_com, acuity) register their webhook —
+  // including its per-coach secret / URL token — automatically on connect, so
+  // there is nothing for the coach to copy. The URL below is informational
+  // (the registered acuity target additionally carries its `?token=`).
   if (config.webhook.mode === "auto") {
     return NextResponse.json({
       ok: true,
@@ -88,11 +90,11 @@ export async function GET(request: Request) {
     console.error("[webhook-info] secret retrieval failed:", err);
   }
 
-  // Signature-less providers (setmore/tidycal/ms_bookings) can't HMAC-sign, so
-  // the secret rides in the URL as `token` (#82), the receiver timing-safe
-  // compares it against the stored Vault secret, and the coach copies one
-  // self-authenticating URL. Square keeps its own env-HMAC scheme, so its secret
-  // stays a separate field the coach pastes back (its own signature key).
+  // Manual providers carry the secret in the URL as `token` (#82): for the
+  // signature-less trio (setmore/tidycal/ms_bookings) it is the only gate; for
+  // square it binds the coachId that the app-level env HMAC key cannot. The
+  // receiver timing-safe compares it against the stored Vault secret, and the
+  // coach copies one self-authenticating URL.
   const usesUrlToken = URL_TOKEN_PROVIDERS.has(config.id);
   const webhookUrl = buildWebhookReceiverUrl(config.id, user.id, usesUrlToken ? secret : null);
 

@@ -70,22 +70,28 @@ export interface CalendarProviderConfig {
 // ---------------------------------------------------------------------------
 
 /**
- * Providers with NO HMAC webhook signature. They are authenticated by a
- * per-coach secret carried in the webhook URL as `?token=` and verified in
- * lib/calendar/verify-webhook-token.ts (#82). Square is intentionally NOT here:
- * it is `manual` mode too, but verifies a real HMAC via env SQUARE_WEBHOOK_SECRET.
+ * Providers whose webhook URL carries the per-coach secret as `?token=`.
+ *
+ * setmore/ms_bookings/tidycal have NO HMAC signature, so the token is the only
+ * gate (strict, lib/calendar/verify-webhook-token.ts, #82). square verifies a
+ * real HMAC via env SQUARE_WEBHOOK_SECRET, but that key is app-level and can't
+ * bind the coach, so the token additionally binds coachId (and is covered by
+ * Square's URL-inclusive HMAC). Acuity gets the same token treatment but is
+ * `auto` mode: registerAcuityWebhook embeds it at registration time.
  */
 export const URL_TOKEN_PROVIDERS: ReadonlySet<CalendarProviderId> = new Set([
   "setmore",
   "ms_bookings",
   "tidycal",
+  "square",
 ]);
 
 export function buildWebhookReceiverUrl(
   provider: CalendarProviderId,
   coachId: string,
-  // For URL_TOKEN_PROVIDERS only: the per-coach secret, appended as `token` so
-  // the coach copies a single self-authenticating URL (#82). Ignored otherwise.
+  // The per-coach secret, appended as `token` so the URL is self-binding to
+  // the coach (#82). Passed for URL_TOKEN_PROVIDERS (coach copies the URL) and
+  // by registerAcuityWebhook (embedded in the auto-registered target URL).
   token?: string | null,
 ): string {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -209,9 +215,8 @@ export const CALENDAR_PROVIDERS: Record<CalendarProviderId, CalendarProviderConf
       instructions: [
         "1. Sign in to the [Square Developer Dashboard](https://developer.squareup.com/).",
         "2. Open your application → **Webhooks → Subscriptions → Add Endpoint**.",
-        "3. Paste the URL above.",
+        "3. Paste the URL above (it contains your personal token — treat it like a password).",
         "4. Subscribe to events: `booking.created`, `booking.updated`.",
-        "5. Copy the **signature key** Square shows you, then paste it back here as the webhook secret.",
       ].join("\n"),
     },
   },

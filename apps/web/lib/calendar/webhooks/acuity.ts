@@ -1,4 +1,5 @@
 import "server-only";
+import { randomBytes } from "crypto";
 import { adminClient } from "@/lib/supabase/admin";
 import { buildWebhookReceiverUrl } from "@/lib/calendar/providers";
 import type { RegisterWebhookArgs, RegisteredWebhook } from "./index";
@@ -15,7 +16,23 @@ export async function registerAcuityWebhook(args: RegisterWebhookArgs): Promise<
   const { coachId, provider, accessToken } = args;
   if (!accessToken) return null;
 
-  const webhookUrl = buildWebhookReceiverUrl(provider.id, coachId);
+  // Acuity's signature key is app-level, so it can't bind the coach. The
+  // per-coach Vault secret rides in the registered target URL as `?token=` and
+  // the receiver requires it (verifyUrlTokenIfProvisioned). Stored BEFORE
+  // registration so a registered webhook is never missing its token.
+  const localSecret = randomBytes(32).toString("hex");
+  const { error: vaultErr } = await adminClient
+    .schema("private")
+    .rpc("store_calendar_webhook_secret", {
+      p_coach_id: coachId,
+      p_provider: provider.id,
+      p_secret: localSecret,
+    });
+  if (vaultErr) {
+    throw new Error(`acuity_webhook_secret_store_failed:${vaultErr.message}`);
+  }
+
+  const webhookUrl = buildWebhookReceiverUrl(provider.id, coachId, localSecret);
   const subscriptions: Array<{ id?: string }> = [];
 
   for (const event of ["scheduled", "rescheduled", "canceled"]) {

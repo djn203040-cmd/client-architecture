@@ -1,7 +1,9 @@
 import "server-only";
-import { timingSafeEqual } from "crypto";
-import { adminClient } from "@/lib/supabase/admin";
 import type { CalendarProviderId } from "@/lib/calendar/providers";
+import {
+  getStoredCalendarWebhookSecret,
+  timingSafeEqualStrings,
+} from "@/lib/calendar/webhook-secrets";
 
 /**
  * Token verification for the three "manual" calendar providers that offer NO
@@ -27,19 +29,10 @@ export async function verifyCalendarWebhookToken(
 ): Promise<boolean> {
   if (!token) return false;
 
-  const { data: stored, error } = await adminClient
-    .schema("private")
-    .rpc("get_calendar_webhook_secret", {
-      p_coach_id: coachId,
-      p_provider: provider,
-    });
-
   // Fail closed: no secret provisioned (coach never opened the webhook panel) or
   // a lookup error means we cannot trust the request.
-  if (error || typeof stored !== "string" || stored.length === 0) return false;
+  const stored = await getStoredCalendarWebhookSecret(coachId, provider);
+  if (!stored) return false;
 
-  const a = Buffer.from(token);
-  const b = Buffer.from(stored);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
+  return timingSafeEqualStrings(token, stored);
 }

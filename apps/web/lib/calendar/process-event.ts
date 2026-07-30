@@ -28,10 +28,13 @@ export async function processCalendarEvent(event: TCalendarEvent): Promise<void>
   const coachId = event.coachId;
 
   // Dedup: one booking uid fires booking_created then later no_show, so the key
-  // includes event_type (migration 20260530000002). Early-return on a repeat.
+  // includes event_type (migration 20260530000002). Scoped by coach_id
+  // (migration 20260730150000): providers with per-account numeric ids can
+  // reuse the same external_event_id across coaches. Early-return on a repeat.
   const { data: existing } = await adminClient
     .from("calendar_events")
     .select("id")
+    .eq("coach_id", coachId)
     .eq("provider", event.provider)
     .eq("external_event_id", event.externalEventId)
     .eq("event_type", event.eventType)
@@ -95,7 +98,9 @@ export async function processCalendarEvent(event: TCalendarEvent): Promise<void>
         .maybeSingle();
 
       await inngest.send({
-        id: `${event.provider}-${event.externalEventId}`,
+        // coachId in the dedup id: external ids are only unique per provider
+        // *account*, so two coaches can share one (same as the DB dedup key).
+        id: `${coachId}-${event.provider}-${event.externalEventId}`,
         name: LEAD_CALL_BOOKED,
         data: {
           coachId,
@@ -144,7 +149,7 @@ export async function processCalendarEvent(event: TCalendarEvent): Promise<void>
       const result = await recordCallOutcomeAtomic(lead.id, "no_show", "provider");
       if (result.ok) {
         await inngest.send({
-          id: `${event.provider}-${event.externalEventId}-no_show`,
+          id: `${coachId}-${event.provider}-${event.externalEventId}-no_show`,
           name: LEAD_NO_SHOW,
           data: {
             coachId,
@@ -194,7 +199,7 @@ export async function processCalendarEvent(event: TCalendarEvent): Promise<void>
         data: { callOutcomeId: outcome.id },
       });
       await inngest.send({
-        id: `${event.provider}-${event.externalEventId}-resched-${event.eventStartAt}`,
+        id: `${coachId}-${event.provider}-${event.externalEventId}-resched-${event.eventStartAt}`,
         name: LEAD_CALL_BOOKED,
         data: {
           coachId,

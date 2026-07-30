@@ -8,18 +8,30 @@ import type { RegisterWebhookArgs, RegisteredWebhook } from "./index";
 // https://cal.com/docs/api-reference/v2/webhooks/create-a-webhook
 //
 // Cal.com expects a `secret` field that it uses as the HMAC signing key for
-// X-Cal-Signature-256. That secret must match CAL_COM_WEBHOOK_SECRET that the
-// receiver verifies with (see apps/web/lib/calendar/index.ts verifyCalComSignature).
+// X-Cal-Signature-256. We register a per-coach random secret and store it in
+// Vault; the receiver verifies with the coach's stored secret, so a valid
+// signature also binds the payload to the coachId in the URL (env secret is
+// only a fallback for pre-existing registrations).
 //
-// Because the receiver uses a single env-level secret, we register the webhook
-// with that env value rather than a per-coach random one. Per-coach Vault
-// storage of subscription id only.
+// Vault store happens BEFORE the subscription is created: a registered webhook
+// whose key we failed to persist would fail verification forever.
 export async function registerCalComWebhook(args: RegisterWebhookArgs): Promise<RegisteredWebhook | null> {
   const { coachId, provider } = args;
   const apiKey = await getCalComApiKey(coachId);
   if (!apiKey) return null;
 
-  const sharedSecret = process.env.CAL_COM_WEBHOOK_SECRET ?? process.env.CALCOM_WEBHOOK_SECRET ?? randomBytes(32).toString("hex");
+  const localSecret = randomBytes(32).toString("hex");
+  const { error: vaultErr } = await adminClient
+    .schema("private")
+    .rpc("store_calendar_webhook_secret", {
+      p_coach_id: coachId,
+      p_provider: provider.id,
+      p_secret: localSecret,
+    });
+  if (vaultErr) {
+    throw new Error(`cal_com_webhook_secret_store_failed:${vaultErr.message}`);
+  }
+
   const webhookUrl = buildWebhookReceiverUrl(provider.id, coachId);
 
   const res = await fetch(`https://api.cal.com/v2/webhooks`, {
@@ -33,7 +45,7 @@ export async function registerCalComWebhook(args: RegisterWebhookArgs): Promise<
       subscriberUrl: webhookUrl,
       triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED", "BOOKING_NO_SHOW_UPDATED"],
       active: true,
-      secret: sharedSecret,
+      secret: localSecret,
     }),
   });
   if (!res.ok) {
