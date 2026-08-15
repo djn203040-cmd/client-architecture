@@ -5,6 +5,7 @@ import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import type { TLeadStatus } from "@client/shared/types";
 import type { CoachDetail } from "@/app/admin/admin-data";
 import { ResendInviteButton } from "@/components/admin/ResendInviteButton";
+import { DeleteCoachButton } from "@/components/admin/DeleteCoachButton";
 
 export function CoachDetailDrawer({ detail }: { detail: CoachDetail }) {
   const { coach, leads, integrations, invite_status } = detail;
@@ -25,7 +26,12 @@ export function CoachDetailDrawer({ detail }: { detail: CoachDetail }) {
             <h1 className="text-[28px] font-semibold leading-[1.2]">{coach.name}</h1>
             <p className="text-sm text-muted-foreground">{coach.email}</p>
           </div>
-          {invite_status === "pending" && <ResendInviteButton coachId={coach.id} />}
+          <div className="flex gap-2 flex-wrap">
+            {invite_status === "pending" && <ResendInviteButton coachId={coach.id} />}
+            {coach.role !== "admin" && (
+              <DeleteCoachButton coachId={coach.id} coachEmail={coach.email} coachName={coach.name} />
+            )}
+          </div>
         </div>
         {invite_status === "pending" && (
           <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">
@@ -43,7 +49,6 @@ export function CoachDetailDrawer({ detail }: { detail: CoachDetail }) {
             </span>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground mt-4">Read-only view (admin)</p>
       </header>
 
       <section>
