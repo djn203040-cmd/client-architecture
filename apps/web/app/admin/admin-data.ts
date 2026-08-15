@@ -1,6 +1,7 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
 import type { Database } from "@client/database";
+import { getInviteStatus, type TInviteStatus } from "@/lib/auth/invite-coach";
 
 type TCoach = Database["public"]["Tables"]["coaches"]["Row"];
 type TIntegration = Database["public"]["Tables"]["integrations"]["Row"];
@@ -78,9 +79,14 @@ export async function fetchCoachRoster(): Promise<CoachRosterRow[]> {
   });
 }
 
-export async function fetchCoachDetail(
-  coachId: string,
-): Promise<{ coach: TCoach; leads: TLead[]; integrations: TIntegration[] } | null> {
+export type CoachDetail = {
+  coach: TCoach;
+  leads: TLead[];
+  integrations: TIntegration[];
+  invite_status: TInviteStatus | null;
+};
+
+export async function fetchCoachDetail(coachId: string): Promise<CoachDetail | null> {
   const { data: coach } = await adminClient
     .from("coaches")
     .select("*")
@@ -89,19 +95,21 @@ export async function fetchCoachDetail(
 
   if (!coach) return null;
 
-  const [{ data: leads }, { data: integrations }] = await Promise.all([
+  const [{ data: leads }, { data: integrations }, invite_status] = await Promise.all([
     adminClient
       .from("leads")
       .select("*")
       .eq("coach_id", coachId)
       .order("created_at", { ascending: false }),
     adminClient.from("integrations").select("*").eq("coach_id", coachId),
+    getInviteStatus(coachId),
   ]);
 
   return {
     coach,
     leads: leads ?? [],
     integrations: integrations ?? [],
+    invite_status,
   };
 }
 

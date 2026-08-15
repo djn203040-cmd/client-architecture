@@ -2,19 +2,12 @@ import Link from "next/link";
 import { LeadStateBadge } from "@/components/leads/LeadStateBadge";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
-import type { Database } from "@client/database";
 import type { TLeadStatus } from "@client/shared/types";
+import type { CoachDetail } from "@/app/admin/admin-data";
+import { ResendInviteButton } from "@/components/admin/ResendInviteButton";
 
-type TCoach = Database["public"]["Tables"]["coaches"]["Row"];
-type TLead = Database["public"]["Tables"]["leads"]["Row"];
-type TIntegration = Database["public"]["Tables"]["integrations"]["Row"];
-
-export function CoachDetailDrawer({
-  detail,
-}: {
-  detail: { coach: TCoach; leads: TLead[]; integrations: TIntegration[] };
-}) {
-  const { coach, leads, integrations } = detail;
+export function CoachDetailDrawer({ detail }: { detail: CoachDetail }) {
+  const { coach, leads, integrations, invite_status } = detail;
 
   return (
     <article className="space-y-6">
@@ -27,8 +20,18 @@ export function CoachDetailDrawer({
       </Link>
 
       <header className="rounded-2xl bg-card dark:bg-white/5 border border-border dark:border-white/10 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] p-6">
-        <h1 className="text-[28px] font-semibold leading-[1.2]">{coach.name}</h1>
-        <p className="text-sm text-muted-foreground">{coach.email}</p>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-[28px] font-semibold leading-[1.2]">{coach.name}</h1>
+            <p className="text-sm text-muted-foreground">{coach.email}</p>
+          </div>
+          {invite_status === "pending" && <ResendInviteButton coachId={coach.id} />}
+        </div>
+        {invite_status === "pending" && (
+          <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">
+            Invite not accepted yet — links expire, resend if it went stale.
+          </p>
+        )}
         <div className="flex gap-2 mt-3 flex-wrap">
           {integrations.map((i) => (
             <span
