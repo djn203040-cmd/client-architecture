@@ -21,6 +21,6 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
-    "promptfoo": "^0.121.19"
+    "promptfoo": "^0.122.0"
   }
 }
