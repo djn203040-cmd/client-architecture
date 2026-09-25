@@ -49,23 +49,23 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@playwright/test": "1.62.0",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "26.1.2",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
-    "@typescript-eslint/eslint-plugin": "8.65.0",
-    "@typescript-eslint/parser": "8.65.0",
-    "@vitejs/plugin-react": "6.0.5",
+    "@typescript-eslint/eslint-plugin": "8.70.0",
+    "@typescript-eslint/parser": "8.70.0",
+    "@vitejs/plugin-react": "6.1.1",
     "@vitest/ui": "4.1.10",
-    "autoprefixer": "10.5.4",
+    "autoprefixer": "10.6.1",
     "eslint": "9.16.0",
-    "eslint-config-next": "16.2.12",
-    "happy-dom": "20.11.1",
-    "postcss": "8.5.26",
+    "eslint-config-next": "16.3.5",
+    "happy-dom": "20.14.5",
+    "postcss": "8.5.28",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
-    "vite": "8.2.0",
+    "vite": "8.3.0",
     "vitest": "4.1.10"
   }
 }
