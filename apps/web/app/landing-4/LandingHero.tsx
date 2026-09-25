@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ThinkingOrb } from "thinking-orbs";
 import "./landing4.css";
 import type { TLandingHeroCopy } from "./copy";
 
@@ -115,11 +116,9 @@ export default function LandingHero({ copy }: { copy: TLandingHeroCopy }) {
     <div className="l4-runway" ref={runwayRef}>
       {!ready && (
         <div className="l4-loader" role="status" aria-live="polite">
+          <ThinkingOrb state="shaping" size={64} theme="light" color="#14281f" aria-hidden="true" />
           <span className="l4-loader-mark">The Client Architecture</span>
           <span className="l4-loader-pct">{pct}%</span>
-          <span className="l4-loader-bar">
-            <span className="l4-loader-fill" style={{ width: `${pct}%` }} />
-          </span>
         </div>
       )}
 

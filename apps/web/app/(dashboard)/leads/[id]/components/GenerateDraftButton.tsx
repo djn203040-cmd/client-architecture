@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Sparkle, ArrowsClockwise } from "@phosphor-icons/react";
+import { Sparkle } from "@phosphor-icons/react";
+import { ThinkingOrb } from "thinking-orbs";
 import { Button } from "@/components/ui/button";
 import { createClient, realtimeAuthReady } from "@/lib/supabase/browser";
 import type { RealtimeChannel } from "@supabase/supabase-js";
@@ -131,7 +132,8 @@ export function GenerateDraftButton({ leadId, leadStatus }: Props) {
     >
       {generating ? (
         <>
-          <ArrowsClockwise size={16} className="mr-2 animate-spin" aria-hidden="true" />
+          {/* Pinned to light ink: the primary button is dark green in both themes */}
+          <ThinkingOrb state="composing" size={20} theme="dark" color="#F5F0E5" className="mr-2" aria-hidden="true" />
           {t.leads.generate.generating}
         </>
       ) : (

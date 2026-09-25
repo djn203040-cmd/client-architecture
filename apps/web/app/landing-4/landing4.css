@@ -294,22 +294,6 @@
   color: var(--l4-ink-soft);
 }
 
-.l4-loader-bar {
-  width: 180px;
-  height: 2px;
-  background: rgb(36 29 19 / 14%);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.l4-loader-fill {
-  display: block;
-  height: 100%;
-  background: var(--l4-ember);
-  border-radius: 999px;
-  transition: width 0.2s ease;
-}
-
 /* ================= SECTIONS ================= */
 
 .l4-section {
