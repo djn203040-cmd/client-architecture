@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ThinkingOrb } from "thinking-orbs";
 import "./landing4.css";
 import type { TLandingHeroCopy } from "./copy";
+import { MAC_ARROW, isMacPointer } from "./macCursor";
 
 const TOTAL_FRAMES = 101;
 const FRAME_PATH = (i: number) =>
@@ -25,6 +26,10 @@ export default function LandingHero({ copy }: { copy: TLandingHeroCopy }) {
   const drawnFrameRef = useRef(-1);
   const [loaded, setLoaded] = useState(0);
   const [ready, setReady] = useState(false);
+  // Gravity swaps in a raster of the pointer, so only enable it where that raster matches.
+  const [macPointer, setMacPointer] = useState(false);
+
+  useEffect(() => setMacPointer(isMacPointer()), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -116,7 +121,14 @@ export default function LandingHero({ copy }: { copy: TLandingHeroCopy }) {
     <div className="l4-runway" ref={runwayRef}>
       {!ready && (
         <div className="l4-loader" role="status" aria-live="polite">
-          <ThinkingOrb state="shaping" size={64} theme="light" color="#14281f" aria-hidden="true" />
+          <ThinkingOrb
+            state="connecting"
+            size={64}
+            theme="light"
+            color="#14281f"
+            gravity={macPointer ? { sprite: MAC_ARROW } : undefined}
+            aria-hidden="true"
+          />
           <span className="l4-loader-mark">The Client Architecture</span>
           <span className="l4-loader-pct">{pct}%</span>
         </div>
